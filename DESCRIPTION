@@ -1,0 +1,17 @@
+Package: metapack
+Type: Package
+Title: Bayesian Meta-Analysis and Network Meta-Analysis
+Version: 1.0
+Date: 2020-08-23
+Author: Daeyoung Lim [aut]
+Maintainer: Daeyoung Lim
+    <daeyoung.lim@uconn.edu>
+Description: This package contains algorithms for Bayesian meta analysis and regression under various models.
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+LazyLoad: yes
+RoxygenNote: 6.1.1
+NeedsCompilation: yes
+Imports: Rcpp
+Depends: R (>= 3.4), coda (>= 0.11-3)
+LinkingTo: Rcpp, RcppArmadillo, RcppProgress, BH
