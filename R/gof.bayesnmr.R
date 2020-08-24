@@ -6,12 +6,12 @@
 #' @export
 
 "gof.bayesnmr" <- function(object, type="lpml", verbose=FALSE) {
-	y <- object$y
-	npt <- object$npt
-	x <- object$x
+	y <- object$Outcome
+	npt <- object$Npt
+	x <- object$Covariate
 	z <- object$z
-	ids <- object$ids
-	iarm <- object$iarm
+	ids <- object$Study
+	iarm <- object$Treat
 	K <- object$K
 	nT <- object$nT
 	nkeep <- object$mcmc$nkeep

@@ -2,30 +2,38 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 BMVMR_POCov <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, s0, nu0, Omega0, Sigma0, K, T, fmodel, ndiscard, nskip, nkeep, verbose) {
-    .Call('_metapack_BMVMR_POCov', PACKAGE = 'metapack', Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, s0, nu0, Omega0, Sigma0, K, T, fmodel, ndiscard, nskip, nkeep, verbose)
+    .Call(`_metapack_BMVMR_POCov`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, s0, nu0, Omega0, Sigma0, K, T, fmodel, ndiscard, nskip, nkeep, verbose)
 }
 
 BayesNMR <- function(y, sd, x, z, ids, iarm, npt, nu, c01_inv, c02_inv, K, nT, ndiscard, nskip, nkeep, verbose, beta_init, phi_init, sig2_init) {
-    .Call('_metapack_BayesNMR', PACKAGE = 'metapack', y, sd, x, z, ids, iarm, npt, nu, c01_inv, c02_inv, K, nT, ndiscard, nskip, nkeep, verbose, beta_init, phi_init, sig2_init)
+    .Call(`_metapack_BayesNMR`, y, sd, x, z, ids, iarm, npt, nu, c01_inv, c02_inv, K, nT, ndiscard, nskip, nkeep, verbose, beta_init, phi_init, sig2_init)
 }
 
 calc_modelfit_dic <- function(y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose) {
-    .Call('_metapack_calc_modelfit_dic', PACKAGE = 'metapack', y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
+    .Call(`_metapack_calc_modelfit_dic`, y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
+}
+
+lpml_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose) {
+    .Call(`_metapack_lpml_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose)
+}
+
+dic_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose) {
+    .Call(`_metapack_dic_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose)
 }
 
 veclinv <- function(v, n) {
-    .Call('_metapack_veclinv', PACKAGE = 'metapack', v, n)
+    .Call(`_metapack_veclinv`, v, n)
 }
 
 pRho_to_Rho <- function(pRho) {
-    .Call('_metapack_pRho_to_Rho', PACKAGE = 'metapack', pRho)
+    .Call(`_metapack_pRho_to_Rho`, pRho)
 }
 
 calc_modelfit_lpml <- function(y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose) {
-    .Call('_metapack_calc_modelfit_lpml', PACKAGE = 'metapack', y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
+    .Call(`_metapack_calc_modelfit_lpml`, y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
 }
 
 rwish <- function(v, S) {
-    .Call('_metapack_rwish', PACKAGE = 'metapack', v, S)
+    .Call(`_metapack_rwish`, v, S)
 }
 

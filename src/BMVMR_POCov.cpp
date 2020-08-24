@@ -11,7 +11,6 @@
 #include "linearalgebra.h"
 #include "nelmin.h"
 #include "ListBuilder.h"
-
 // [[Rcpp::depends(RcppArmadillo,RcppProgress))]]
 
 /*
@@ -1460,13 +1459,19 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 			Omega_save.slice(ikeep) = Omega;
 
 			if (fmodel == 1) {
-				Sigma_save.slice(ikeep) = vechinv(Sig_lt.row(0), J);
+				Sigma_save.slice(ikeep) = vechinv(arma::trans(Sig_lt.row(0)), J);
 			} else {
 				if (fmodel == 2) {
-					Sigma_save.slice(ikeep) = vechinv(Sig_lt.row(0), J);
+					Sigma_save.slice(ikeep) = vechinv(arma::trans(Sig_lt.row(0)), J);
 				} else if (fmodel == 3) {
 					delta_save.slice(ikeep) = delta;
 					Rho_save.slice(ikeep) = Rho;
+					mat Sig_ikeep(N, (J*(J+1))/2, fill::zeros);
+					for (int i = 0; i < N; ++i) {
+						mat delta_ikeep = diagmat(delta.row(i));
+						Sig_ikeep.row(i) = arma::trans(vech(delta_ikeep * Rho * delta_ikeep));
+					}
+					Sig_save.slice(ikeep) = Sig_ikeep;
 				} else if (fmodel == 4) {
 					Sigma_save.slice(ikeep) = Sig0;
 					Sig_save.slice(ikeep) = Sig_lt;
@@ -1504,6 +1509,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 			out = ListBuilder()
 				.add("theta", theta_save)
 				.add("Omega", Omega_save)
+				.add("Sigma", Sig_save)
 				.add("delta", delta_save)
 				.add("Rho", Rho_save)
 				.add("R", Rtk_save)
