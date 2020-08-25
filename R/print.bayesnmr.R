@@ -74,5 +74,5 @@
 						   paste0("gam", 1:length(gam$mean)))
 	print(p_print, justify="left", digits=2)
 	cat("-----------------------------\n")
-	cat("Credible level: ", conf.level, "\n")
+	cat("*Credible level: ", conf.level, "\n")
 }

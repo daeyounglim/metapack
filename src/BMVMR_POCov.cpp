@@ -48,6 +48,9 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 					   const int& ndiscard,
 					   const int& nskip,
 					   const int& nkeep,
+					   const double& R_stepsize,
+					   const double& Rho_stepsize,
+					   const double& delta_stepsize,
 					   const bool& verbose) {
 	using namespace arma;
 	using namespace std;
@@ -96,7 +99,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 	
 	mat delta(N, J, fill::ones);
 	mat pRho(J, J);
-	pRho.fill(0.5);
+	pRho.fill(-0.1);
 	pRho.diag().fill(1.0);
 	mat Rho = pRho_to_Rho(pRho);
 	mat Rhoinv = arma::inv_sympd(Rho);
@@ -115,18 +118,6 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 	mat delta_rates(arma::size(delta), fill::zeros);
 	mat Delta_rates(arma::size(Delta), fill::zeros);
 	mat pRho_rates(arma::size(pRho), fill::zeros);
-
-	/*************************
-	Parameters for adaptive MH
-	*************************/
-    const double obj_rate = 0.44;
-    const int batch_length = std::min(50, ndiscard);
-    const int batch_total = ndiscard / batch_length;
-
-    mat pRtk_accepts(arma::size(pRtk), fill::zeros);
-    cube pRtk_rates(N, J * (J - 1) / 2, batch_total, fill::zeros);
-    mat pRtk_tunings(N, J * (J - 1) / 2); pRtk_tunings.fill(-0.9);
-    int batch_num = 0;
 
 	/*********
 	Containers
@@ -180,40 +171,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 				Sig_theta += ntk * Xstar.t() * arma::solve(Q, Xstar);
 				mu_theta += ntk * Xstar.t() * arma::solve(Q, y_i);
 			}
-			// for (int k = 0; k < K; ++k) {
-			// 	uvec idxk = idxks(k);
-			// 	int n_k = idxk.n_elem;
-			// 	mat XSX(nt, nt, fill::zeros);
-			// 	mat WSX(nw*J, nt, fill::zeros);
-			// 	vec WSy(nw*J, fill::zeros);
-			// 	vec XSy(nt, fill::zeros);
-			// 	mat Sig_gamk = Omegainv;
-			// 	for (int i = 0; i < n_k; ++i) {
-			// 		int i_k = idxk(i);
-			// 		rowvec x_i = XCovariate.row(i_k);
-			// 		rowvec w_i = WCovariate.row(i_k);
-			// 		rowvec y_i = Outcome.row(i_k);
-			// 		int t = Treat(i_k);
-			// 		mat Sigmainv = Sigmainvs(t, k);
-			// 		double ntk = Npt(i_k);
-			// 		mat X(J, xcols * J, fill::zeros);
-			// 		mat W(J, nw*J, fill::zeros);
-			// 		for (int j = 0; j < J; ++j) {
-			// 			X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
-			// 			W(j, span(j*nw, (j+1)*nw-1)) = w_i;
-			// 		}
-			// 		mat Xstar = join_horiz(X, W);
-			// 		XSX += ntk * Xstar.t() * Sigmainv * Xstar;
-			// 		XSy += ntk * Xstar.t() * Sigmainv * y_i.t();
-			// 		mat WS = ntk * W.t() * Sigmainv;
-			// 		Sig_gamk += WS * W;
-			// 		WSX += WS * Xstar;
-			// 		WSy += WS * y_i.t();
-			// 	}
-			// 	mat Sig_gamk_inv = arma::inv(Sig_gamk);
-			// 	Sig_theta += XSX - WSX.t() * Sig_gamk_inv * WSX;
-			// 	mu_theta += XSy - WSX.t() * Sig_gamk_inv * WSy;
-			// }
+
 			Sig_theta = 0.5 * (Sig_theta + Sig_theta.t());
 			mat Sig_thetaChol = chol(Sig_theta);
 			vec atmp(nt);
@@ -315,7 +273,6 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 					}
 					Siginv_lt.row(i) = arma::trans(vech(arma::diagmat(sig2inv)));
 					Sig_lt.row(i) = arma::trans(vech(arma::diagmat(1.0 / sig2inv)));
-					// Sigmainvs(t, k) = arma::diagmat(sig2inv);
 				}
 			} else {
 				if (fmodel == 2) {
@@ -383,7 +340,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 							double reqmin = 1.0e-20;
 							int konvge = 5;
 							int kcount = 1000;
-							double step[] = { 0.3 };
+							double step[] = { 0.2 };
 							int icount = 0;
 							int numres = 0;
 							int ifault = 0;
@@ -393,7 +350,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 							mat cl(5,3, fill::zeros);
 							vec dl(5, fill::zeros);
-							double step_size = 0.2;
+							double step_size = delta_stepsize;
 							delta_burnin_block:
 								for (int iii=0; iii < 5; ++iii) {
 									double e1 = static_cast<double>(iii-2);
@@ -487,7 +444,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 							mat cl(5,3, fill::zeros);
 							vec dl(5, fill::zeros);
-							double step_size = 0.2;
+							double step_size = Rho_stepsize;
 							pRho_burnin_block:
 								for (int iii=0; iii < 5; ++iii) {
 									double e1 = static_cast<double>(iii-2);
@@ -576,7 +533,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 						double reqmin = 1.0e-20;
 						int konvge = 5;
 						int kcount = 1000;
-						double step[] = { 0.3 };
+						double step[] = { 0.2 };
 						int icount = 0;
 						int numres = 0;
 						int ifault = 0;
@@ -586,7 +543,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 						mat cl(5,3, fill::zeros);
 						vec dl(5, fill::zeros);
-						double step_size = 0.2;
+						double step_size = delta_stepsize;
 						delta2_burnin_block:
 							for (int iii=0; iii < 5; ++iii) {
 								double e1 = static_cast<double>(iii-2);
@@ -678,7 +635,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 							mat cl(5,3, fill::zeros);
 							vec dl(5, fill::zeros);
-							double step_size = 0.2;
+							double step_size = Rho_stepsize;
 							pRho2_burnin_block:
 								for (int iii=0; iii < 5; ++iii) {
 									double e1 = static_cast<double>(iii-2);
@@ -745,14 +702,14 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 				for (int i = 0; i < N; ++i) {
 					rowvec y_i = Outcome.row(i);
 					rowvec prtk = pRtk.row(i);
-					mat R = veclinv(trans(prtk), J);
+					mat R = veclinv(trans(pRtk.row(i)), J);
 					R.diag().fill(1.0);
 					R = pRho_to_Rho(R);
 					mat V = arma::diagmat(SD.row(i));
 					double ntk = Npt(i);
 					mat Sigmainv = V * vechinv(arma::trans(Siginv_lt.row(i)), J) * V;
 
-					for (int kk = 0; kk < J*(J-1)/2; ++kk) {
+					for (int kk = 0; kk < (J*(J-1))/2; ++kk) {
 						int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(kk) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
 						int iC = kk + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
 						auto fx_rstar = [&](double rstar_input[])->double {
@@ -770,17 +727,55 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 							double loglik = 0.5 * (ntk - static_cast<double>(J) - 2.0) * logdet_val - 0.5 * (ntk - 1.0) * arma::dot(R_prop, Sigmainv);
 							loglik += 0.5 * static_cast<double>(J - 1 - std::abs(iC - iR)) * std::log(1.0 - std::pow((std::exp(2.0*rstarp)-1.0)/(std::exp(2.0*rstarp)+1.0),2.0))+
 						     	      2.0*rstarp - 2.0*std::log(std::exp(2.0*rstarp)+1.0);
-						    return loglik;
+						    return -loglik;
 						};
-						
-						// double zstar = 0.5 * (std::log(1.0 + prtk(kk)) - std::log(1.0 - prtk(kk)));
 						double zstar = std::atanh(prtk(kk));
-						double zstar_prop = ::norm_rand() * std::exp(pRtk_tunings(i,kk)) + zstar;
-						// log-likelihood difference
 						double start[] = { zstar };
-						double ll_diff = -fx_rstar(start);
+						double xmin[] = { 0.0 };
+						double ynewlo = 0.0;
+						double reqmin = 1.0e-20;
+						int konvge = 5;
+						int kcount = 1000;
+						double step[] = { 0.2 };
+						int icount = 0;
+						int numres = 0;
+						int ifault = 0;
+						nelmin(fx_rstar, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);					
+						double xmax = xmin[0];
+						double minll = ynewlo;
+
+						mat cl(5,3, fill::zeros);
+						vec dl(5, fill::zeros);
+						double step_size = R_stepsize;
+						R_burnin_block:
+							for (int iii=0; iii < 5; ++iii) {
+								double e1 = static_cast<double>(iii-2);
+								cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
+								cl(iii,1) = xmax + e1 * step_size;
+								cl(iii,2) = 1.0;
+								start[0] = xmax + e1 * step_size;
+								dl(iii) = fx_rstar(start);
+							}
+
+						for (int ni=0; ni < 5; ++ni) {
+							if ((ni+1) != 3) {
+								if (dl(ni) <= minll) {
+									step_size *= 1.2;
+									goto R_burnin_block;
+								}
+							}
+						}
+
+						vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
+						double sigmaa = std::sqrt(0.5 / fl(0));
+
+						double zstar_prop = ::norm_rand() * sigmaa + xmax;
+						// log-likelihood difference
+						start[0] = zstar;
+						double ll_diff = fx_rstar(start);
 						start[0] = zstar_prop;
-						ll_diff += fx_rstar(start);
+						ll_diff += -fx_rstar(start)
+								    - 0.5 * (std::pow(zstar - xmax, 2.0) - std::pow(zstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
 						if (std::log(::unif_rand()) < ll_diff) {
 							prtk(kk) = std::tanh(zstar_prop);
 							pRtk.row(i) = prtk;
@@ -789,22 +784,6 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 					}
 				}
 			}
-			if ((idiscard+1) % batch_length == 0) {
-                pRtk_accepts /= static_cast<double>(batch_length);
-                pRtk_rates.slice(batch_num) = pRtk_accepts;
-
-                for (int i = 0; i < N; ++i) {
-                    for (int j = 0; j < J*(J-1)/2; ++j) {
-                        if (pRtk_tunings(i,j) > obj_rate) {
-                            pRtk_tunings(i, j) += std::min(0.01, 1.0 / std::sqrt(static_cast<double>(batch_num+1)));
-                        } else {
-                            pRtk_tunings(i, j) -= std::min(0.01, 1.0 / std::sqrt(static_cast<double>(batch_num+1)));
-                        }
-                    }
-                }
-                ++batch_num;
-                pRtk_accepts.fill(0.0);
-            }
 			prog.increment();
 		}
 	}
@@ -1009,7 +988,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 								double reqmin = 1.0e-20;
 								int konvge = 5;
 								int kcount = 1000;
-								double step[] = { 0.3 };
+								double step[] = { 0.2 };
 								int icount = 0;
 								int numres = 0;
 								int ifault = 0;
@@ -1019,7 +998,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 								mat cl(5,3, fill::zeros);
 								vec dl(5, fill::zeros);
-								double step_size = 0.2;
+								double step_size = delta_stepsize;
 								delta_sampling_block:
 									for (int iii=0; iii < 5; ++iii) {
 										double e1 = static_cast<double>(iii-2);
@@ -1091,8 +1070,8 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 									double logdet_sign;
 									log_det(logdet_val, logdet_sign, Rhop);
 
-									double loglik = -0.5 * dot(qq, arma::inv(Rhop)) - 0.5 * sumNpt * logdet_val;
-									loglik += 0.5 * (static_cast<double>(J - 1 - std::abs(iC - iR))) *
+									double loglik = -0.5 * arma::dot(qq, arma::inv_sympd(Rhop)) - 0.5 * sumNpt * logdet_val;
+									loglik += 0.5 * static_cast<double>(J - 1 - std::abs(iC - iR)) *
 											  std::log(1.0 - std::pow((std::exp(2.0*zprhop)-1.0)/(std::exp(2.0*zprhop)+1.0),2.0))+
 								     	      2.0*zprhop - 2.0*std::log(std::exp(2.0*zprhop)+1.0);
 								    return -loglik;
@@ -1113,7 +1092,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 								mat cl(5,3, fill::zeros);
 								vec dl(5, fill::zeros);
-								double step_size = 0.2;
+								double step_size = Rho_stepsize;
 								pRho_sampling_block:
 									for (int iii=0; iii < 5; ++iii) {
 										double e1 = static_cast<double>(iii-2);
@@ -1135,7 +1114,6 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 								vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
 								double sigmaa = std::sqrt(0.5 / fl(0));
-
 
 								double zprho_prop = ::norm_rand() * sigmaa + xmax;
 								// log-likelihood difference
@@ -1162,8 +1140,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 							Sig_lt.row(i) = arma::trans(vech(Sig_new));
 							Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 						}
-					}
-					else if (fmodel == 4) {
+					} else if (fmodel == 4) {
 						// Update Delta
 						for (int j = 0; j < J; ++j) {
 							mat Delta_prop = Delta;
@@ -1203,7 +1180,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 							double reqmin = 1.0e-20;
 							int konvge = 5;
 							int kcount = 1000;
-							double step[] = { 0.3 };
+							double step[] = { 0.2 };
 							int icount = 0;
 							int numres = 0;
 							int ifault = 0;
@@ -1213,7 +1190,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 							mat cl(5,3, fill::zeros);
 							vec dl(5, fill::zeros);
-							double step_size = 0.2;
+							double step_size = delta_stepsize;
 							delta2_sampling_block:
 								for (int iii=0; iii < 5; ++iii) {
 									double e1 = static_cast<double>(iii-2);
@@ -1305,7 +1282,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 								mat cl(5,3, fill::zeros);
 								vec dl(5, fill::zeros);
-								double step_size = 0.2;
+								double step_size = Rho_stepsize;
 								pRho2_sampling_block:
 									for (int iii=0; iii < 5; ++iii) {
 										double e1 = static_cast<double>(iii-2);
@@ -1416,7 +1393,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 
 							mat cl(5,3, fill::zeros);
 							vec dl(5, fill::zeros);
-							double step_size = 0.05;
+							double step_size = R_stepsize;
 							R_sampling_block:
 								for (int iii=0; iii < 5; ++iii) {
 									double e1 = static_cast<double>(iii-2);
@@ -1504,7 +1481,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 				.add("Omega", Omega_save)
 			    .add("Sigma", Sigma_save)
 			    .add("R", Rtk_save)
-			    .add("pR_acceptance", pR_rates);
+			    .add("pR_acceptance", pR_rates / static_cast<double>(ndiscard + nskip*nkeep));
 		} else if (fmodel == 3) {
 			out = ListBuilder()
 				.add("theta", theta_save)
@@ -1513,9 +1490,9 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 				.add("delta", delta_save)
 				.add("Rho", Rho_save)
 				.add("R", Rtk_save)
-				.add("delta_acceptance", delta_rates)
-				.add("pRho_acceptance", pRho_rates)
-			    .add("pR_acceptance", pR_rates);
+				.add("delta_acceptance", delta_rates / static_cast<double>(ndiscard + nskip*nkeep))
+				.add("pRho_acceptance", pRho_rates / static_cast<double>(ndiscard + nskip*nkeep))
+			    .add("pR_acceptance", pR_rates / static_cast<double>(ndiscard + nskip*nkeep));
 		} else if (fmodel == 4) {
 			out = ListBuilder()
 				.add("theta", theta_save)
@@ -1525,9 +1502,9 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 				.add("Sigma0", Sigma_save)
 				.add("Sigma", Sig_save)
 				.add("R", Rtk_save)
-				.add("Delta_acceptance", Delta_rates)
-				.add("pRho_acceptance", pRho_rates)
-			    .add("pR_acceptance", pR_rates);
+				.add("Delta_acceptance", Delta_rates / static_cast<double>(ndiscard + nskip*nkeep))
+				.add("pRho_acceptance", pRho_rates / static_cast<double>(ndiscard + nskip*nkeep))
+			    .add("pR_acceptance", pR_rates / static_cast<double>(ndiscard + nskip*nkeep));
 		} else {
 			out = ListBuilder().add("warning", "Returned without a result. Please check your fmodel.");
 		}

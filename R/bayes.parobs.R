@@ -12,30 +12,37 @@
 #' @param fmodel the model number; defaults to M1
 #' @param prior list of hyperparameters; when not given, algorithm will run in default setting
 #' @param mcmc list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
+#' @param control list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta.
 #' @param verbose logical variable for printing progress bar. Default to FALSE.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
 #' \dontrun{
 #' data("cholesterol")
-#' Outcome <- cbind(cholesterol$ldlcm, cholesterol$hdlcm, cholesterol$tgm)
-#' SD <- cbind(cholesterol$ldlcsd, cholesterol$hdlcsd, cholesterol$tgsd)
+#' Outcome <- cbind(cholesterol$pldlc, cholesterol$phdlc, cholesterol$ptg)
+#' SD <- cbind(cholesterol$sdldl, cholesterol$sdhdl, cholesterol$sdtg)
 #' Trial <- cholesterol$Trial
-#' Treat <- cholesterol$Trt
-#' Npt <- cholesterol$npt
-#' XCovariate <- cbind(cholesterol$bl_ldlc, cholesterol$bl_hdlc, cholesterol$bl_tg, cholesterol$age, cholesterol$Dur, cholesterol$white, cholesterol$male, cholesterol$DM)
-#' WCovariate <- cbind(1, cholesterol$Trt)
+#' Treat <- cholesterol$trt
+#' Npt <- cholesterol$Npt
+#' XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc, cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white, cholesterol$male, cholesterol$dm)
+#' WCovariate <- cbind(1-cholesterol$onstat, cholesterol$trt * (1-cholesterol$onstat), cholesterol$onstat, cholesterol$trt * cholesterol$onstat)
 #'
-#' fit <- bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, 1,
-#' 			mcmc=list(ndiscard=2500,nskip=1,nkeep=10000), verbose = TRUE)
+#' fmodel <- 3
+#' fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale=TRUE, center=TRUE), WCovariate, Treat, Trial, Npt, fmodel,
+#' 			mcmc=list(ndiscard=100000,nskip=1,nkeep=20000), verbose = TRUE)
 #' }
 #' @export
-bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), verbose=FALSE) {
+bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), verbose=FALSE) {
 	mcvals <- list(ndiscard = 5000L, nskip = 1L, nkeep = 20000L)
-	mcvals[names(mcmc)] = mcmc
+	mcvals[names(mcmc)] <- mcmc
 	ndiscard <- mcvals$ndiscard
 	nskip <- mcvals$nskip
 	nkeep <- mcvals$nkeep
 
+	ctrl <- list(R_stepsize = 0.2, Rho_stepsize = 0.2, delta_stepsize = 0.2, Delta_stepsize = 0.2)
+	ctrl[names(control)] <- control
+	R_stepsize <- ctrl$R_stepsize
+	Rho_stepsize <- ctrl$Rho_stepsize
+	delta_stepsize <- ctrl$delta_stepsize
 
 	J = ncol(Outcome)
 	nw = ncol(WCovariate)
@@ -81,9 +88,12 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 					  as.integer(ndiscard),
 					  as.integer(nskip),
 					  as.integer(nkeep),
+					  as.double(R_stepsize),
+					  as.double(Rho_stepsize),
+					  as.double(delta_stepsize),
 					  as.logical(verbose))
 			})
-
+	rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
 	out <- list(Outcome = Outcome,
 				SD = SD,
 				Npt = Npt,

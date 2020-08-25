@@ -4,7 +4,7 @@
 \name{cholesterol}
 \alias{cholesterol}
 \title{Cholesterol data}
-\format{An object of class \code{data.frame} with 52 rows and 17 columns.}
+\format{An object of class \code{data.frame} with 52 rows and 19 columns.}
 \usage{
 data(cholesterol)
 }

@@ -5,7 +5,8 @@
 \title{Fit Bayesian Inference for Multivariate Meta-Regression With a Partially Observed Within-Study Sample Covariance Matrix}
 \usage{
 bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
-  fmodel = 1, prior = list(), mcmc = list(), verbose = FALSE)
+  fmodel = 1, prior = list(), mcmc = list(), control = list(),
+  verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -28,6 +29,8 @@ bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
 \item{mcmc}{list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
 
+\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta.}
+
 \item{verbose}{logical variable for printing progress bar. Default to FALSE.}
 }
 \value{
@@ -39,16 +42,17 @@ This is a function for running the Markov chain Monte Carlo algorithm for the BM
 \examples{
 \dontrun{
 data("cholesterol")
-Outcome <- cbind(cholesterol$ldlcm, cholesterol$hdlcm, cholesterol$tgm)
-SD <- cbind(cholesterol$ldlcsd, cholesterol$hdlcsd, cholesterol$tgsd)
+Outcome <- cbind(cholesterol$pldlc, cholesterol$phdlc, cholesterol$ptg)
+SD <- cbind(cholesterol$sdldl, cholesterol$sdhdl, cholesterol$sdtg)
 Trial <- cholesterol$Trial
-Treat <- cholesterol$Trt
-Npt <- cholesterol$npt
-XCovariate <- cbind(cholesterol$bl_ldlc, cholesterol$bl_hdlc, cholesterol$bl_tg, cholesterol$age, cholesterol$Dur, cholesterol$white, cholesterol$male, cholesterol$DM)
-WCovariate <- cbind(1, cholesterol$Trt)
+Treat <- cholesterol$trt
+Npt <- cholesterol$Npt
+XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc, cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white, cholesterol$male, cholesterol$dm)
+WCovariate <- cbind(1-cholesterol$onstat, cholesterol$trt * (1-cholesterol$onstat), cholesterol$onstat, cholesterol$trt * cholesterol$onstat)
 
-fit <- bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, 1,
-			mcmc=list(ndiscard=2500,nskip=1,nkeep=10000), verbose = TRUE)
+fmodel <- 3
+fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale=TRUE, center=TRUE), WCovariate, Treat, Trial, Npt, fmodel,
+			mcmc=list(ndiscard=100000,nskip=1,nkeep=20000), verbose = TRUE)
 }
 }
 \author{

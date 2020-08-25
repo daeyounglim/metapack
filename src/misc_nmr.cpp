@@ -127,7 +127,7 @@ double loglik_z(const double& zprho,
 
 		loglik += -0.5 * logdet_val - 0.5 * arma::accu(resid_k % arma::solve(tmpmat, resid_k));
 	}
-	loglik += 0.5 * (static_cast<double>(nT - 1 - std::abs(index2 - index1))) *
+	loglik += 0.5 * static_cast<double>(nT - 1 - std::abs(index2 - index1)) *
 			  std::log(1.0 - std::pow((std::exp(2.0*zprho)-1.0)/(std::exp(2.0*zprho)+1.0),2.0))+
      	      2.0*zprho - 2.0*std::log(std::exp(2.0*zprho)+1.0);
 	return loglik;

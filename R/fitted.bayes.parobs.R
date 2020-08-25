@@ -81,39 +81,38 @@
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
-		Omega.hpd <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$Omega, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
-		Omega$lower <- Omega.hpd[,1]
-		Omega$upper <- Omega.hpd[,2]
-
-		Sigma.hpd <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$Sigma, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
-		Sigma$lower <- Sigma.hpd[,1]
-		Sigma$upper <- Sigma.hpd[,2]
+		Omega.hpd <- hpdarray(object$mcmc.draws$Omega, conf.level = conf.level)
+		Omega$lower <- Omega.hpd[,,1]
+		Omega$upper <- Omega.hpd[,,2]
+		Sigma.hpd <- hpdarray(object$mcmc.draws$Sigma, conf.level = conf.level)
+		Sigma$lower <- Sigma.hpd[,,1]
+		Sigma$upper <- Sigma.hpd[,,2]
 
 		if (fmodel >= 2) {
-			R.hpd <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$R, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
-			R$lower <- R.hpd[,1]
-			R$upper <- R.hpd[,2]
+			R.hpd <- hpdarray(object$mcmc.draws$R, conf.level = conf.level)
+			R$lower <- R.hpd[,,1]
+			R$upper <- R.hpd[,,2]
 
 			if (fmodel == 3) {
-				delta.hpd <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$delta, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
-				delta$lower <- delta.hpd[,1]
-				delta$upper <- delta.hpd[,2]
+				delta.hpd <- hpdarray(object$mcmc.draws$delta, conf.level = conf.level)
+				delta$lower <- delta.hpd[,,1]
+				delta$upper <- delta.hpd[,,2]
 
-				Rho.hpd <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$Rho, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
-				Rho$lower <- Rho.hpd[,1]
-				Rho$upper <- Rho.hpd[,2]
+				Rho.hpd <- hpdarray(object$mcmc.draws$Rho, conf.level = conf.level)
+				Rho$lower <- Rho.hpd[,,1]
+				Rho$upper <- Rho.hpd[,,2]
 			} else if (fmodel == 4) {
 				Delta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$Delta), end=object$mcmc$nkeep), prob=conf.level)
 				Delta$lower <- Delta.hpd[,1]
 				Delta$upper <- Delta.hpd[,2]
 
-				Rho.hpd <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$Rho, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
-				Rho$lower <- Rho.hpd[,1]
-				Rho$upper <- Rho.hpd[,2]
-
-				Sigma0.hpd <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$Sigma0, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
-				Sigma0$lower <- Sigma0.hpd[,1]
-				Sigma0$upper <- Sigma0.hpd[,2]
+				Rho.hpd <- hpdarray(object$mcmc.draws$Rho, conf.level = conf.level)
+				Rho$lower <- Rho.hpd[,,1]
+				Rho$upper <- Rho.hpd[,,2]
+				
+				Sigma0.hpd <- hpdarray(object$mcmc.draws$Sigma0, conf.level = conf.level)
+				Sigma0$lower <- Sigma0.hpd[,,1]
+				Sigma0$upper <- Sigma0.hpd[,,2]
 			}
 		}
 	} else {
@@ -125,24 +124,24 @@
 		Sigma$upper <- apply(object$mcmc.draws$Sigma, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$Sigma[,,1])]
 
 		if (fmodel >= 2) {
-			R$lower <- apply(object$mcmc.draws$R, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$R[,,1])]
-			R$upper <- apply(object$mcmc.draws$R, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$R[,,1])]
+			R$lower <- apply(object$mcmc.draws$R, 3, function(xx) quantile(xx, prob = sig.level/2))
+			R$upper <- apply(object$mcmc.draws$R, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 			if (fmodel == 3) {
-				delta$lower <- apply(object$mcmc.draws$delta, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$delta[,,1])]
-				delta$upper <- apply(object$mcmc.draws$delta, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$delta[,,1])]
+				delta$lower <- apply(object$mcmc.draws$delta, 3, function(xx) quantile(xx, prob = sig.level/2))
+				delta$upper <- apply(object$mcmc.draws$delta, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 
-				Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$Rho[,,1])]
-				Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$Rho[,,1])]
+				Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))
+				Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 			} else if (fmodel == 4) {
 				Delta$lower <- apply(object$mcmc.draws$Delta, 1, function(xx) quantile(xx, prob = sig.level/2))
 				Delta$upper <- apply(object$mcmc.draws$Delta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
-				Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$Rho[,,1])]
-				Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$Rho[,,1])]
+				Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))
+				Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 				
-				Sigma0$lower <- apply(object$mcmc.draws$Sigma0, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$Sigma0[,,1])]
-				Sigma0$upper <- apply(object$mcmc.draws$Sigma0, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$Sigma0[,,1])]
+				Sigma0$lower <- apply(object$mcmc.draws$Sigma0, 3, function(xx) quantile(xx, prob = sig.level/2))
+				Sigma0$upper <- apply(object$mcmc.draws$Sigma0, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 			}
 		}
 	}
