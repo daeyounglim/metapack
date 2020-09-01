@@ -27,9 +27,87 @@ delta_star : J * K
 If J = 1, don't sample psi
 */
 
+arma::mat der_ij(const arma::mat& varphi, const arma::mat& R, const int& i, const int& j) {
+	const int J = varphi.n_cols;
+	arma::mat U(J, J, arma::fill::zeros);
+	for (int i = 0; i < J-1; ++i) {
+		for (int j = i+1; j < J; ++j) {
+			U(i,j) = std::tanh(varphi(i,j));
+		}
+	}
+
+	arma::mat D(J, J, arma::fill::zeros);
+	D(j,j) = -R(j,j) * U(i,j);
+	if (i == 0) {
+		D(i,j) = 1.0 - U(i,j) * U(i,j);
+	} else {
+		D(i,j) = R(i,j) / U(i,j) * (1.0 - U(i,j) * U(i,j));
+	}
+
+	if (std::abs(i-j) > 1) {
+		for (int k = i+1; k < j; ++k) {
+			D(k,j) = -R(k,j) * U(i,j);
+		}
+	}
+	return D;
+}
+
+arma::vec constructD(const arma::vec& vphi, const int& J, const double& N, arma::mat qq) {
+	int vdim = vphi.n_elem;
+	arma::mat varphi = vecrinv(vphi, J);
+	arma::mat R = constructR(vphi, J);
+	arma::mat Rinv = arma::inv(arma::trimatu(R));
+	arma::mat rhoinv = Rinv * Rinv.t();
+	arma::mat DRlogKR = -N * Rinv.t() + R * rhoinv * qq * rhoinv;
+
+	arma::vec D(vdim, arma::fill::zeros);
+	int idim = 0;
+	for (int i = 0; i < J-1; ++i) {
+		for (int j = i+1; j < J; ++j) {
+			arma::mat dij = der_ij(varphi, R, i, j);
+			D(idim) = arma::dot(DRlogKR, dij);
+			++idim;
+		}
+	}
+	return D;
+}
+
+
+void leapfrog_vRho(const int& L_HMC, // # of leapfrog jumps
+				   const double& eps_HMC, // leapfrop stepsize
+				   const int& J,
+				   const double& N,
+				   const arma::mat& qq,
+				   arma::vec& vphi,
+				   arma::vec& eta // auxiliary momentum vector (standard normal vector)
+				   ) {
+	for (int l = 0; l < L_HMC; ++l) {
+		arma::vec DlogKvphi = constructD(vphi, J, N, qq);
+		eta += 0.5 * eps_HMC * DlogKvphi;
+		vphi += eps_HMC * eta;
+		DlogKvphi = constructD(vphi, J, N, qq);
+		eta += 0.5 * eps_HMC * DlogKvphi;
+	}
+}
+
+double computeH(const arma::vec& vphi, const arma::vec& eta, const int& J, const double& N, const arma::mat& qq) {
+	int vdim = vphi.n_elem;
+	
+	arma::mat R = constructR(vphi, J);
+	arma::mat Rinv = arma::inv(arma::trimatu(R));
+	arma::mat rhoinv = Rinv * Rinv.t();
+	double loglik = -N * arma::prod(R.diag()) - 0.5 * arma::dot(rhoinv, qq) - 0.5 * std::pow(arma::norm(eta), 2.0);
+	for (int kk = 0; kk < vdim; ++kk) {
+		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(kk) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
+		int iC = kk + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
+		double z = std::tanh(vphi(kk));
+		loglik += 0.5 * static_cast<double>(J - 1 - std::abs(iC-iR)) * std::log1p(-z*z) + (1.0 - z*z);
+	}
+	return loglik;
+}
 
 // [[Rcpp::export]]
-Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
+Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 					   const arma::mat& SD,
 					   const arma::mat& XCovariate,
 					   const arma::mat& WCovariate,
@@ -54,6 +132,8 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 					   const double& R_stepsize,
 					   const double& Rho_stepsize,
 					   const double& delta_stepsize,
+					   const int& L_HMC,
+					   const double& eps_HMC,
 					   const bool& verbose) {
 	using namespace arma;
 	using namespace std;
@@ -77,8 +157,24 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 	/***********************
 	Parameter Initialization
 	***********************/
+	mat xx(nt, nt, fill::zeros);
+	vec xy(nt, fill::zeros);
+	for (int i = 0; i < N; ++i) {
+		vec y_i = arma::trans(Outcome.row(i));
+		rowvec x_i = XCovariate.row(i);
+		rowvec w_i = WCovariate.row(i);
+		mat X(J, xcols*J, fill::zeros);
+		mat W(J, nw*J, fill::zeros);
+		for (int j = 0; j < J; ++j) {
+			X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+			W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+		}
+		mat Xstar = join_horiz(X, W);
+		xx += Xstar.t() * Xstar;
+		xy += Xstar.t() * y_i;
+	}
 
-	vec theta(nt, fill::zeros);
+	vec theta = arma::solve(xx, xy);
 	mat gamR(nw*J, K, fill::ones);
 	mat Omegainv(nw*J, nw*J, fill::eye);
 	mat Omega(arma::size(Omegainv), fill::eye);
@@ -86,8 +182,8 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 	mat Siginv_lt(N, (J * (J + 1)) /2); // Sigma^{-1} lower triangular := vech(Sigma_{tk}^{-1})
 	mat vRtk(N, J * (J - 1) / 2);
 	vRtk.fill(0.5);
-	mat delta(N, J, fill::ones);
-	vec vRho(J*(J-1)/2);
+	mat delta = SD;
+	vec vRho(J * (J - 1) / 2);
 	std::generate(vRho.begin(), vRho.end(), ::norm_rand);
 	mat Rho = constructR(vRho, J);
 	Rho = Rho.t() * Rho;
@@ -99,10 +195,8 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 		Siginv_lt.row(i) = arma::trans(vech(Sigmainv));
 	}
 	mat Delta(J, J, fill::eye);
-
 	
 	mat Sig0 = Delta * Rho * Delta;
-
 	/************
 	Miscellaneous
 	************/
@@ -116,6 +210,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 	mat delta_rates(arma::size(delta), fill::zeros);
 	mat Delta_rates(arma::size(Delta), fill::zeros);
 	vec vRho_rates(arma::size(vRho), fill::zeros);
+	double Rho_rates = 0.0;
 
 	/*********
 	Containers
@@ -416,82 +511,34 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 						mat siginvm = arma::diagmat(1.0 / delta.row(i));
 						qq += siginvm * dAd * siginvm;
 					}
-					for (int ii = 0; ii < (J*(J-1))/2; ++ii) {
-						int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
-						int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
-						double zprho = vRho(ii);
-						auto fx_zrho = [&](double zprho_input[])->double {
-							double zprhop = zprho_input[0];
-							vec vRhop = vRho;
-							vRhop(ii) = zprhop;
-							mat RRp = constructR(vRhop, J);
-							mat RRpinv = arma::inv(arma::trimatu(RRp));
-							mat Rhop = RRp.t() * RRp;
-							mat Rhopinv = RRpinv * RRpinv.t();
-							double logdet_val = 2.0 * arma::prod(RRp.diag());
 
-							double loglik = -0.5 * dot(qq, Rhopinv) - 0.5 * sumNpt * logdet_val;
-							loglik += 0.5 * (static_cast<double>(J - 1 - std::abs(iC - iR))) *
-									  std::log(1.0 - std::pow((std::exp(2.0*zprhop)-1.0)/(std::exp(2.0*zprhop)+1.0),2.0))+
-						     	      2.0*zprhop - 2.0*std::log(std::exp(2.0*zprhop)+1.0);
-						    return -loglik;
-						};
-						double start[] = { zprho };
-						double xmin[] = { 0.0 };
-						double ynewlo = 0.0;
-						double reqmin = 1.0e-20;
-						int konvge = 5;
-						int kcount = 1000;
-						double step[] = { 0.2 };
-						int icount = 0;
-						int numres = 0;
-						int ifault = 0;
-						nelmin(fx_zrho, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);					
-						double xmax = xmin[0];
-						double minll = ynewlo;
+					vec eta(arma::size(vRho));
+					std::generate(eta.begin(), eta.end(), ::norm_rand);
+					vec eta_old = eta;
+					vec vRho_old = vRho;
+					double loglik_old = computeH(vRho_old, eta_old, J, sumNpt, qq);
+					leapfrog_vRho(L_HMC, eps_HMC, J, sumNpt, qq, vRho, eta);
+					double loglik_new = computeH(vRho, eta, J, sumNpt, qq);
+					if (std::log(::unif_rand()) < loglik_new - loglik_old) {
+						// Update Rho, Rhoinv, Sigmainvs
+						arma::mat R = constructR(vRho, J);
+						Rho = R.t() * R;
+						arma::mat Rinv = arma::inv(arma::trimatu(R));
+						Rhoinv = Rinv * Rinv.t();
 
-						mat cl(5,3, fill::zeros);
-						vec dl(5, fill::zeros);
-						double step_size = Rho_stepsize;
-						pRho_burnin_block:
-							for (int iii=0; iii < 5; ++iii) {
-								double e1 = static_cast<double>(iii-2);
-								cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
-								cl(iii,1) = xmax + e1 * step_size;
-								cl(iii,2) = 1.0;
-								start[0] = xmax + e1 * step_size;
-								dl(iii) = fx_zrho(start);
-							}
-
-						for (int ni=0; ni < 5; ++ni) {
-							if ((ni+1) != 3) {
-								if (dl(ni) <= minll) {
-									step_size *= 1.2;
-									goto pRho_burnin_block;
-								}
-							}
+						for (int i = 0; i < N; ++i) {
+							mat siginvm = arma::diagmat(1.0 / delta.row(i));
+							mat Siginv_new = siginvm * Rhoinv * siginvm;
+							mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
+							Sig_lt.row(i) = arma::trans(vech(Sig_new));
+							Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 						}
-
-						vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
-						double sigmaa = std::sqrt(0.5 / fl(0));
-
-
-						double zprho_prop = ::norm_rand() * sigmaa + xmax;
-						// log-likelihood difference
-						start[0] = zprho;
-						double ll_diff = fx_zrho(start);
-						start[0] = zprho_prop;
-						ll_diff += -fx_zrho(start)
-								    - 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-						if (std::log(::unif_rand()) < ll_diff) {
-							vRho(ii) = zprho_prop;
-							mat RR = constructR(vRho, J);
-							mat RRinv = arma::inv(arma::trimatu(RR));
-							Rho = RR.t() * RR;
-							Rhoinv = RRinv * RRinv.t();
-							++vRho_rates(ii);
-						}
+						++Rho_rates;
+					} else {
+						vRho = vRho_old;
 					}
+
+
 					// Update Sigmainvs
 					for (int i = 0; i < N; ++i) {
 						mat siginvm = arma::diagmat(1.0 / delta.row(i));
@@ -913,6 +960,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 						}
 						Siginv_lt.row(i) = arma::trans(vech(arma::diagmat(sig2inv)));
 						Sig_lt.row(i) = arma::trans(vech(arma::diagmat(1.0 / sig2inv)));
+						// Sigmainvs(t, k) = arma::diagmat(sig2inv);
 					}
 				} else {
 					if (fmodel == 2) {
@@ -1046,265 +1094,60 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 							mat siginvm = arma::diagmat(1.0 / delta.row(i));
 							qq += siginvm * dAd * siginvm;
 						}
-						for (int ii = 0; ii < (J*(J-1))/2; ++ii) {
-							int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
-							int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
-							double zprho = vRho(ii);
-							auto fx_zrho = [&](double zprho_input[])->double {
-								double zprhop = zprho_input[0];
-								vec vRhop = vRho;
-								vRhop(ii) = zprhop;
-								mat RRp = constructR(vRhop, J);
-								mat RRpinv = arma::inv(arma::trimatu(RRp));
-								mat Rhop = RRp.t() * RRp;
-								mat Rhopinv = RRpinv * RRpinv.t();
-								double logdet_val = 2.0 * arma::prod(RRp.diag());
 
-								double loglik = -0.5 * dot(qq, Rhopinv) - 0.5 * sumNpt * logdet_val;
-								loglik += 0.5 * (static_cast<double>(J - 1 - std::abs(iC - iR))) *
-										  std::log(1.0 - std::pow((std::exp(2.0*zprhop)-1.0)/(std::exp(2.0*zprhop)+1.0),2.0))+
-							     	      2.0*zprhop - 2.0*std::log(std::exp(2.0*zprhop)+1.0);
-							    return -loglik;
-							};
-							double start[] = { zprho };
-							double xmin[] = { 0.0 };
-							double ynewlo = 0.0;
-							double reqmin = 1.0e-20;
-							int konvge = 5;
-							int kcount = 1000;
-							double step[] = { 0.2 };
-							int icount = 0;
-							int numres = 0;
-							int ifault = 0;
-							nelmin(fx_zrho, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);					
-							double xmax = xmin[0];
-							double minll = ynewlo;
+						vec eta(arma::size(vRho));
+						std::generate(eta.begin(), eta.end(), ::norm_rand);
+						vec eta_old = eta;
+						vec vRho_old = vRho;
+						double loglik_old = computeH(vRho_old, eta_old, J, sumNpt, qq);
+						leapfrog_vRho(L_HMC, eps_HMC, J, sumNpt, qq, vRho, eta);
+						double loglik_new = computeH(vRho, eta, J, sumNpt, qq);
+						if (std::log(::unif_rand()) < loglik_new - loglik_old) {
+							// Update Rho, Rhoinv, Sigmainvs
+							arma::mat R = constructR(vRho, J);
+							Rho = R.t() * R;
+							arma::mat Rinv = arma::inv(arma::trimatu(R));
+							Rhoinv = Rinv * Rinv.t();
 
-							mat cl(5,3, fill::zeros);
-							vec dl(5, fill::zeros);
-							double step_size = Rho_stepsize;
-							pRho_sampling_block:
-								for (int iii=0; iii < 5; ++iii) {
-									double e1 = static_cast<double>(iii-2);
-									cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
-									cl(iii,1) = xmax + e1 * step_size;
-									cl(iii,2) = 1.0;
-									start[0] = xmax + e1 * step_size;
-									dl(iii) = fx_zrho(start);
-								}
-
-							for (int ni=0; ni < 5; ++ni) {
-								if ((ni+1) != 3) {
-									if (dl(ni) <= minll) {
-										step_size *= 1.2;
-										goto pRho_sampling_block;
-									}
-								}
+							for (int i = 0; i < N; ++i) {
+								mat siginvm = arma::diagmat(1.0 / delta.row(i));
+								mat Siginv_new = siginvm * Rhoinv * siginvm;
+								mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
+								Sig_lt.row(i) = arma::trans(vech(Sig_new));
+								Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 							}
-
-							vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
-							double sigmaa = std::sqrt(0.5 / fl(0));
-
-
-							double zprho_prop = ::norm_rand() * sigmaa + xmax;
-							// log-likelihood difference
-							start[0] = zprho;
-							double ll_diff = fx_zrho(start);
-							start[0] = zprho_prop;
-							ll_diff += -fx_zrho(start)
-									    - 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-							if (std::log(::unif_rand()) < ll_diff) {
-								vRho(ii) = zprho_prop;
-								mat RR = constructR(vRho, J);
-								mat RRinv = arma::inv(arma::trimatu(RR));
-								Rho = RR.t() * RR;
-								Rhoinv = RRinv * RRinv.t();
-								++vRho_rates(ii);
-							}
+							++Rho_rates;
+						} else {
+							vRho = vRho_old;
 						}
-						// Update Sigmainvs
+					} else if (fmodel == 4) {
+						// Update Sig0
+						mat qq(J, J, fill::zeros);
 						for (int i = 0; i < N; ++i) {
-							mat siginvm = arma::diagmat(1.0 / delta.row(i));
-							mat Siginv_new = siginvm * Rhoinv * siginvm;
-							mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
-							Sig_lt.row(i) = arma::trans(vech(Sig_new));
-							Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
+							qq += vechinv(trans(Siginv_lt.row(i)), J);
 						}
-					}  else if (fmodel == 4) {
-						// Update Delta
-						for (int j = 0; j < J; ++j) {
-							mat Delta_prop = Delta;
-							auto fx_delta = [&](double delta_input[])->double {
-								double logdeltap = delta_input[0];
-								double deltap = std::exp(logdeltap);
-								Delta_prop(j,j) = deltap;
-								mat Sig_prop = Delta_prop * Rho * Delta_prop;
-								double loglik = (static_cast<double>(T*K) * nu0 + d0 - static_cast<double>(J)) * logdeltap - 0.5 * arma::dot(Sigma0inv, Sig_prop);
-								for (int i = 0; i < N; ++i) {
-									rowvec w_i = WCovariate.row(i);
-									mat RR = constructR(trans(vRtk.row(i)), J);
-									mat R = RR.t() * RR;
-									int k = Trial(i);
-									vec gam_k = gamR.col(k);
-									mat V = arma::diagmat(SD.row(i));
-									mat W(J, nw*J, fill::zeros);
-									for (int j = 0; j < J; ++j) {
-										W(j, span(j*nw, (j+1)*nw-1)) = w_i;
-									}
-									double ntk = Npt(i);
-									vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
-									mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * Sig_prop;
-									double logdet_val;
-									double logdet_sign;
-									log_det(logdet_val, logdet_sign, qq);
-									loglik -= 0.5 * (ntk + nu0) * logdet_val;
-								}
-							    return -loglik;
-							};
-
-							double dstar = std::log(Delta(j,j));
-							double start[] = { dstar };
-							double xmin[] = { 0.0 };
-							double ynewlo = 0.0;
-							double reqmin = 1.0e-20;
-							int konvge = 5;
-							int kcount = 1000;
-							double step[] = { 0.2 };
-							int icount = 0;
-							int numres = 0;
-							int ifault = 0;
-							nelmin(fx_delta, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);					
-							double xmax = xmin[0];
-							double minll = ynewlo;
-
-							mat cl(5,3, fill::zeros);
-							vec dl(5, fill::zeros);
-							double step_size = delta_stepsize;
-							delta2_sampling_block:
-								for (int iii=0; iii < 5; ++iii) {
-									double e1 = static_cast<double>(iii-2);
-									cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
-									cl(iii,1) = xmax + e1 * step_size;
-									cl(iii,2) = 1.0;
-									start[0] = xmax + e1 * step_size;
-									dl(iii) = fx_delta(start);
-								}
-
-							for (int ni=0; ni < 5; ++ni) {
-								if ((ni+1) != 3) {
-									if (dl(ni) <= minll) {
-										step_size *= 1.2;
-										goto delta2_sampling_block;
-									}
-								}
+						qq *= (nu0 - static_cast<double>(J) - 1.0);
+						qq += Sigma0inv;
+						Sig0 = rwish(static_cast<double>(T*K) * nu0 + d0, arma::inv_sympd(qq));
+						
+						// Update Sigma
+						for (int i = 0; i < N; ++i) {
+							rowvec w_i = WCovariate.row(i);
+							mat RR = constructR(trans(vRtk.row(i)), J);
+							mat R = RR.t() * RR;
+							double ntk = Npt(i);
+							int k = Trial(i);
+							vec gam_k = gamR.col(k);
+							mat V = arma::diagmat(SD.row(i));
+							mat W(J, nw*J, fill::zeros);
+							for (int j = 0; j < J; ++j) {
+								W(j, span(j*nw, (j+1)*nw-1)) = w_i;
 							}
-
-							vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
-							double sigmaa = std::sqrt(0.5 / fl(0));
-
-
-							double dstar_prop = ::norm_rand() * sigmaa + xmax;
-							// log-likelihood difference
-							start[0] = dstar;
-							double ll_diff = fx_delta(start);
-							start[0] = dstar_prop;
-							ll_diff += -fx_delta(start)
-									    - 0.5 * (std::pow(dstar - xmax, 2.0) - std::pow(dstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-							if (std::log(::unif_rand()) < ll_diff) {
-								Delta(j, j) = std::exp(dstar_prop);
-								++Delta_rates(j,j);
-							}
-						}
-
-						// Update Rho
-						for (int ii = 0; ii < (J*(J-1))/2; ++ii) {
-							int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
-							int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
-							double zprho = vRho(ii);
-							auto fx_zrho = [&](double zprho_input[])->double {
-								double zprhop = zprho_input[0];
-								vec vRhop = vRho;
-								vRhop(ii) = zprhop;
-								mat RRp = constructR(vRhop, J);
-								mat Rhop = RRp.t() * RRp;
-								double logdet_val = 2.0 * arma::prod(RRp.diag());
-
-								mat Sig_prop = Delta * Rhop * Delta;
-								double loglik = 0.5 * (static_cast<double>(T*K) * nu0 + d0 - static_cast<double>(J) - 1.0) * logdet_val - 0.5 * arma::dot(Sigma0inv, Sig_prop);
-								for (int i = 0; i < N; ++i) {
-									rowvec w_i = WCovariate.row(i);
-									mat RR = constructR(trans(vRtk.row(i)), J);
-									mat R = RR.t() * RR;
-									int k = Trial(i);
-									vec gam_k = gamR.col(k);
-									mat V = arma::diagmat(SD.row(i));
-									mat W(J, nw*J, fill::zeros);
-									for (int j = 0; j < J; ++j) {
-										W(j, span(j*nw, (j+1)*nw-1)) = w_i;
-									}
-									double ntk = Npt(i);
-									vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
-									mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * Sig_prop;
-									double logdet_sign;
-									log_det(logdet_val, logdet_sign, qq);
-									loglik -= 0.5 * (ntk + nu0) * logdet_val;
-								}
-								loglik += 0.5 * (static_cast<double>(J - 1 - std::abs(iC - iR))) *
-										  std::log(1.0 - std::pow((std::exp(2.0*zprhop)-1.0)/(std::exp(2.0*zprhop)+1.0),2.0))+
-							     	      2.0*zprhop - 2.0*std::log(std::exp(2.0*zprhop)+1.0);
-							    return -loglik;
-							};
-							double start[] = { zprho };
-							double xmin[] = { 0.0 };
-							double ynewlo = 0.0;
-							double reqmin = 1.0e-20;
-							int konvge = 5;
-							int kcount = 1000;
-							double step[] = { 0.2 };
-							int icount = 0;
-							int numres = 0;
-							int ifault = 0;
-							nelmin(fx_zrho, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);					
-							double xmax = xmin[0];
-							double minll = ynewlo;
-
-							mat cl(5,3, fill::zeros);
-							vec dl(5, fill::zeros);
-							double step_size = Rho_stepsize;
-							pRho2_sampling_block:
-								for (int iii=0; iii < 5; ++iii) {
-									double e1 = static_cast<double>(iii-2);
-									cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
-									cl(iii,1) = xmax + e1 * step_size;
-									cl(iii,2) = 1.0;
-									start[0] = xmax + e1 * step_size;
-									dl(iii) = fx_zrho(start);
-								}
-
-							for (int ni=0; ni < 5; ++ni) {
-								if ((ni+1) != 3) {
-									if (dl(ni) <= minll) {
-										step_size *= 1.2;
-										goto pRho2_sampling_block;
-									}
-								}
-							}
-
-							vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
-							double sigmaa = std::sqrt(0.5 / fl(0));
-
-
-							double zprho_prop = ::norm_rand() * sigmaa + xmax;
-							// log-likelihood difference
-							start[0] = zprho;
-							double ll_diff = fx_zrho(start);
-							start[0] = zprho_prop;
-							ll_diff += -fx_zrho(start)
-									    - 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-							if (std::log(::unif_rand()) < ll_diff) {
-								vRho(ii) = zprho_prop;
-								++vRho_rates(ii);
-							}
+							vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
+							mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * Sig0;
+							mat Siginv_prop = rwish(nu0 + ntk, arma::inv_sympd(qq));
+							Siginv_lt.row(i) = arma::trans(vech(Siginv_prop));
+							Sig_lt.row(i) = arma::trans(vech(arma::inv_sympd(Siginv_prop)));
 						}
 					}
 
@@ -1451,7 +1294,7 @@ Rcpp::List BMVMR_POCov(const arma::mat& Outcome,
 				.add("Rho", Rho_save)
 				.add("R", Rtk_save)
 				.add("delta_acceptance", delta_rates / static_cast<double>(ndiscard + nskip*nkeep))
-				.add("vRho_acceptance", vRho_rates / static_cast<double>(ndiscard + nskip*nkeep))
+				.add("Rho_acceptance", Rho_rates / static_cast<double>(ndiscard + nskip*nkeep))
 			    .add("vR_acceptance", vR_rates / static_cast<double>(ndiscard + nskip*nkeep));
 		} else if (fmodel == 4) {
 			out = ListBuilder()

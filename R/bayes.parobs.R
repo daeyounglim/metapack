@@ -12,7 +12,7 @@
 #' @param fmodel the model number; defaults to M1
 #' @param prior list of hyperparameters; when not given, algorithm will run in default setting
 #' @param mcmc list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
-#' @param control list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta.
+#' @param control list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); they're all 0.2 by default
 #' @param verbose logical variable for printing progress bar. Default to FALSE.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
@@ -38,16 +38,20 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 	nskip <- mcvals$nskip
 	nkeep <- mcvals$nkeep
 
-	ctrl <- list(R_stepsize = 0.2, Rho_stepsize = 0.2, delta_stepsize = 0.2, Delta_stepsize = 0.2)
+	ctrl <- list(R_stepsize = 0.2, Rho_stepsize = 0.2, delta_stepsize = 0.2, L_HMC = 7, eps_HMC = 0.00002)
 	ctrl[names(control)] <- control
 	R_stepsize <- ctrl$R_stepsize
 	Rho_stepsize <- ctrl$Rho_stepsize
 	delta_stepsize <- ctrl$delta_stepsize
+	L_HMC <- ctrl$L_HMC
+	eps_HMC <- ctrl$eps_HMC
 
 	J = ncol(Outcome)
 	nw = ncol(WCovariate)
- 	priorvals <- list(c0 = 1.0e05, dj0 = 0.1 + nw, d0 = 0.1 + J, s0 = 0.1, Omega0 = diag(10,nw), Sigma0 = diag(10,J), nu0 = 10)
+ 	priorvals <- list(c0 = 1.0e05, dj0 = 0.1 + nw, d0 = 0.1 + J, s0 = 0.1, a0 = 0.1, b0 = 0.1, Omega0 = diag(10,nw), Sigma0 = diag(10,J), nu0 = 10)
 	priorvals[names(prior)] <- prior
+	a0 <- priorvals$a0
+	b0 <- priorvals$b0
 	c0 <- priorvals$c0
 	dj0 <- priorvals$dj0
 	d0 <- priorvals$d0
@@ -67,7 +71,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 	T <- length(unique(Treat))
 
 	mcmctime <- system.time({
-				fout <- .Call(`_metapack_BMVMR_POCov`,
+				fout <- .Call(`_metapack_BMVMR_POCovHMC`,
 					  as.matrix(Outcome),
 					  as.matrix(SD),
 					  as.matrix(XCovariate),
@@ -80,6 +84,8 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 					  as.double(d0),
 					  as.double(s0),
 					  as.double(nu0),
+					  as.double(a0),
+					  as.double(b0),
 					  as.matrix(Omega0),
 					  as.matrix(Sigma0),
 					  as.integer(K),
@@ -91,9 +97,13 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 					  as.double(R_stepsize),
 					  as.double(Rho_stepsize),
 					  as.double(delta_stepsize),
+					  as.integer(L_HMC),
+					  as.double(eps_HMC),
 					  as.logical(verbose))
 			})
-	rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
+	if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
+		rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
+	}
 	out <- list(Outcome = Outcome,
 				SD = SD,
 				Npt = Npt,

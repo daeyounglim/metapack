@@ -29,7 +29,7 @@ bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
 \item{mcmc}{list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
 
-\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta.}
+\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); they're all 0.2 by default}
 
 \item{verbose}{logical variable for printing progress bar. Default to FALSE.}
 }

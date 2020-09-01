@@ -5,6 +5,62 @@
 #include "linearalgebra.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 
+arma::mat vecr(const arma::mat& X) {
+	const int J = X.n_cols;
+	arma::vec vphi((J*(J-1))/2);
+	for (int i = 0; i < J-1; ++i) {
+		for (int j = i+1; j < J; ++j) {
+			int k = (J*(J-1)/2) - (J-i)*((J-i)-1)/2 + j - i - 1;
+			vphi(k) = X(i,j);
+		}
+	}
+	return vphi;
+}
+
+arma::mat vecrinv(const arma::vec& X, const int& J) {
+	const int vdim = X.n_elem;
+	arma::mat R(J, J, arma::fill::zeros);
+	for (int kk = 0; kk < vdim; ++kk) {
+		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(kk) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
+		int iC = kk + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
+		R(iR,iC) = X(kk);
+	}
+	return R;
+}
+
+
+arma::mat constructR(const arma::vec& vphi, const int& J) {
+	arma::mat varphi = vecrinv(vphi, J);
+	arma::mat R(J, J, arma::fill::eye);
+	for (int i = 0; i < J; ++i) {
+		for (int j = i; j < J; ++j) {
+			if (i == 0 && j == 0) {
+				continue;
+			} else if (i == 0 && j > 0) {
+				R(i,j) = std::tanh(varphi(i,j));
+			} else if (i > 0 && i == j) {
+				if (i > 1) {
+					for (int k = 0; k < i; ++k) {
+						R(i,j) *= std::sqrt(1.0 - std::pow(std::tanh(varphi(k,j)), 2.0));	
+					}
+				} else {
+					R(i,j) = std::sqrt(1.0 - std::pow(std::tanh(varphi(0,j)), 2.0));
+				}
+			} else if (i > 0 && j > i) {
+				if (i > 1) {
+					R(i,j) = std::tanh(varphi(i,j));
+					for (int k = 0; k < i; ++k) {
+						R(i,j) *= std::sqrt(1.0 - std::pow(std::tanh(varphi(k,j)), 2.0));	
+					}
+				} else {
+					R(i,j) = std::tanh(varphi(i,j)) * std::sqrt(1.0 - std::pow(std::tanh(varphi(0,j)), 2.0));
+				}
+			}
+		}
+	}
+	return R;
+}
+
 arma::vec vecl(const arma::mat& X) {
 	using namespace arma;
 	int n = X.n_rows;
@@ -17,7 +73,6 @@ arma::vec vecl(const arma::mat& X) {
 	return out;
 }
 
-// [[Rcpp::export]]
 arma::mat veclinv(const arma::vec& v, const int& n) {
 	using namespace arma;
 	mat out(n, n, fill::zeros);
@@ -124,7 +179,6 @@ arma::mat blockdiag( arma::field<arma::mat>& x ) {
 Convert partial correlation
 to correlation
 **************************/
-// [[Rcpp::export]]
 arma::mat pRho_to_Rho(arma::mat& pRho) {
 	using namespace arma;
 	using namespace Rcpp;
