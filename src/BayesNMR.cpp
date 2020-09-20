@@ -413,7 +413,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 	mat gam_save(ns, nkeep, arma::fill::zeros);
 
 	if (verbose) {
-		Rcout << "Saving posterior samples" << endl;
+		Rcout << "Sampling" << endl;
 	}
 	{
 		Progress prog(nkeep, verbose);

@@ -24,6 +24,7 @@ arma::mat vecrinv(const arma::vec& X, const int& J) {
 		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(kk) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
 		int iC = kk + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
 		R(iR,iC) = X(kk);
+		R(iC,iR) = X(kk);
 	}
 	return R;
 }
@@ -73,21 +74,21 @@ arma::vec vecl(const arma::mat& X) {
 	return out;
 }
 
-arma::mat veclinv(const arma::vec& v, const int& n) {
-	using namespace arma;
-	mat out(n, n, fill::zeros);
-	int count1 = 0;
-	int count2 = n-2;
-	for (int i = 0; i < n-1; ++i) {
-		vec vv = v(span(count1, count2));
-		out(span(i+1, n-1), i) = vv;
-		out(i, span(i+1,n-1)) = vv.t();
-		count1 = count2+1;
-		count2 += n-2-i;
-	}
-	return out;
-}
-
+// template <typename TN>
+// arma::mat veclinv(TN& v, const int& n) {
+// 	using namespace arma;
+// 	mat out(n, n, fill::zeros);
+// 	int count1 = 0;
+// 	int count2 = n-2;
+// 	for (int i = 0; i < n-1; ++i) {
+// 		vec vv = v(span(count1, count2));
+// 		out(span(i+1, n-1), i) = vv;
+// 		out(i, span(i+1,n-1)) = vv.t();
+// 		count1 = count2+1;
+// 		count2 += n-2-i;
+// 	}
+// 	return out;
+// }
 
 arma::vec vech(const arma::mat& X) {
 	int n = X.n_rows;
@@ -99,6 +100,8 @@ arma::vec vech(const arma::mat& X) {
 	}
 	return out;
 }
+
+
 
 arma::mat vechinv(const arma::vec& v, const int& n) {
 	using namespace arma;
@@ -221,4 +224,28 @@ arma::mat pRho_to_Rho(arma::mat& pRho) {
 		}
 	}
 	return Rho;
+}
+
+// hyperspherical reparameterization: Rho = B * B'
+arma::mat constructB(const arma::mat& Rangle) {
+	const int J = Rangle.n_cols;
+	arma::mat B(J, J, arma::fill::zeros);
+	for (int j = 0; j < J; ++j) {
+		for (int i = j; i < J; ++i) {
+			if (i == 0 && i == j) {
+				B(i,i) = 1.0;
+			} else if (i != j) {
+				B(i,j) = std::cos(Rangle(i,j));
+				for (int l = 0; l < j; ++l) {
+					B(i,j) *= std::sin(Rangle(i,l));
+				}
+			} else {
+				B(i,i) = 1.0;
+				for (int l = 0; l < i; ++l) {
+					B(i,i) *= std::sin(Rangle(i,l));
+				}
+			}
+		}
+	}
+	return B;
 }

@@ -8,7 +8,9 @@
 "fitted.bayes.parobs" <- function(object, conf.level = 0.95, HPD = TRUE, ...) {
 	out <- list()
 	fmodel <- object$fmodel
-
+	ypred <- list()
+	ypred$mean <- apply(object$mcmc.draws$ypred, c(1,2), mean)
+	ypred$sd <- apply(object$mcmc.draws$ypred, c(1,2), sd)
 	if (object$fmodel == 1) {
 		theta <- list()
 		theta$mean <- rowMeans(object$mcmc.draws$theta)
@@ -62,8 +64,8 @@
 		Sigma$mean <- apply(object$mcmc.draws$Sigma, c(1,2), mean)
 		Sigma$sd <- apply(object$mcmc.draws$Sigma, c(1,2), sd)
 		Delta <- list()
-		Delta$mean <- rowMeans(object$mcmc.draws$Delta)
-		Delta$sd <- apply(object$mcmc.draws$Delta, 1, sd)
+		Delta$mean <- rowMeans(object$mcmc.draws$delta)
+		Delta$sd <- apply(object$mcmc.draws$delta, 1, sd)
 		Rho <- list()
 		Rho$mean <- apply(object$mcmc.draws$Rho, c(1,2), mean)
 		Rho$sd <- apply(object$mcmc.draws$Rho, c(1,2), sd)
@@ -102,7 +104,7 @@
 				Rho$lower <- Rho.hpd[,,1]
 				Rho$upper <- Rho.hpd[,,2]
 			} else if (fmodel == 4) {
-				Delta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$Delta), end=object$mcmc$nkeep), prob=conf.level)
+				Delta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=conf.level)
 				Delta$lower <- Delta.hpd[,1]
 				Delta$upper <- Delta.hpd[,2]
 
@@ -134,8 +136,8 @@
 				Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))
 				Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 			} else if (fmodel == 4) {
-				Delta$lower <- apply(object$mcmc.draws$Delta, 1, function(xx) quantile(xx, prob = sig.level/2))
-				Delta$upper <- apply(object$mcmc.draws$Delta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+				Delta$lower <- apply(object$mcmc.draws$delta, 1, function(xx) quantile(xx, prob = sig.level/2))
+				Delta$upper <- apply(object$mcmc.draws$delta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 				Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))
 				Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
@@ -149,6 +151,7 @@
 	out <- object
 	out$conf.level <- conf.level
 	out$hpd <- hpd
+	out$ypred <- ypred
 	out$theta <- theta
 	out$Sigma <- Sigma
 	out$Omega <- Omega

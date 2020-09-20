@@ -52,7 +52,7 @@ arma::mat der_ij(const arma::mat& varphi, const arma::mat& R, const int& i, cons
 	return D;
 }
 
-arma::vec constructD(const arma::vec& vphi, const int& J, const double& N, arma::mat qq) {
+arma::vec constructD(const arma::vec& vphi, const int& J, const double& N, const arma::mat& qq) {
 	int vdim = vphi.n_elem;
 	arma::mat varphi = vecrinv(vphi, J);
 	arma::mat R = constructR(vphi, J);
@@ -70,6 +70,15 @@ arma::vec constructD(const arma::vec& vphi, const int& J, const double& N, arma:
 		}
 	}
 	return D;
+}
+
+arma::vec constructDdel(const arma::vec& vphi, const double& ntk, const arma::mat& rhoinv, const arma::mat& qq, const double& a0, const double& b0) {
+	arma::vec delinv = arma::exp(-vphi);
+	arma::vec del = arma::exp(vphi);
+	arma::vec A = -(a0+1.0) * delinv + b0 * arma::square(delinv);
+	arma::mat Delinv = arma::diagmat(delinv);
+
+	return (arma::diagvec(-ntk * Delinv + Delinv * rhoinv * Delinv * qq * Delinv) + A) % del;
 }
 
 
@@ -90,6 +99,8 @@ void leapfrog_vRho(const int& L_HMC, // # of leapfrog jumps
 	}
 }
 
+
+
 double computeH(const arma::vec& vphi, const arma::vec& eta, const int& J, const double& N, const arma::mat& qq) {
 	int vdim = vphi.n_elem;
 	
@@ -104,6 +115,31 @@ double computeH(const arma::vec& vphi, const arma::vec& eta, const int& J, const
 		loglik += 0.5 * static_cast<double>(J - 1 - std::abs(iC-iR)) * std::log1p(-z*z) + (1.0 - z*z);
 	}
 	return loglik;
+}
+
+
+void leapfrog_vDel(const int& L_HMC, // # of leapfrog jumps
+				   const double& eps_HMC, // leapfrop stepsize
+				   const double& ntk,
+				   const arma::mat& rhoinv,
+				   const arma::mat& qq,
+				   const double& a0,
+				   const double& b0,
+				   arma::vec& vphi,
+				   arma::vec& eta // auxiliary momentum vector (standard normal vector)
+				   ) {
+	for (int l = 0; l < L_HMC; ++l) {
+		arma::vec DlogKvphi = constructDdel(vphi, ntk, rhoinv, qq, a0, b0);
+		eta += 0.5 * eps_HMC * DlogKvphi;
+		vphi += eps_HMC * eta;
+		DlogKvphi = constructDdel(vphi, ntk, rhoinv, qq, a0, b0);
+		eta += 0.5 * eps_HMC * DlogKvphi;
+	}
+}
+
+double computeHdel(const arma::vec& vphi, const arma::vec& eta, const double& ntk, const arma::mat& rhoinv, const arma::mat& qq, const double& a0, const double& b0) {
+	arma::mat delinv = arma::diagmat(arma::exp(-vphi));
+	return -(ntk + a0) * arma::accu(vphi) - arma::accu(b0 * arma::exp(-vphi)) - 0.5 * arma::dot(delinv * rhoinv * delinv, qq);
 }
 
 // [[Rcpp::export]]
@@ -132,6 +168,7 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 					   const double& R_stepsize,
 					   const double& Rho_stepsize,
 					   const double& delta_stepsize,
+					   const int& delta_rep,
 					   const int& L_HMC,
 					   const double& eps_HMC,
 					   const bool& verbose) {
@@ -182,6 +219,7 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 	mat Siginv_lt(N, (J * (J + 1)) /2); // Sigma^{-1} lower triangular := vech(Sigma_{tk}^{-1})
 	mat vRtk(N, J * (J - 1) / 2);
 	vRtk.fill(0.5);
+	// mat vDel = arma::log(SD);
 	mat delta = SD;
 	vec vRho(J * (J - 1) / 2);
 	std::generate(vRho.begin(), vRho.end(), ::norm_rand);
@@ -189,6 +227,8 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 	Rho = Rho.t() * Rho;
 	mat Rhoinv = arma::inv_sympd(Rho);
 	for (int i = 0; i < N; ++i) {
+		// mat Sigma = arma::diagmat(arma::exp(vDel.row(i))) * Rho * arma::diagmat(arma::exp(vDel.row(i)));
+		// mat Sigmainv = arma::diagmat(arma::exp(-vDel.row(i))) * Rhoinv * arma::diagmat(arma::exp(-vDel.row(i)));
 		mat Sigma = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
 		mat Sigmainv = arma::diagmat(1.0 / delta.row(i)) * Rhoinv * arma::diagmat(1.0 / delta.row(i));
 		Sig_lt.row(i) = arma::trans(vech(Sigma));
@@ -207,9 +247,10 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 	const double shape_omega = static_cast<double>(K) + dj0;
 	mat resid = Outcome;
 	mat vR_rates(arma::size(vRtk), fill::zeros);
-	mat delta_rates(arma::size(delta), fill::zeros);
 	mat Delta_rates(arma::size(Delta), fill::zeros);
 	vec vRho_rates(arma::size(vRho), fill::zeros);
+	mat delta_rates(arma::size(delta), fill::zeros);
+	// double Del_rates = 0.0;
 	double Rho_rates = 0.0;
 
 	/*********
@@ -426,10 +467,10 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 						for (int j = 0; j < J; ++j) {
 							auto fx_delta = [&](double delta_input[])->double {
 								double deltap = delta_input[0];
-								double sigp = std::exp(deltap);
-								rowvec sig_ip = delta_i;
-								sig_ip(j) = sigp;
-								mat Vinvp = arma::diagmat(1.0 / sig_ip);
+								rowvec sig_ip = 1.0 / delta_i;
+								sig_ip(j) = std::exp(-deltap);
+								// double sigp = std::exp(deltap);
+								mat Vinvp = arma::diagmat(sig_ip);
 								mat Sigmainvp = Vinvp * Rhoinv * Vinvp;
 
 								double loglik = -0.5 * dot(qq, Sigmainvp) - (a0 + ntk) * deltap - b0 * exp(-deltap);
@@ -476,18 +517,30 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 							vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
 							double sigmaa = std::sqrt(0.5 / fl(0));
 
-
-							double dstar_prop = ::norm_rand() * sigmaa + xmax;
 							// log-likelihood difference
-							start[0] = dstar;
-							double ll_diff = fx_delta(start);
-							start[0] = dstar_prop;
-							ll_diff += -fx_delta(start)
-									    - 0.5 * (std::pow(dstar - xmax, 2.0) - std::pow(dstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-							if (std::log(::unif_rand()) < ll_diff) {
-								delta_i(j) = std::exp(dstar_prop);
-								delta(i, j) = delta_i(j);
-								++delta_rates(i,j);
+							icount = 0;
+							bool cont_flag = true; // continue flag
+							while (icount < delta_rep && cont_flag) {
+								double dstar_prop = ::norm_rand() * sigmaa + xmax;
+								start[0] = dstar;
+								double ll_diff = fx_delta(start);
+								start[0] = dstar_prop;
+								ll_diff += -fx_delta(start)
+										    - 0.5 * (std::pow(dstar - xmax, 2.0) - std::pow(dstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
+								if (std::log(::unif_rand()) < ll_diff) {
+									delta_i(j) = std::exp(dstar_prop);
+									delta(i, j) = delta_i(j);
+									mat siginvm = arma::diagmat(1.0 / delta_i);
+									mat Siginv_new = siginvm * Rhoinv * siginvm;
+									mat Sig_new = arma::diagmat(delta_i) * Rho * arma::diagmat(delta_i);
+									Sig_lt.row(i) = arma::trans(vech(Sig_new));
+									Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
+
+									++delta_rates(i,j);
+									cont_flag = false;
+								} else {
+									++icount;
+								}
 							}
 						}
 					}
@@ -536,16 +589,6 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 						++Rho_rates;
 					} else {
 						vRho = vRho_old;
-					}
-
-
-					// Update Sigmainvs
-					for (int i = 0; i < N; ++i) {
-						mat siginvm = arma::diagmat(1.0 / delta.row(i));
-						mat Siginv_new = siginvm * Rhoinv * siginvm;
-						mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
-						Sig_lt.row(i) = arma::trans(vech(Sig_new));
-						Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 					}
 				}  else if (fmodel == 4) {
 					// Update Delta
@@ -745,7 +788,7 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 							tmp_vrtk(kk) = rstarp;
 							mat RR_prop = constructR(trans(tmp_vrtk), J);
 							mat R_prop = RR_prop.t() * RR_prop;
-							double logdet_val = 2.0 * arma::prod(RR_prop.diag());
+							double logdet_val = 2.0 * arma::accu(arma::log(RR_prop.diag()));
 							
 							double loglik = 0.5 * (ntk - static_cast<double>(J) - 2.0) * logdet_val - 0.5 * (ntk - 1.0) * arma::dot(R_prop, Sigmainv);
 							loglik += 0.5 * static_cast<double>(J - 1 - std::abs(iC - iR)) * std::log(1.0 - std::pow((std::exp(2.0*rstarp)-1.0)/(std::exp(2.0*rstarp)+1.0),2.0))+
@@ -1009,10 +1052,10 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 							for (int j = 0; j < J; ++j) {
 								auto fx_delta = [&](double delta_input[])->double {
 									double deltap = delta_input[0];
-									double sigp = std::exp(deltap);
-									rowvec sig_ip = delta_i;
-									sig_ip(j) = sigp;
-									mat Vinvp = arma::diagmat(1.0 / sig_ip);
+									rowvec sig_ip = 1.0 / delta_i;
+									sig_ip(j) = std::exp(-deltap);
+									// double sigp = std::exp(deltap);
+									mat Vinvp = arma::diagmat(sig_ip);
 									mat Sigmainvp = Vinvp * Rhoinv * Vinvp;
 
 									double loglik = -0.5 * dot(qq, Sigmainvp) - (a0 + ntk) * deltap - b0 * exp(-deltap);
@@ -1059,18 +1102,30 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 								vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
 								double sigmaa = std::sqrt(0.5 / fl(0));
 
-
-								double dstar_prop = ::norm_rand() * sigmaa + xmax;
 								// log-likelihood difference
-								start[0] = dstar;
-								double ll_diff = fx_delta(start);
-								start[0] = dstar_prop;
-								ll_diff += -fx_delta(start)
-										    - 0.5 * (std::pow(dstar - xmax, 2.0) - std::pow(dstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-								if (std::log(::unif_rand()) < ll_diff) {
-									delta_i(j) = std::exp(dstar_prop);
-									delta(i, j) = delta_i(j);
-									++delta_rates(i,j);
+								icount = 0;
+								bool cont_flag = true; // continue flag
+								while (icount < delta_rep && cont_flag) {
+									double dstar_prop = ::norm_rand() * sigmaa + xmax;
+									start[0] = dstar;
+									double ll_diff = fx_delta(start);
+									start[0] = dstar_prop;
+									ll_diff += -fx_delta(start)
+											    - 0.5 * (std::pow(dstar - xmax, 2.0) - std::pow(dstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
+									if (std::log(::unif_rand()) < ll_diff) {
+										delta_i(j) = std::exp(dstar_prop);
+										delta(i, j) = delta_i(j);
+										mat siginvm = arma::diagmat(1.0 / delta_i);
+										mat Siginv_new = siginvm * Rhoinv * siginvm;
+										mat Sig_new = arma::diagmat(delta_i) * Rho * arma::diagmat(delta_i);
+										Sig_lt.row(i) = arma::trans(vech(Sig_new));
+										Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
+
+										++delta_rates(i,j);
+										cont_flag = false;
+									} else {
+										++icount;
+									}
 								}
 							}
 						}
@@ -1171,7 +1226,7 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 								tmp_vrtk(kk) = rstarp;
 								mat RR_prop = constructR(trans(tmp_vrtk), J);
 								mat R_prop = RR_prop.t() * RR_prop;
-								double logdet_val = 2.0 * arma::prod(RR_prop.diag());
+								double logdet_val = 2.0 * arma::accu(arma::log(RR_prop.diag()));
 								
 								double loglik = 0.5 * (ntk - static_cast<double>(J) - 2.0) * logdet_val - 0.5 * (ntk - 1.0) * arma::dot(R_prop, Sigmainv);
 								loglik += 0.5 * static_cast<double>(J - 1 - std::abs(iC - iR)) * std::log(1.0 - std::pow((std::exp(2.0*rstarp)-1.0)/(std::exp(2.0*rstarp)+1.0),2.0))+
@@ -1245,12 +1300,7 @@ Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome,
 				} else if (fmodel == 3) {
 					delta_save.slice(ikeep) = delta;
 					Rho_save.slice(ikeep) = Rho;
-					mat Sig_ikeep(N, (J*(J+1))/2, fill::zeros);
-					for (int i = 0; i < N; ++i) {
-						mat delta_ikeep = diagmat(delta.row(i));
-						Sig_ikeep.row(i) = arma::trans(vech(delta_ikeep * Rho * delta_ikeep));
-					}
-					Sig_save.slice(ikeep) = Sig_ikeep;
+					Sig_save.slice(ikeep) = Sig_lt;
 				} else if (fmodel == 4) {
 					Sigma_save.slice(ikeep) = Sig0;
 					Sig_save.slice(ikeep) = Sig_lt;

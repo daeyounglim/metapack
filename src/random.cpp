@@ -465,13 +465,17 @@ double rtgamma(const double& a, const double& b, const double& truncpoint, const
   return x;
 }
 
-// [[Rcpp::export]]
 arma::mat rwish(const double& v, const arma::mat& S) {
   int p = S.n_rows;
   arma::mat R = arma::chol(S);
   arma::mat A(p,p);
-  std::generate(A.begin(), A.end(), ::norm_rand);
-  A = arma::trimatl(A);
+  // std::generate(A.begin(), A.end(), ::norm_rand);
+  for (int i = 0; i < p-1; ++i) {
+    for (int j = i+1; j < p; ++j) {
+      A(j,i) = ::norm_rand();
+    }
+  }
+  // A = arma::trimatl(A);
   
   for (int i = 0; i < p; ++i) {
     A(i,i) = std::sqrt(::Rf_rchisq(v-(double)i));
@@ -480,16 +484,24 @@ arma::mat rwish(const double& v, const arma::mat& S) {
 }
 
 arma::mat riwish(const double& v, const arma::mat& S) {
-  int p = S.n_rows;
-  arma::mat R = arma::chol(S.i());
-  arma::mat A(p,p);
-  std::generate(A.begin(), A.end(), ::norm_rand);
-  A = arma::trimatl(A);
+  // int p = S.n_rows;
+  // arma::mat R = arma::chol(S.i());
+  // arma::mat A(p,p);
+  // for (int i = 0; i < p-1; ++i) {
+  //   for (int j = i+1; j < p; ++j) {
+  //     A(j,i) = ::norm_rand();
+  //   }
+  // }
+  // // std::generate(A.begin(), A.end(), ::norm_rand);
+  // // A = arma::trimatl(A);
   
-  for (int i = 0; i < p; ++i) {
-    A(i,i) = std::sqrt(::Rf_rchisq(v-(double)i));
-  }
-  return arma::inv(R.t() * A * A.t() * R);
+  // for (int i = 0; i < p; ++i) {
+  //   A(i,i) = std::sqrt(::Rf_rchisq(v-(double)i));
+  // }
+  // return arma::inv_sympd(R.t() * A * A.t() * R);
+  arma::mat Sinv = arma::inv_sympd(S);
+  arma::mat out = rwish(v, Sinv);
+  return arma::inv_sympd(out);
 }
 
 double tnormrnd(const double& mu, const double& sigma, const double& low, const double& up) {

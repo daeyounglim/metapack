@@ -52,7 +52,7 @@ WCovariate <- cbind(1-cholesterol$onstat, cholesterol$trt * (1-cholesterol$onsta
 
 fmodel <- 3
 fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale=TRUE, center=TRUE), WCovariate, Treat, Trial, Npt, fmodel,
-			mcmc=list(ndiscard=100000,nskip=1,nkeep=20000), verbose = TRUE)
+			mcmc=list(ndiscard=100000,nskip=1,nkeep=20000), control(delta_rep=100, rho_rep=200), verbose = TRUE)
 }
 }
 \author{

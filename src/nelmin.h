@@ -1,16 +1,12 @@
-#ifndef BAYESMETA_NELMIN_H
-#define BAYESMETA_NELMIN_H
 # include <cstdlib>
 # include <iostream>
 # include <iomanip>
 # include <ctime>
 # include <cmath>
-# include <Rcpp.h>
 
 using namespace std;
 
 //****************************************************************************80
-// void nelmin ( double fn ( double x[] ), int n, double start[], double xmin[], 
 template <typename TF>
 void nelmin ( TF& fn, int n, double start[], double xmin[], 
   double *ynewlo, double reqmin, double step[], int konvge, int kcount, 
@@ -495,5 +491,3 @@ void nelmin ( TF& fn, int n, double start[], double xmin[],
   return;
 }
 //****************************************************************************80
-
-#endif

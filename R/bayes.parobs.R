@@ -28,7 +28,7 @@
 #'
 #' fmodel <- 3
 #' fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale=TRUE, center=TRUE), WCovariate, Treat, Trial, Npt, fmodel,
-#' 			mcmc=list(ndiscard=100000,nskip=1,nkeep=20000), verbose = TRUE)
+#' 			mcmc=list(ndiscard=100000,nskip=1,nkeep=20000), control(delta_rep=100, rho_rep=200), verbose = TRUE)
 #' }
 #' @export
 bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), verbose=FALSE) {
@@ -38,13 +38,15 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 	nskip <- mcvals$nskip
 	nkeep <- mcvals$nkeep
 
-	ctrl <- list(R_stepsize = 0.2, Rho_stepsize = 0.2, delta_stepsize = 0.2, L_HMC = 7, eps_HMC = 0.00002)
+	ctrl <- list(R_stepsize = 0.02, Rho_stepsize = 0.02, delta_stepsize = 0.2, L_HMC = 7, eps_HMC = 0.00002, delta_rep = 20, rho_rep = 20)
 	ctrl[names(control)] <- control
 	R_stepsize <- ctrl$R_stepsize
 	Rho_stepsize <- ctrl$Rho_stepsize
 	delta_stepsize <- ctrl$delta_stepsize
 	L_HMC <- ctrl$L_HMC
 	eps_HMC <- ctrl$eps_HMC
+	delta_rep <- ctrl$delta_rep
+	rho_rep <- ctrl$rho_rep
 
 	J = ncol(Outcome)
 	nw = ncol(WCovariate)
@@ -70,8 +72,74 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 	K <- length(unique(Trial))
 	T <- length(unique(Treat))
 
+
 	mcmctime <- system.time({
-				fout <- .Call(`_metapack_BMVMR_POCovHMC`,
+			if (fmodel == 1) {
+				fout <- .Call(`_metapack_fmodel1`,
+					  as.matrix(Outcome),
+					  as.matrix(SD),
+					  as.matrix(XCovariate),
+					  as.matrix(WCovariate),
+					  as.integer(Treat.n),
+					  as.integer(Trial.n),
+					  as.double(Npt),
+					  as.double(c0),
+					  as.double(dj0),
+					  as.double(a0),
+					  as.double(b0),
+					  as.matrix(Omega0),
+					  as.integer(K),
+					  as.integer(T),
+					  as.integer(ndiscard),
+					  as.integer(nskip),
+					  as.integer(nkeep),
+					  as.logical(verbose))
+			} else if (fmodel == 2) {
+				fout <- .Call(`_metapack_fmodel2`,
+					  as.matrix(Outcome),
+					  as.matrix(SD),
+					  as.matrix(XCovariate),
+					  as.matrix(WCovariate),
+					  as.integer(Treat.n),
+					  as.integer(Trial.n),
+					  as.double(Npt),
+					  as.double(c0),
+					  as.double(dj0),
+					  as.double(s0),
+					  as.matrix(Omega0),
+					  as.matrix(Sigma0),
+					  as.integer(K),
+					  as.integer(T),
+					  as.integer(ndiscard),
+					  as.integer(nskip),
+					  as.integer(nkeep),
+					  as.double(R_stepsize),
+					  as.logical(verbose))
+			} else if(fmodel == 3) {
+				fout <- .Call(`_metapack_fmodel3`,
+					  as.matrix(Outcome),
+					  as.matrix(SD),
+					  as.matrix(XCovariate),
+					  as.matrix(WCovariate),
+					  as.integer(Treat.n),
+					  as.integer(Trial.n),
+					  as.double(Npt),
+					  as.double(c0),
+					  as.double(dj0),
+					  as.double(a0),
+					  as.double(b0),
+					  as.matrix(Omega0),
+					  as.integer(K),
+					  as.integer(T),
+					  as.integer(ndiscard),
+					  as.integer(nskip),
+					  as.integer(nkeep),
+					  as.double(delta_stepsize),
+					  as.double(Rho_stepsize),
+					  as.double(R_stepsize),
+					  as.logical(verbose))
+			} else if (fmodel == 4) {
+				fout <- .Call(`_metapack_fmodel4`,
 					  as.matrix(Outcome),
 					  as.matrix(SD),
 					  as.matrix(XCovariate),
@@ -82,25 +150,22 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 					  as.double(c0),
 					  as.double(dj0),
 					  as.double(d0),
-					  as.double(s0),
 					  as.double(nu0),
-					  as.double(a0),
-					  as.double(b0),
-					  as.matrix(Omega0),
 					  as.matrix(Sigma0),
+					  as.matrix(Omega0),
 					  as.integer(K),
 					  as.integer(T),
-					  as.integer(fmodel),
 					  as.integer(ndiscard),
 					  as.integer(nskip),
 					  as.integer(nkeep),
-					  as.double(R_stepsize),
-					  as.double(Rho_stepsize),
 					  as.double(delta_stepsize),
-					  as.integer(L_HMC),
-					  as.double(eps_HMC),
+					  as.double(Rho_stepsize),
+					  as.double(R_stepsize),
 					  as.logical(verbose))
-			})
+			} else {
+				stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4}.")
+			}
+		})
 	if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
 		rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
 	}
@@ -109,8 +174,8 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 				Npt = Npt,
 				XCovariate = XCovariate,
 				WCovariate = WCovariate,
-				Treat = Treat,
-				Trial = Trial,
+				Treat = Treat.n,
+				Trial = Trial.n,
 				TrtLabels = Treat.order,
 				TrialLabels = Trial.order,
 				K = K,
