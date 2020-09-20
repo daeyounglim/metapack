@@ -66,9 +66,10 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 	mat Siginv_lt(N, (J*(J+1))/2, fill::zeros); // store the diagonal-incluseive lower triangular (lt) elements of Siginv
 	mat vRtk(N, J * (J - 1) / 2, fill::zeros); // store the off-diagonal lower triangular elements of normal variates for Rtk
 	vRtk.fill(0.5);
-	vec delta(J, fill::ones);
+	// vec delta(J, fill::ones);
+	vec delta = arma::trans(arma::mean(SD, 0));
 	vec vRho(J*(J-1)/2);
-	vRho.fill(0.5);
+	vRho.fill(0.1);
 	mat pRho = vecrinv(arma::tanh(vRho), J);
 	pRho.diag().fill(1.0);
 	mat Rho = pRho_to_Rho(pRho);
@@ -196,6 +197,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 				std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
 				gamR.col(k) = arma::solve(arma::trimatu(SiggamChol), arma::solve(arma::trimatl(SiggamChol.t()), mugam) + gtmp);
 			}
+
 			// Update Omega
 			for (int jj = 0; jj < J; ++jj) {
 				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
@@ -219,7 +221,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 				double reqmin = arma::datum::eps;
 				int konvge = 5;
 				int kcount = 1000;
-				double step[] = { 0.2 };
+				double step[] = { 0.05 };
 				int icount = 0;
 				int numres = 0;
 				int ifault = 0;
@@ -252,8 +254,8 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 
 				// log-likelihood difference
 				double dstar_prop = ::norm_rand() * sigmaa + xmax;
-				double ll_diff = loglik_delta_m4(dstar, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
-								- loglik_delta_m4(dstar_prop, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
+				double ll_diff = loglik_delta_m4(dstar_prop, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
+								- loglik_delta_m4(dstar, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
 						        - 0.5 * (std::pow(dstar - xmax, 2.0) - std::pow(dstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
 				if (std::log(::unif_rand()) < ll_diff) {
 					delta(j) = std::exp(dstar_prop);
@@ -309,8 +311,8 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 				
 				// log-likelihood difference
 				double zprho_prop = ::norm_rand() * sigmaa + xmax;
-				double ll_diff = loglik_rho_m4(zprho, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
-							    - loglik_rho_m4(zprho_prop, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
+				double ll_diff = loglik_rho_m4(zprho_prop, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
+							    - loglik_rho_m4(zprho, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
 						    	- 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
 				if (std::log(::unif_rand()) < ll_diff) {
 					vRho(ii) = zprho_prop;
@@ -321,7 +323,6 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 					++vRho_rates(ii);
 				}
 			}
-
 			// Update Sigmainvs
 			for (int i = 0; i < N; ++i) {
 				rowvec w_i = WCovariate.row(i);
@@ -567,8 +568,8 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 
 					// log-likelihood difference
 					double dstar_prop = ::norm_rand() * sigmaa + xmax;
-					double ll_diff = loglik_delta_m4(dstar, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
-									- loglik_delta_m4(dstar_prop, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
+					double ll_diff = loglik_delta_m4(dstar_prop, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
+									- loglik_delta_m4(dstar, delta, j, Rho, vRtk, gamR, Trial, Npt, SD, resid, WCovariate, N, J, K, T, d0, nu0, Sigma0inv)
 							        - 0.5 * (std::pow(dstar - xmax, 2.0) - std::pow(dstar_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
 					if (std::log(::unif_rand()) < ll_diff) {
 						delta(j) = std::exp(dstar_prop);
@@ -624,8 +625,8 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 					
 					// log-likelihood difference
 					double zprho_prop = ::norm_rand() * sigmaa + xmax;
-					double ll_diff = loglik_rho_m4(zprho, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
-								    - loglik_rho_m4(zprho_prop, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
+					double ll_diff = loglik_rho_m4(zprho_prop, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
+								    - loglik_rho_m4(zprho, vRho, ii, delta, WCovariate, SD, resid, Npt, vRtk, Trial, gamR, iR, iC, d0, nu0, N, J, K, T, Sigma0inv)
 							    	- 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
 					if (std::log(::unif_rand()) < ll_diff) {
 						vRho(ii) = zprho_prop;
