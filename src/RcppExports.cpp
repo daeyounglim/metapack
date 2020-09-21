@@ -6,83 +6,6 @@
 
 using namespace Rcpp;
 
-// BMVMR_POCov
-Rcpp::List BMVMR_POCov(const arma::mat& Outcome, const arma::mat& SD, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::uvec& Treat, const arma::uvec& Trial, const arma::vec& Npt, const double& c0, const double& dj0, const double& d0, const double& s0, const double& nu0, const double& a0, const double& b0, const arma::mat& Omega0, const arma::mat& Sigma0, const int& K, const int& T, const int& fmodel, const int& ndiscard, const int& nskip, const int& nkeep, const double& R_stepsize, const double& Rho_stepsize, const double& delta_stepsize, const int& delta_rep, const int& rho_rep, const bool& verbose);
-RcppExport SEXP _metapack_BMVMR_POCov(SEXP OutcomeSEXP, SEXP SDSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP TreatSEXP, SEXP TrialSEXP, SEXP NptSEXP, SEXP c0SEXP, SEXP dj0SEXP, SEXP d0SEXP, SEXP s0SEXP, SEXP nu0SEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP Omega0SEXP, SEXP Sigma0SEXP, SEXP KSEXP, SEXP TSEXP, SEXP fmodelSEXP, SEXP ndiscardSEXP, SEXP nskipSEXP, SEXP nkeepSEXP, SEXP R_stepsizeSEXP, SEXP Rho_stepsizeSEXP, SEXP delta_stepsizeSEXP, SEXP delta_repSEXP, SEXP rho_repSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type Outcome(OutcomeSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type SD(SDSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type XCovariate(XCovariateSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type WCovariate(WCovariateSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type Treat(TreatSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type Trial(TrialSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type Npt(NptSEXP);
-    Rcpp::traits::input_parameter< const double& >::type c0(c0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type dj0(dj0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type d0(d0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type s0(s0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type nu0(nu0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type a0(a0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type b0(b0SEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Omega0(Omega0SEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Sigma0(Sigma0SEXP);
-    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const int& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< const int& >::type fmodel(fmodelSEXP);
-    Rcpp::traits::input_parameter< const int& >::type ndiscard(ndiscardSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nskip(nskipSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
-    Rcpp::traits::input_parameter< const double& >::type R_stepsize(R_stepsizeSEXP);
-    Rcpp::traits::input_parameter< const double& >::type Rho_stepsize(Rho_stepsizeSEXP);
-    Rcpp::traits::input_parameter< const double& >::type delta_stepsize(delta_stepsizeSEXP);
-    Rcpp::traits::input_parameter< const int& >::type delta_rep(delta_repSEXP);
-    Rcpp::traits::input_parameter< const int& >::type rho_rep(rho_repSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(BMVMR_POCov(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, s0, nu0, a0, b0, Omega0, Sigma0, K, T, fmodel, ndiscard, nskip, nkeep, R_stepsize, Rho_stepsize, delta_stepsize, delta_rep, rho_rep, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// BMVMR_POCovHMC
-Rcpp::List BMVMR_POCovHMC(const arma::mat& Outcome, const arma::mat& SD, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::uvec& Treat, const arma::uvec& Trial, const arma::vec& Npt, const double& c0, const double& dj0, const double& d0, const double& s0, const double& nu0, const double& a0, const double& b0, const arma::mat& Omega0, const arma::mat& Sigma0, const int& K, const int& T, const int& fmodel, const int& ndiscard, const int& nskip, const int& nkeep, const double& R_stepsize, const double& Rho_stepsize, const double& delta_stepsize, const int& delta_rep, const int& L_HMC, const double& eps_HMC, const bool& verbose);
-RcppExport SEXP _metapack_BMVMR_POCovHMC(SEXP OutcomeSEXP, SEXP SDSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP TreatSEXP, SEXP TrialSEXP, SEXP NptSEXP, SEXP c0SEXP, SEXP dj0SEXP, SEXP d0SEXP, SEXP s0SEXP, SEXP nu0SEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP Omega0SEXP, SEXP Sigma0SEXP, SEXP KSEXP, SEXP TSEXP, SEXP fmodelSEXP, SEXP ndiscardSEXP, SEXP nskipSEXP, SEXP nkeepSEXP, SEXP R_stepsizeSEXP, SEXP Rho_stepsizeSEXP, SEXP delta_stepsizeSEXP, SEXP delta_repSEXP, SEXP L_HMCSEXP, SEXP eps_HMCSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type Outcome(OutcomeSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type SD(SDSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type XCovariate(XCovariateSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type WCovariate(WCovariateSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type Treat(TreatSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type Trial(TrialSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type Npt(NptSEXP);
-    Rcpp::traits::input_parameter< const double& >::type c0(c0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type dj0(dj0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type d0(d0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type s0(s0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type nu0(nu0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type a0(a0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type b0(b0SEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Omega0(Omega0SEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Sigma0(Sigma0SEXP);
-    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const int& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< const int& >::type fmodel(fmodelSEXP);
-    Rcpp::traits::input_parameter< const int& >::type ndiscard(ndiscardSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nskip(nskipSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
-    Rcpp::traits::input_parameter< const double& >::type R_stepsize(R_stepsizeSEXP);
-    Rcpp::traits::input_parameter< const double& >::type Rho_stepsize(Rho_stepsizeSEXP);
-    Rcpp::traits::input_parameter< const double& >::type delta_stepsize(delta_stepsizeSEXP);
-    Rcpp::traits::input_parameter< const int& >::type delta_rep(delta_repSEXP);
-    Rcpp::traits::input_parameter< const int& >::type L_HMC(L_HMCSEXP);
-    Rcpp::traits::input_parameter< const double& >::type eps_HMC(eps_HMCSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(BMVMR_POCovHMC(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, s0, nu0, a0, b0, Omega0, Sigma0, K, T, fmodel, ndiscard, nskip, nkeep, R_stepsize, Rho_stepsize, delta_stepsize, delta_rep, L_HMC, eps_HMC, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
 // BayesNMR
 Rcpp::List BayesNMR(const arma::vec& y, const arma::vec& sd, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const double& nu, const double& c01_inv, const double& c02_inv, const int& K, const int& nT, const int& ndiscard, const int& nskip, const int& nkeep, const bool verbose, const arma::vec& beta_init, const arma::vec& phi_init, const arma::vec& sig2_init);
 RcppExport SEXP _metapack_BayesNMR(SEXP ySEXP, SEXP sdSEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP nuSEXP, SEXP c01_invSEXP, SEXP c02_invSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP ndiscardSEXP, SEXP nskipSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP beta_initSEXP, SEXP phi_initSEXP, SEXP sig2_initSEXP) {
@@ -349,8 +272,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_metapack_BMVMR_POCov", (DL_FUNC) &_metapack_BMVMR_POCov, 28},
-    {"_metapack_BMVMR_POCovHMC", (DL_FUNC) &_metapack_BMVMR_POCovHMC, 29},
     {"_metapack_BayesNMR", (DL_FUNC) &_metapack_BayesNMR, 19},
     {"_metapack_calc_modelfit_dic", (DL_FUNC) &_metapack_calc_modelfit_dic, 16},
     {"_metapack_fmodel1", (DL_FUNC) &_metapack_fmodel1, 18},
