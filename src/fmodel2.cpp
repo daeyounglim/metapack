@@ -34,6 +34,9 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 				   const int& nskip,
 				   const int& nkeep,
 				   const double& R_stepsize,
+				   const arma::vec& theta_init,
+				   const arma::vec& gamR_init,
+				   const arma::mat& Omega_init,
 				   const bool& verbose) {
 	using namespace arma;
 	using namespace std;
@@ -55,10 +58,10 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 	/***********************
 	Parameter Initialization
 	***********************/
-	vec theta(nt, fill::zeros);
-	mat gamR(nw*J, K, fill::zeros);
-	mat Omegainv(nw*J, nw*J, fill::eye);
-	mat Omega(arma::size(Omegainv), fill::eye);
+	vec theta = theta_init;
+	mat gamR = gamR_init;
+	mat Omega = Omega_init;
+	mat Omegainv = Omega.i();
 	mat Sig(J, J, fill::eye);
 	mat Siginv(J, J, fill::eye);
 	mat vRtk(N, J * (J - 1) / 2, fill::zeros);

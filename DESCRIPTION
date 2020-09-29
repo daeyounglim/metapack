@@ -12,6 +12,6 @@ Encoding: UTF-8
 LazyLoad: yes
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
-Imports: Rcpp
+Imports: Rcpp, RcppArmadillo, RcppProgress, BH
 Depends: R (>= 3.4), coda (>= 0.11-3)
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, BH

@@ -6,7 +6,7 @@
 \usage{
 bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   fmodel = 1, prior = list(), mcmc = list(), control = list(),
-  verbose = FALSE)
+  init = list(), verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -31,6 +31,8 @@ bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
 \item{control}{list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); they're all 0.2 by default}
 
+\item{init}{initial values for the parameters. Dimensions must be conformant.}
+
 \item{verbose}{logical variable for printing progress bar. Default to FALSE.}
 }
 \value{
@@ -47,12 +49,17 @@ SD <- cbind(cholesterol$sdldl, cholesterol$sdhdl, cholesterol$sdtg)
 Trial <- cholesterol$Trial
 Treat <- cholesterol$trt
 Npt <- cholesterol$Npt
-XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc, cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white, cholesterol$male, cholesterol$dm)
-WCovariate <- cbind(1-cholesterol$onstat, cholesterol$trt * (1-cholesterol$onstat), cholesterol$onstat, cholesterol$trt * cholesterol$onstat)
+XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc,
+		cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white, cholesterol$male, cholesterol$dm)
+WCovariate <- cbind(1 - cholesterol$onstat, cholesterol$trt * (1 - cholesterol$onstat),
+		cholesterol$onstat, cholesterol$trt * cholesterol$onstat)
 
 fmodel <- 3
-fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale=TRUE, center=TRUE), WCovariate, Treat, Trial, Npt, fmodel,
-			mcmc=list(ndiscard=100000,nskip=1,nkeep=20000), control(delta_rep=100, rho_rep=200), verbose = TRUE)
+fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale = TRUE, center = TRUE),
+			WCovariate, Treat, Trial, Npt, fmodel,
+  		mcmc = list(ndiscard = 100000, nskip = 1, nkeep = 20000), control = list(delta_stepsize = 0.1,
+			rho_stepsize = 0.05, R_stepsize = 0.05), verbose = TRUE
+)
 }
 }
 \author{

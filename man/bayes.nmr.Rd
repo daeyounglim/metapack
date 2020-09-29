@@ -4,9 +4,9 @@
 \alias{bayes.nmr}
 \title{Fit Bayesian Network Meta-Regression Hierarchical Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances}
 \usage{
-bayes.nmr(Outcome, SD, Covariate, Study, Treat, Npt, groupInfo,
-  prior = list(), mcmc = list(), add.z = list(), scale.x = TRUE,
-  verbose = FALSE, init = list())
+bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
+  prior = list(), mcmc = list(), add.z = list(), control = list(),
+  init = list(), verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -15,40 +15,39 @@ bayes.nmr(Outcome, SD, Covariate, Study, Treat, Npt, groupInfo,
 
 \item{Covariate}{aggregate covariates for the mean component}
 
-\item{Study}{study number in integers}
+\item{Trial}{study/trial identifiers; will be coerced to consecutive integers}
 
-\item{Treat}{treatment applied; equivalent to the arm number of each study}
+\item{Treat}{treatment identifiers for the corresponding trial arm; equivalent to the arm number of each study; will be coerced to consecutive integers}
 
-\item{Npt}{number of observations per trial}
+\item{Npt}{number of observations/participants per trial}
 
 \item{groupInfo}{list of grouping information; the control(baseline) group must start from 0; the aggregate covariates 'z' explaining the variance of the random effect of the t-th treatment will be construct based on this grouping information}
 
-\item{prior}{list of hyperparameters; when not given, algorithm will run in default setting}
+\item{prior}{list of hyperparameters when not given, algorithm will run in default setting.}
 
 \item{mcmc}{list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
 
-\item{add.z}{additional covariates other than the grouping vectors that should be column-concatenated to 'z'. This should have the same number of rows as 'y', and 'x'}
+\item{add.z}{additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'}
 
-\item{scale.x}{logical variable for scaling x. Default to TRUE. If not scaled, the gamma[1] (different than gam in the function) cannot be interpreted as placebo}
+\item{init}{initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.}
 
 \item{verbose}{logical variable for printing progress bar. Default to FALSE.}
-
-\item{init}{initial values for beta (ns + nT dimensional) and phi. Dimensions must be conformant.}
 }
 \value{
 a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 }
 \description{
-This is a function for running the Markov chain Monte Carlo algorithm for the BNMHHtMRe Model. The first six arguments are required.
+This is a function for running the Markov chain Monte Carlo algorithm for the BNMHHtMRe Model. The first seven arguments are required.
 }
 \examples{
 \dontrun{
 data(df)
-groupInfo <- list(c(0,1), c(2,3), c(4)) # define the variance structure
-x <- df[,6:10]
+groupInfo <- list(c(0, 1), c(2, 3), c(4)) # define the variance structure
+x <- df[, 6:10]
 fit <- bayes.nmr(df$y, df$sd, x, df$ids, df$iarm, df$npt, groupInfo,
-			prior = list(c01=1.0e05, c02=4, nu=3),
-			mcmc=list(ndiscard=2500,nskip=1,nkeep=10000))
+  prior = list(c01 = 1.0e05, c02 = 4, df = 3),
+  mcmc = list(ndiscard = 2500, nskip = 1, nkeep = 10000)
+)
 }
 }
 \author{

@@ -22,14 +22,11 @@ arma::mat veclinv(TN& v, const int& J) {
 	return out;
 };
 arma::vec vech(const arma::mat& X);
-
-
 arma::mat vechinv(const arma::vec& v, const int& n);
 arma::mat duplicate_matrix (const int& n);
 arma::vec uppertriv(const arma::mat& A);
 arma::mat blockdiag( arma::field<arma::mat>& x );
 arma::mat pRho_to_Rho(arma::mat& pRho);
-arma::mat constructR(const arma::vec& vphi, const int& J);
 arma::mat vecrinv(const arma::vec& X, const int& J);
 // template <typename TN>
 // arma::mat vecrinv(TN& X, const int& J) {
@@ -44,5 +41,6 @@ arma::mat vecrinv(const arma::vec& X, const int& J);
 // 	return R;
 // }
 arma::mat vecr(const arma::mat& X);
+arma::mat Rho_to_pRho(arma::mat& Rho);
 arma::mat constructB(const arma::mat& Rangle);
 #endif

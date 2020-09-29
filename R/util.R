@@ -47,4 +47,3 @@ hpdarray <- function(A, conf.level = 0.95) {
   }
   out
 }
-

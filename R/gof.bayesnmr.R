@@ -10,12 +10,12 @@
 	npt <- object$Npt
 	x <- object$Covariate
 	z <- object$z
-	ids <- object$Study
+	ids <- object$Trial
 	iarm <- object$Treat
 	K <- object$K
 	nT <- object$nT
 	nkeep <- object$mcmc$nkeep
-	nu <- object$prior$nu
+	nu <- object$prior$df
 
 	if (type == "dic") {
 		gof <- .Call(`_metapack_calc_modelfit_dic`,
@@ -26,7 +26,7 @@
 					 as.integer(iarm),
 					 as.double(npt),
 					 as.double(nu),
-					 as.matrix(object$mcmc.draws$beta),
+					 as.matrix(object$mcmc.draws$theta),
 					 as.matrix(object$mcmc.draws$sig2),
 					 as.matrix(object$mcmc.draws$phi),
 					 as.matrix(object$mcmc.draws$lam),
@@ -44,7 +44,7 @@
 					 as.integer(iarm),
 					 as.double(npt),
 					 as.double(nu),
-					 as.matrix(object$mcmc.draws$beta),
+					 as.matrix(object$mcmc.draws$theta),
 					 as.matrix(object$mcmc.draws$sig2),
 					 as.matrix(object$mcmc.draws$phi),
 					 as.matrix(object$mcmc.draws$lam),

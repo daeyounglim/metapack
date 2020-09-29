@@ -33,6 +33,9 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 				   const int& ndiscard,
 				   const int& nskip,
 				   const int& nkeep,
+				   const arma::vec& theta_init,
+				   const arma::mat& gamR_init,
+				   const arma::mat& Omega_init,
 				   const bool& verbose) {
 	using namespace arma;
 	using namespace std;
@@ -54,10 +57,10 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 	/***********************
 	Parameter Initialization
 	***********************/
-	vec theta(nt, fill::zeros);
-	mat gamR(nw*J, K, fill::zeros);
-	mat Omegainv(nw*J, nw*J, fill::eye);
-	mat Omega(arma::size(Omegainv), fill::eye);
+	vec theta = theta_init;
+	mat gamR = gamR_init;
+	mat Omega = Omega_init;
+	mat Omegainv = Omega.i();
 	mat Sig_diag(N, J, fill::ones);
 	mat Siginv_diag(N, J, fill::ones);
 
@@ -272,7 +275,9 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
 					}
 					mat Xstar = arma::join_horiz(X,W);
-					resid.row(i) = arma::trans(y_i.t() - Xstar * theta);
+					vec ypred_i = Xstar * theta;
+					ypred.row(i) = ypred_i.t();
+					resid.row(i) = arma::trans(y_i.t() - ypred_i);
 				}
 
 				// Update gamR

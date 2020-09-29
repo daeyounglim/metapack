@@ -1,5 +1,7 @@
 #' plot the surface under the cumulative ranking curve (SUCRA)
 #' @param object the output model from fitting a network meta analysis/regression model
+#' @importFrom grDevices devAskNewPage rgb
+#' @importFrom graphics axis lines plot
 #' @method plot sucra
 #' @export
 "plot.sucra" <- function(object, ...) {

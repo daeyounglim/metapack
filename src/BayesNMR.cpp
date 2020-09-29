@@ -30,9 +30,14 @@ Rcpp::List BayesNMR(const arma::vec& y,
 					const int& nskip,
 					const int& nkeep,
 					const bool verbose,
-					const arma::vec& beta_init,
+					const arma::vec& theta_init,
 					const arma::vec& phi_init,
-					const arma::vec& sig2_init) {
+					const arma::vec& sig2_init,
+					const arma::mat& Rho_init,
+					const double& lambda_stepsize,
+					const double& phi_stepsize,
+					const double& Rho_stepsize,
+					const bool& sample_Rho) {
 	using namespace arma;
 	using namespace Rcpp;
 	using namespace R;
@@ -78,7 +83,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 	/********************
 	Initialize parameters 
 	********************/
-	vec beta = beta_init;
+	vec beta = theta_init;
 	vec phi = phi_init;
 	vec sig2 = sig2_init;
 	vec xb(ns, fill::zeros);
@@ -90,13 +95,8 @@ Rcpp::List BayesNMR(const arma::vec& y,
 	}
 	vec resid = y - xb;
 	vec Rgam(ns, fill::zeros);
-	mat pRho(nT,nT, fill::zeros);
-	mat Rho(nT,nT, fill::zeros);
-	for (int i = 0; i < nT; ++i) {
-		pRho(i,i) = 1.0;
-	}
-	Rho = pRho_to_Rho(pRho);
-
+	mat Rho = Rho_init;
+	mat pRho = Rho_to_pRho(Rho);
 
 	vec Z = arma::exp(z * phi);
 
@@ -189,7 +189,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 					mat cl(5,3, fill::zeros);
 					vec dl(5, fill::zeros);
-					double step_size = 0.5;
+					double step_size = lambda_stepsize;
 					eta_burnin_block:
 						for (int iii=0; iii < 5; ++iii) {
 							double e1 = static_cast<double>(iii-2);
@@ -274,7 +274,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 				mat cl(5,3, fill::zeros);
 				vec dl(5, fill::zeros);
-				double step_size = 0.5;
+				double step_size = phi_stepsize;
 				phi_burnin_block:
 					for (int iii=0; iii < 5; ++iii) {
 						double e1 = static_cast<double>(iii-2);
@@ -310,67 +310,69 @@ Rcpp::List BayesNMR(const arma::vec& y,
 			}
 			Z = arma::exp(z * phi);
 
+			if (sample_Rho) {
+				
+				/*********
+				Sample Rho
+				*********/
+				for (int iR=0; iR < nT-1; ++iR) {
+					for (int iC=iR+1; iC < nT; ++iC) {
+						double zprho = 0.5 * std::log((1.0 + pRho(iR,iC)) / (1.0 - pRho(iR,iC)));
+						auto fx_rho = [&](double zprho_input[])->double {
+							return -loglik_z(zprho_input[0], iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
+						};
 
-			/*********
-			Sample Rho
-			*********/
-			for (int iR=0; iR < nT-1; ++iR) {
-				for (int iC=iR+1; iC < nT; ++iC) {
-					double zprho = 0.5 * std::log((1.0 + pRho(iR,iC)) / (1.0 - pRho(iR,iC)));
-					auto fx_rho = [&](double zprho_input[])->double {
-						return -loglik_z(zprho_input[0], iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
-					};
+						double start[] = { zprho };
+						double xmin[] = { 0.0 };
+						double ynewlo = 0.0;
+						double reqmin = 1.0e-20;
+						int konvge = 5;
+						int kcount = 1000;
+						double step[] = { 0.02 };
+						int icount = 0;
+						int numres = 0;
+						int ifault = 0;
+						nelmin(fx_rho, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
+						double xmax = xmin[0];
+						double minll = ynewlo;
 
-					double start[] = { zprho };
-					double xmin[] = { 0.0 };
-					double ynewlo = 0.0;
-					double reqmin = 1.0e-20;
-					int konvge = 5;
-					int kcount = 1000;
-					double step[] = { 0.02 };
-					int icount = 0;
-					int numres = 0;
-					int ifault = 0;
-					nelmin(fx_rho, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
-					double xmax = xmin[0];
-					double minll = ynewlo;
+						mat cl(5,3, fill::zeros);
+						vec dl(5, fill::zeros);
+						double step_size = Rho_stepsize;
+						Rho_burnin_block:
+							for (int iii=0; iii < 5; ++iii) {
+								double e1 = static_cast<double>(iii-2);
+								cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
+								cl(iii,1) = xmax + e1 * step_size;
+								cl(iii,2) = 1.0;
+								dl(iii) = -loglik_z(xmax + e1 * step_size, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
+							}
 
-					mat cl(5,3, fill::zeros);
-					vec dl(5, fill::zeros);
-					double step_size = 0.2;
-					Rho_burnin_block:
-						for (int iii=0; iii < 5; ++iii) {
-							double e1 = static_cast<double>(iii-2);
-							cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
-							cl(iii,1) = xmax + e1 * step_size;
-							cl(iii,2) = 1.0;
-							dl(iii) = -loglik_z(xmax + e1 * step_size, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
-						}
-
-					for (int ni=0; ni < 5; ++ni) {
-						if ((ni+1) != 3) {
-							if (dl(ni) <= minll) {
-								step_size *= 1.2;
-								goto Rho_burnin_block;
+						for (int ni=0; ni < 5; ++ni) {
+							if ((ni+1) != 3) {
+								if (dl(ni) <= minll) {
+									step_size *= 1.2;
+									goto Rho_burnin_block;
+								}
 							}
 						}
-					}
 
-					vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
-					double sigmaa = std::sqrt(0.5 / fl(0));
+						vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
+						double sigmaa = std::sqrt(0.5 / fl(0));
 
 
-					double zprho_prop = ::norm_rand() * sigmaa + xmax;
+						double zprho_prop = ::norm_rand() * sigmaa + xmax;
 
-					// log-likelihood difference
-					double ll_diff = loglik_z(zprho_prop, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
-									 loglik_z(zprho, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
-									 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-					if (std::log(::unif_rand()) < ll_diff) {
-						pRho(iR,iC) = (std::exp(2.0 * zprho_prop) - 1.0) / (std::exp(2.0 * zprho_prop) + 1.0);
-						pRho(iC,iR) = pRho(iR,iC);
-						Rho = pRho_to_Rho(pRho);
-						++Rho_rates(iR,iC);
+						// log-likelihood difference
+						double ll_diff = loglik_z(zprho_prop, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
+										 loglik_z(zprho, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
+										 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
+						if (std::log(::unif_rand()) < ll_diff) {
+							pRho(iR,iC) = (std::exp(2.0 * zprho_prop) - 1.0) / (std::exp(2.0 * zprho_prop) + 1.0);
+							pRho(iC,iR) = pRho(iR,iC);
+							Rho = pRho_to_Rho(pRho);
+							++Rho_rates(iR,iC);
+						}
 					}
 				}
 			}
@@ -498,7 +500,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 						mat cl(5,3, fill::zeros);
 						vec dl(5, fill::zeros);
-						double step_size = 0.5;
+						double step_size = lambda_stepsize;
 						eta_sample_block:
 							for (int iii=0; iii < 5; ++iii) {
 								double e1 = static_cast<double>(iii-2);
@@ -517,7 +519,6 @@ Rcpp::List BayesNMR(const arma::vec& y,
 							}
 						}
 
-						// mat clinv = arma::solve(cl.t() * cl);
 						vec fl = solve(cl.t() * cl, cl.t() * dl);
 						double sigmaa = std::sqrt(0.5 / fl(0));
 
@@ -583,7 +584,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 					mat cl(5,3, fill::zeros);
 					vec dl(5, fill::zeros);
-					double step_size = 0.5;
+					double step_size = phi_stepsize;
 					phi_sample_block:
 						for (int iii=0; iii < 5; ++iii) {
 							double e1 = static_cast<double>(iii-2);
@@ -619,65 +620,68 @@ Rcpp::List BayesNMR(const arma::vec& y,
 				}
 				Z = arma::exp(z * phi);
 
-				/*********
-				Sample Rho
-				*********/
-				for (int iR=0; iR < nT-1; ++iR) {
-					for (int iC=iR+1; iC < nT; ++iC) {
-						double zprho = 0.5 * std::log((1.0 + pRho(iR,iC)) / (1.0 - pRho(iR,iC)));
-			            auto fx_rho = [&](double zprho_input[])->double {
-			              return -loglik_z(zprho_input[0], iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
-			            };
+				if (sample_Rho) {
 
-			            double start[] = { zprho };
-			            double xmin[] = { 0.0 };
-			            double ynewlo = 0.0;
-			            double reqmin = 1.0e-20;
-			            int konvge = 5;
-			            int kcount = 1000;
-			            double step[] = { 0.02 };
-			            int icount = 0;
-			            int numres = 0;
-			            int ifault = 0;
-			            nelmin(fx_rho, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
-			            double xmax = xmin[0];
-			            double minll = ynewlo;
+					/*********
+					Sample Rho
+					*********/
+					for (int iR=0; iR < nT-1; ++iR) {
+						for (int iC=iR+1; iC < nT; ++iC) {
+							double zprho = 0.5 * std::log((1.0 + pRho(iR,iC)) / (1.0 - pRho(iR,iC)));
+				            auto fx_rho = [&](double zprho_input[])->double {
+				              return -loglik_z(zprho_input[0], iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
+				            };
 
-						mat cl(5,3, fill::zeros);
-						vec dl(5, fill::zeros);
-						double step_size = 0.5;
-						Rho_sample_block:
-							for (int iii=0; iii < 5; ++iii) {
-								double e1 = static_cast<double>(iii-2);
-								cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
-								cl(iii,1) = xmax + e1 * step_size;
-								cl(iii,2) = 1.0;
-								dl(iii) = -loglik_z(xmax + e1 * step_size, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
-							}
+				            double start[] = { zprho };
+				            double xmin[] = { 0.0 };
+				            double ynewlo = 0.0;
+				            double reqmin = 1.0e-20;
+				            int konvge = 5;
+				            int kcount = 1000;
+				            double step[] = { 0.02 };
+				            int icount = 0;
+				            int numres = 0;
+				            int ifault = 0;
+				            nelmin(fx_rho, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
+				            double xmax = xmin[0];
+				            double minll = ynewlo;
 
-						for (int ni=0; ni < 5; ++ni) {
-							if ((ni+1) != 3) {
-								if (dl(ni) <= minll) {
-									step_size *= 1.2;
-									goto Rho_sample_block;
+							mat cl(5,3, fill::zeros);
+							vec dl(5, fill::zeros);
+							double step_size = Rho_stepsize;
+							Rho_sample_block:
+								for (int iii=0; iii < 5; ++iii) {
+									double e1 = static_cast<double>(iii-2);
+									cl(iii,0) = std::pow(xmax + e1 * step_size, 2.0);
+									cl(iii,1) = xmax + e1 * step_size;
+									cl(iii,2) = 1.0;
+									dl(iii) = -loglik_z(xmax + e1 * step_size, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks);
+								}
+
+							for (int ni=0; ni < 5; ++ni) {
+								if ((ni+1) != 3) {
+									if (dl(ni) <= minll) {
+										step_size *= 1.2;
+										goto Rho_sample_block;
+									}
 								}
 							}
-						}
-						vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
-						double sigmaa = std::sqrt(0.5 / fl(0));
+							vec fl = arma::solve(cl.t() * cl, cl.t() * dl);
+							double sigmaa = std::sqrt(0.5 / fl(0));
 
 
-						double zprho_prop = ::norm_rand() * sigmaa + xmax;
+							double zprho_prop = ::norm_rand() * sigmaa + xmax;
 
-						// log-likelihood difference
-						double ll_diff = loglik_z(zprho_prop, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
-										 loglik_z(zprho, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
-										 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-						if (std::log(::unif_rand()) < ll_diff) {
-							pRho(iR,iC) = (std::exp(2.0 * zprho_prop) - 1.0) / (std::exp(2.0 * zprho_prop) + 1.0);
-							pRho(iC,iR) = pRho(iR,iC);
-							Rho = pRho_to_Rho(pRho);
-							++Rho_rates(iR,iC);
+							// log-likelihood difference
+							double ll_diff = loglik_z(zprho_prop, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
+											 loglik_z(zprho, iR, iC, pRho, lam, sig2 / npt, Z, resid, Eks, idxks) -
+											 0.5 * (std::pow(zprho - xmax, 2.0) - std::pow(zprho_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
+							if (std::log(::unif_rand()) < ll_diff) {
+								pRho(iR,iC) = (std::exp(2.0 * zprho_prop) - 1.0) / (std::exp(2.0 * zprho_prop) + 1.0);
+								pRho(iC,iR) = pRho(iR,iC);
+								Rho = pRho_to_Rho(pRho);
+								++Rho_rates(iR,iC);
+							}
 						}
 					}
 				}
@@ -721,7 +725,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 	lam_rates /= static_cast<double>(ndiscard+nkeep*nskip);
 
 	return ListBuilder()
-	.add("beta", beta_save)
+	.add("theta", beta_save)
 	.add("phi", phi_save)
 	.add("lam", lam_save)
 	.add("sig2", sig2_save)

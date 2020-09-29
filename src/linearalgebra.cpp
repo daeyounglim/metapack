@@ -29,39 +29,6 @@ arma::mat vecrinv(const arma::vec& X, const int& J) {
 	return R;
 }
 
-
-arma::mat constructR(const arma::vec& vphi, const int& J) {
-	arma::mat varphi = vecrinv(vphi, J);
-	arma::mat R(J, J, arma::fill::eye);
-	for (int i = 0; i < J; ++i) {
-		for (int j = i; j < J; ++j) {
-			if (i == 0 && j == 0) {
-				continue;
-			} else if (i == 0 && j > 0) {
-				R(i,j) = std::tanh(varphi(i,j));
-			} else if (i > 0 && i == j) {
-				if (i > 1) {
-					for (int k = 0; k < i; ++k) {
-						R(i,j) *= std::sqrt(1.0 - std::pow(std::tanh(varphi(k,j)), 2.0));	
-					}
-				} else {
-					R(i,j) = std::sqrt(1.0 - std::pow(std::tanh(varphi(0,j)), 2.0));
-				}
-			} else if (i > 0 && j > i) {
-				if (i > 1) {
-					R(i,j) = std::tanh(varphi(i,j));
-					for (int k = 0; k < i; ++k) {
-						R(i,j) *= std::sqrt(1.0 - std::pow(std::tanh(varphi(k,j)), 2.0));	
-					}
-				} else {
-					R(i,j) = std::tanh(varphi(i,j)) * std::sqrt(1.0 - std::pow(std::tanh(varphi(0,j)), 2.0));
-				}
-			}
-		}
-	}
-	return R;
-}
-
 arma::vec vecl(const arma::mat& X) {
 	using namespace arma;
 	int n = X.n_rows;
@@ -74,22 +41,6 @@ arma::vec vecl(const arma::mat& X) {
 	return out;
 }
 
-// template <typename TN>
-// arma::mat veclinv(TN& v, const int& n) {
-// 	using namespace arma;
-// 	mat out(n, n, fill::zeros);
-// 	int count1 = 0;
-// 	int count2 = n-2;
-// 	for (int i = 0; i < n-1; ++i) {
-// 		vec vv = v(span(count1, count2));
-// 		out(span(i+1, n-1), i) = vv;
-// 		out(i, span(i+1,n-1)) = vv.t();
-// 		count1 = count2+1;
-// 		count2 += n-2-i;
-// 	}
-// 	return out;
-// }
-
 arma::vec vech(const arma::mat& X) {
 	int n = X.n_rows;
 	arma::vec out(n*(n+1)/2);
@@ -100,8 +51,6 @@ arma::vec vech(const arma::mat& X) {
 	}
 	return out;
 }
-
-
 
 arma::mat vechinv(const arma::vec& v, const int& n) {
 	using namespace arma;
@@ -182,6 +131,7 @@ arma::mat blockdiag( arma::field<arma::mat>& x ) {
 Convert partial correlation
 to correlation
 **************************/
+// [[Rcpp::export]]
 arma::mat pRho_to_Rho(arma::mat& pRho) {
 	using namespace arma;
 	using namespace Rcpp;
@@ -224,6 +174,51 @@ arma::mat pRho_to_Rho(arma::mat& pRho) {
 		}
 	}
 	return Rho;
+}
+
+// [[Rcpp::export]]
+arma::mat Rho_to_pRho(arma::mat& Rho) {
+	using namespace arma;
+	using namespace Rcpp;
+	using namespace R;
+	using namespace std;
+
+	const int nT = Rho.n_rows;
+	mat pRho = Rho;
+
+	for (int iL=nT-1; iL > 1; --iL) {
+		mat rmat(iL-1,iL-1, fill::zeros);
+
+		for (int iR=1; iR < nT-iL+1; ++iR) {
+			vec rvec1(nT-2, fill::zeros);
+			vec rvec3(nT-2, fill::zeros);
+
+			for (int i1=1; i1 < iL; ++i1) {
+				rvec1(i1-1) = pRho(iR-1, iR+i1-1);
+				rvec3(i1-1) = pRho(iR+i1-1, iR+iL-1);
+			}
+			double rr11 = 0.0;
+			double rr13 = 0.0;
+			double rr33 = 0.0;
+
+			for (int i1=1; i1 < iL; ++i1) {
+				for (int j1=1; j1 < iL; ++j1) {
+					rmat(i1-1,j1-1) = pRho(iR+i1-1, iR+j1-1);
+				}
+			}
+			mat rmatinv = rmat.i();
+			for (int i1=1; i1 < iL; ++i1) {
+				for (int j1=1; j1 < iL; ++j1) {
+					rr11 += rvec1(i1-1) * rmatinv(i1-1,j1-1) * rvec1(j1-1);
+					rr13 += rvec1(i1-1) * rmatinv(i1-1,j1-1) * rvec3(j1-1);
+					rr33 += rvec3(i1-1) * rmatinv(i1-1,j1-1) * rvec3(j1-1);
+				}
+			}
+			pRho(iR-1, iR+iL-1) = (Rho(iR-1, iR+iL-1) - rr13) / std::sqrt((1.0 - rr11) * (1.0 - rr33));
+			pRho(iR+iL-1,iR-1) = pRho(iR-1, iR+iL-1);
+		}
+	}
+	return pRho;
 }
 
 // hyperspherical reparameterization: Rho = B * B'

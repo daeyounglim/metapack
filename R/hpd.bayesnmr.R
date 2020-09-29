@@ -3,12 +3,12 @@
 #' @param prob the probability which the HPD interval will cover
 #' @importFrom coda mcmc HPDinterval
 #' @return dataframe containing HPD intervals for the parameters
-#' @method hpd bayesnmr
+#' @method confint bayesnmr
 #' @export
 
-"hpd.bayesnmr" <- function(object, prob = 0.95) {
+"confint.bayesnmr" <- function(object, prob = 0.95) {
 	out <- list()
-	out$beta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$beta), end=object$mcmc$nkeep), prob=prob)
+	out$theta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=prob)
 	out$phi.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$phi), end=object$mcmc$nkeep), prob=prob)
 	out$gam.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=prob)
 	out$sig2.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=prob)
