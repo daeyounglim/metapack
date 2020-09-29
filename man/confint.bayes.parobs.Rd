@@ -4,12 +4,16 @@
 \alias{confint.bayes.parobs}
 \title{get the highest posterior density (HPD) interval}
 \usage{
-\method{confint}{bayes.parobs}(object, level = 0.95)
+\method{confint}{bayes.parobs}(object, parm, level = 0.95, ...)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}
 
-\item{prob}{the probability which the HPD interval will cover}
+\item{parm}{a specification of which parameters are to be given confidence intervals, either a vector of numbers or a vector of names. If missing, all parameters are considered.}
+
+\item{level}{the probability which the HPD interval will cover}
+
+\item{...}{additional arguments for confint}
 }
 \value{
 dataframe containing HPD intervals for the parameters

@@ -4,10 +4,16 @@
 \alias{print.bayesnmr}
 \title{Print results}
 \usage{
-\method{print}{bayesnmr}(object, conf.level = 0.95, HPD = TRUE, ...)
+\method{print}{bayesnmr}(x, conf.level = 0.95, HPD = TRUE, ...)
 }
 \arguments{
-\item{object}{the output model from fitting a meta analysis/regression model}
+\item{x}{the output model from fitting a meta analysis/regression model}
+
+\item{conf.level}{credible level for interval estimation; set to 0.95 by default}
+
+\item{HPD}{a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed}
+
+\item{...}{additional arguments for print}
 }
 \value{
 does not return anything; print a summary of the output

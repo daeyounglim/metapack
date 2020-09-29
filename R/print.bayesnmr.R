@@ -1,12 +1,15 @@
 #' Print results
 #' 
-#' @param object the output model from fitting a meta analysis/regression model
+#' @param x the output model from fitting a meta analysis/regression model
+#' @param conf.level credible level for interval estimation; set to 0.95 by default
+#' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
+#' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
 #' @importFrom coda mcmc HPDinterval
 #' @importFrom stats quantile sd
 #' @method print bayesnmr
 #' @export
-"print.bayesnmr" <- function(object, conf.level=0.95, HPD=TRUE, ...) {
+"print.bayesnmr" <- function(x, conf.level=0.95, HPD=TRUE, ...) {
 	cat("Bayesian Network Meta-Regression Hierarchical Models\nUsing Heavy-Tailed Multivariate Random Effects\nwith Covariate-Dependent Variances\n")
 	cat("\n")
 	cat("Model:\n")
@@ -15,51 +18,51 @@
 	cat("  (Random effects)\n    ")
 	cat("[gam | Rho,nu] ~ MVT(0, E_k' Rho E_k, nu)\n")
 	cat("Priors:\n")
-	cat("  theta       ~ MVN(0, c01 * I_p), c01=", object$prior$c01, "\n")
-	cat("  phi        ~ MVN(0, c02 * I_q), c02=", object$prior$c02, "\n")
+	cat("  theta       ~ MVN(0, c01 * I_p), c01=", x$prior$c01, "\n")
+	cat("  phi        ~ MVN(0, c02 * I_q), c02=", x$prior$c02, "\n")
 	cat("  p(sigma^2) ~ 1/sigma^2 * I(sigma^2 > 0)\n")
 	cat("  p(Rho)     ~ 1\n")
 
 	cat("-------------------------------------------------\n")
 
-	cat("Number of studies:    ", object$K, "\n")
-	cat("Number of arms:       ", length(object$y), "\n")
-	cat("Number of treatments: ", object$nT, "\n")
+	cat("Number of studies:    ", x$K, "\n")
+	cat("Number of arms:       ", length(x$y), "\n")
+	cat("Number of treatments: ", x$nT, "\n")
 	theta <- list()
 	phi <- list()
 	gam <- list()
 	sig2 <- list()
 	Rho <- list()
-	theta$mean <- rowMeans(object$mcmc.draws$theta)
-	theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
-	phi$mean <- rowMeans(object$mcmc.draws$phi)
-	phi$sd <- apply(object$mcmc.draws$phi, 1, sd)
-	gam$mean <- rowMeans(object$mcmc.draws$gam)
-	gam$sd <- apply(object$mcmc.draws$gam, 1, sd)
+	theta$mean <- rowMeans(x$mcmc.draws$theta)
+	theta$sd <- apply(x$mcmc.draws$theta, 1, sd)
+	phi$mean <- rowMeans(x$mcmc.draws$phi)
+	phi$sd <- apply(x$mcmc.draws$phi, 1, sd)
+	gam$mean <- rowMeans(x$mcmc.draws$gam)
+	gam$sd <- apply(x$mcmc.draws$gam, 1, sd)
 
 	sig.level <- 1 - conf.level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$theta), end=x$mcmc$nkeep), prob=conf.level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
-		phi.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$phi), end=object$mcmc$nkeep), prob=conf.level)
+		phi.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$phi), end=x$mcmc$nkeep), prob=conf.level)
 		phi$lower <- phi.hpd[,1]
 		phi$upper <- phi.hpd[,2]
 
-		gam.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=conf.level)
+		gam.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$gam), end=x$mcmc$nkeep), prob=conf.level)
 		gam$lower <- gam.hpd[,1]
 		gam$upper <- gam.hpd[,2]
 	} else {
-		theta$lower <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		theta$lower <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
-		phi$lower <- apply(object$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = sig.level/2))
-		phi$upper <- apply(object$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		phi$lower <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = sig.level/2))
+		phi$upper <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
-		gam$lower <- apply(object$mcmc.draws$gam, 1, function(xx) quantile(xx, prob = sig.level/2))
-		gam$upper <- apply(object$mcmc.draws$gam, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		gam$lower <- apply(x$mcmc.draws$gam, 1, function(xx) quantile(xx, prob = sig.level/2))
+		gam$upper <- apply(x$mcmc.draws$gam, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 	}
 	theta_print <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
 	phi_print <- cbind(phi$mean, phi$sd, phi$lower, phi$upper)

@@ -12,7 +12,7 @@
 #' @param fmodel the model number; defaults to M1
 #' @param prior list of hyperparameters; when not given, algorithm will run in default setting
 #' @param mcmc list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
-#' @param control list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); they're all 0.2 by default
+#' @param control list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); If not provided, default to 0.02, 0.02, and 0.2, respectively; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed in fmodel=3
 #' @param init initial values for the parameters. Dimensions must be conformant.
 #' @param verbose logical variable for printing progress bar. Default to FALSE.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
@@ -25,17 +25,21 @@
 #' Treat <- cholesterol$trt
 #' Npt <- cholesterol$Npt
 #' XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc,
-#' 		cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white, cholesterol$male, cholesterol$dm)
+#' 		cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white,
+#' 		cholesterol$male, cholesterol$dm)
 #' WCovariate <- cbind(1 - cholesterol$onstat, cholesterol$trt * (1 - cholesterol$onstat),
 #' 		cholesterol$onstat, cholesterol$trt * cholesterol$onstat)
 #' 
 #' fmodel <- 3
 #' fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale = TRUE, center = TRUE),
 #' 			WCovariate, Treat, Trial, Npt, fmodel,
-#'   		mcmc = list(ndiscard = 100000, nskip = 1, nkeep = 20000), control = list(delta_stepsize = 0.1,
+#'   		mcmc = list(ndiscard = 100000, nskip = 1, nkeep = 20000),
+#' 			control = list(delta_stepsize = 0.1,
 #' 			rho_stepsize = 0.05, R_stepsize = 0.05), verbose = TRUE
 #' )
 #' }
+#' @importFrom stats model.matrix
+#' @importFrom methods is
 #' @export
 bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), verbose = FALSE) {
   if (!is(Outcome, "matrix")) {

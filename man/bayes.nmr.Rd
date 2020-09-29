@@ -29,6 +29,8 @@ bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
 
 \item{add.z}{additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'}
 
+\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed}
+
 \item{init}{initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.}
 
 \item{verbose}{logical variable for printing progress bar. Default to FALSE.}

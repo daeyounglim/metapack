@@ -1,6 +1,9 @@
 #' get fitted values
 #' 
 #' @param object the output model from fitting a meta analysis/regression model
+#' @param conf.level credible level for interval estimation; set to 0.95 by default
+#' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
+#' @param ... additional arguments for fitted
 #' @return a list of fitted values
 #' @importFrom coda mcmc HPDinterval
 #' @method fitted bayesnmr
@@ -66,7 +69,7 @@
 
 	out <- object
 	out$conf.level <- conf.level
-	out$hpd <- hpd
+	out$hpd <- HPD
 	out$beta <- beta
 	out$phi <- phi
 	out$gam <- gam

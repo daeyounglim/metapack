@@ -1,12 +1,15 @@
 #' Print results
 #' 
-#' @param object the output model from fitting a meta analysis/regression model
+#' @param x the output model from fitting a meta analysis/regression model
+#' @param conf.level credible level for interval estimation; set to 0.95 by default
+#' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
+#' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
 #' @importFrom coda mcmc HPDinterval
 #' @importFrom stats sd quantile
 #' @method print bayes.parobs
 #' @export
-"print.bayes.parobs" <- function(object, conf.level=0.95, HPD=TRUE, ...) {
+"print.bayes.parobs" <- function(x, conf.level=0.95, HPD=TRUE, ...) {
 	cat("Bayesian Inference for Multivariate Meta-Regression\nWith a Partially Observed Within-Study Sample Covariance Matrix\n")
 	cat("\n")
 	cat("Model:\n")
@@ -15,32 +18,32 @@
 	cat("  (Random effects)\n    ")
 	cat("[gamma_k | Omega] ~ N(0, Omega)\n")
 
-	pl <- c(object$prior$c0, object$prior$dj0)
+	pl <- c(x$prior$c0, x$prior$dj0)
 	nl <- c("c0", "dj0")
 	cat("Priors:\n")
 	cat("   theta ~ MVN(0, c0 * I_p)\n")
 	cat("   Omega_j^{-1} ~ Wishart(dj0, Omega0)\n")
-	if (object$fmodel == 1) {
-		pl <- c(pl, object$prior$s0, object$prior$d0)
+	if (x$fmodel == 1) {
+		pl <- c(pl, x$prior$s0, x$prior$d0)
 		nl <- c(nl, "s0", "d0")
 		cat("   Sigma_tk = diag(sig_{tk,11}^2, ..., sig_{tk,JJ}^2)\n")
 		cat("   where sig_{tk,jj}^2 ~ IG(s0, d0)\n")
-	} else if (object$fmodel == 2) {
-		pl <- c(pl, object$prior$s0)
+	} else if (x$fmodel == 2) {
+		pl <- c(pl, x$prior$s0)
 		nl <- c(nl, "s0")
 		cat("   Sigma_tk = Sigma, where Sigma ~ Wishart(s0, Sigma0)\n")
-		# cat("   s0=", object$prior$s0, "\n")
-	} else if (object$fmodel == 3) {
-		pl <- c(pl, object$prior$s0, object$prior$d0)
+		# cat("   s0=", x$prior$s0, "\n")
+	} else if (x$fmodel == 3) {
+		pl <- c(pl, x$prior$s0, x$prior$d0)
 		nl <- c(nl, "s0", "d0")
 		cat("   Sigma_{tk} = sig_{tk} * Rho * sig_{tk},\n")
 		cat("   	where p(Rho) = 1, and sig_{tk,jj} ~ IG(s0, d0)\n")
-	} else if (object$fmodel == 4) {
-		pl <- c(pl, object$prior$nu0, object$prior$d0)
+	} else if (x$fmodel == 4) {
+		pl <- c(pl, x$prior$nu0, x$prior$d0)
 		nl <- c(nl, "nu0", "d0")
 		cat("   Sigma_{tk}^{-1} ~ Wishart(nu0, (nu0-J-1)*Sigma),\n")
 		cat("   Sigma ~ Wishart(d0, Sigma0),\n")
-		# cat("   where nu0=", object$prior$nu0, ", d0=", object$prior$d0, "\n")
+		# cat("   where nu0=", x$prior$nu0, ", d0=", x$prior$d0, "\n")
 	}
 	cat("---\n")
 	cat("Hyperparameters:\n")
@@ -52,27 +55,27 @@
 
 	mm <- matrix(0, 2, 1)
 	# mm[1,1] <- "Number of trials"
-	mm[1,1] <- object$K
+	mm[1,1] <- x$K
 	# mm[2,1] <- "Number of treatments"
-	mm[2,1] <- object$T
+	mm[2,1] <- x$T
 	rownames(mm) <- c("Number of trials", "Number of treatments")
 
 
 	print(mm, justify = "left")
 	cat("---\n")
 	theta <- list()
-	theta$mean <- rowMeans(object$mcmc.draws$theta)
-	theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+	theta$mean <- rowMeans(x$mcmc.draws$theta)
+	theta$sd <- apply(x$mcmc.draws$theta, 1, sd)
 
 	sig.level <- 1 - conf.level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$theta), end=x$mcmc$nkeep), prob=conf.level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 	} else {
-		theta$lower <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		theta$lower <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 	}
 	theta_print <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
 	if (HPD) {
@@ -80,10 +83,10 @@
 	} else {
 		colnames(theta_print) <- c("Post.Mean", "Std.Dev", "CI(Lower)", "CI(Upper)")
 	}
-	xcc <- if (!is.null(colnames(object$XCovariate))) colnames(object$XCovariate) else paste0("beta_", 1:ncol(object$XCovariate))
-	wcc <- if (!is.null(colnames(object$WCovariate))) colnames(object$WCovariate) else paste0("gam_", 1:ncol(object$WCovariate))
+	xcc <- if (!is.null(colnames(x$XCovariate))) colnames(x$XCovariate) else paste0("beta_", 1:ncol(x$XCovariate))
+	wcc <- if (!is.null(colnames(x$WCovariate))) colnames(x$WCovariate) else paste0("gam_", 1:ncol(x$WCovariate))
 
-	J <- ncol(object$Outcome)
+	J <- ncol(x$Outcome)
 	rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
 
 	print(theta_print, justify="left", digits=2)

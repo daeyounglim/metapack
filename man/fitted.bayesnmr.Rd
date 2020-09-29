@@ -8,6 +8,12 @@
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}
+
+\item{conf.level}{credible level for interval estimation; set to 0.95 by default}
+
+\item{HPD}{a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed}
+
+\item{...}{additional arguments for fitted}
 }
 \value{
 a list of fitted values

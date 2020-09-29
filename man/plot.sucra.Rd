@@ -4,10 +4,12 @@
 \alias{plot.sucra}
 \title{plot the surface under the cumulative ranking curve (SUCRA)}
 \usage{
-\method{plot}{sucra}(object, ...)
+\method{plot}{sucra}(x, ...)
 }
 \arguments{
-\item{object}{the output model from fitting a network meta analysis/regression model}
+\item{x}{the output model from fitting a network meta analysis/regression model}
+
+\item{...}{additional arguments for plot}
 }
 \description{
 plot the surface under the cumulative ranking curve (SUCRA)
