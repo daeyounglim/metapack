@@ -3,13 +3,20 @@ Type: Package
 Title: Bayesian Meta-Analysis and Network Meta-Analysis
 Version: 1.0
 Date: 2020-08-23
-Author: Daeyoung Lim [aut, cre]
-Maintainer: Daeyoung Lim
-    <daeyoung.lim@uconn.edu>
+Authors@R: c(
+	person("Daeyoung", "Lim", email = "daeyoung.lim@uconn.edu",
+	role = c("aut", "cre")),
+	person("Ming-Hui", "Chen", email = "ming-hui.chen@uconn.edu",
+	role = "ctb"),
+	person("Sungduk", "Kim", email = "kims2@mail.nih.gov",
+	role = "ctb"),
+	person("Joseph", "Ibrahim", email = "ibrahim@bios.unc.edu",
+	role = "ctb"))
 Description: This package contains algorithms for Bayesian meta analysis and regression under various models.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyLoad: yes
+LazyData: true
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
 Imports: Rcpp, RcppArmadillo, RcppProgress, BH,
@@ -17,3 +24,4 @@ Imports: Rcpp, RcppArmadillo, RcppProgress, BH,
 Depends: R (>= 3.4)
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, BH
 URL: http://merlot.stat.uconn.edu/packages/metapack/
+BugReports: https://github.com/daeyounglim/metapack/issues

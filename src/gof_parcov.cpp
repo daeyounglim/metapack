@@ -77,7 +77,7 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 					W(j, span(j*nw, (j+1)*nw-1)) = w_i;
 				}
 				mat Xstar = arma::join_horiz(X, W);
-				if (fmodel >= 3) {
+				if (fmodel != 2) {
 					mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
 					mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
 					g(i,ikeep) -= mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
@@ -142,7 +142,7 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 			W(j, span(j*nw, (j+1)*nw-1)) = w_i;
 		}
 		mat Xstar = arma::join_horiz(X, W);
-		if (fmodel >= 3) {
+		if (fmodel != 2) {
 			mat Sighat = vechinv(arma::trans(Sigmahat.row(i)), J);
 			mat Q = Sighat / ntk + W * Omegahat * W.t();
 			Dev_thetabar -= 2.0 * mvnpdf(y_i, Xstar * thetahat, Q, true);
@@ -177,7 +177,7 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 					W(j, span(j*nw, (j+1)*nw-1)) = w_i;
 				}
 				mat Xstar = arma::join_horiz(X, W);
-				if (fmodel >= 3) {
+				if (fmodel != 2) {
 					mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
 					mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
 					Dev_bar -= 2.0 * mvnpdf(y_i, Xstar * theta_ikeep, Q, true);

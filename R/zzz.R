@@ -6,5 +6,5 @@
    # echo output to screen
    packageStartupMessage("## Meta-Analysis (metapack)")
    packageStartupMessage("## Copyright (C) ", this.year,
-      " Daeyoung Lim and Ming-Hui Chen", sep="")
+      " Daeyoung Lim, Ming-Hui Chen, Sungduk Kim, and Joseph G. Ibrahim", sep="")
 }

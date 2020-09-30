@@ -17,10 +17,10 @@
 		out$Sigma <- hpdarray(object$mcmc.draws$Sigma, conf.level = level)
 		if (object$fmodel >= 2) {
 			out$R <- hpdarray(object$mcmc.draws$R, conf.level = level)
-			if (object$fmodel == 3) {
+			if (object$fmodel == 4) {
 				out$delta <- hpdarray(object$mcmc.draws$delta, conf.level = level)
 				out$Rho <- hpdarray(object$mcmc.draws$Rho, conf.level = level)
-			} else if (object$fmodel == 4) {
+			} else if (object$fmodel == 5) {
 				out$delta <- coda::HPDinterval(mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=level)
 				out$Rho <- hpdarray(object$mcmc.draws$Rho, conf.level = level)
 				out$Sigma0 <- hpdarray(object$mcmc.draws$Sigma0, conf.level = level)
@@ -36,10 +36,10 @@
 		cl$Sigma <- quote(hpdarray(object$mcmc.draws$Sigma, conf.level = level))
 		if (object$fmodel >= 2) {
 			cl$R <- quote(hpdarray(object$mcmc.draws$R, conf.level = level))
-			if (object$fmodel == 3) {
+			if (object$fmodel == 4) {
 				cl$delta <- quote(hpdarray(object$mcmc.draws$delta, conf.level = level))
 				cl$Rho <- quote(hpdarray(object$mcmc.draws$Rho, conf.level = level))
-			} else if (object$fmodel == 4) {
+			} else if (object$fmodel == 5) {
 				cl$delta <- quote(coda::HPDinterval(mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=level))
 				cl$Rho <- quote(hpdarray(object$mcmc.draws$Rho, conf.level = level))
 				cl$Sigma0 <- quote(hpdarray(object$mcmc.draws$Sigma0, conf.level = level))

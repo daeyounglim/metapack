@@ -34,11 +34,15 @@
 		cat("   Sigma_tk = Sigma, where Sigma ~ Wishart(s0, Sigma0)\n")
 		# cat("   s0=", x$prior$s0, "\n")
 	} else if (x$fmodel == 3) {
+		pl <- c(pl, x$prior$s0)
+		nl <- c(nl, "s0")
+		cat("   Sigma_tk = Sigma_t, where Sigma_t ~ Wishart(s0, Sigma0)\n")
+	} else if (x$fmodel == 4) {
 		pl <- c(pl, x$prior$s0, x$prior$d0)
 		nl <- c(nl, "s0", "d0")
 		cat("   Sigma_{tk} = sig_{tk} * Rho * sig_{tk},\n")
 		cat("   	where p(Rho) = 1, and sig_{tk,jj} ~ IG(s0, d0)\n")
-	} else if (x$fmodel == 4) {
+	} else if (x$fmodel == 5) {
 		pl <- c(pl, x$prior$nu0, x$prior$d0)
 		nl <- c(nl, "nu0", "d0")
 		cat("   Sigma_{tk}^{-1} ~ Wishart(nu0, (nu0-J-1)*Sigma),\n")

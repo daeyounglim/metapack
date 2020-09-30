@@ -6,7 +6,8 @@
 \usage{
 bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   fmodel = 1, prior = list(), mcmc = list(), control = list(),
-  init = list(), verbose = FALSE)
+  init = list(), Treat_order = NULL, Trial_order = NULL,
+  verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -33,6 +34,10 @@ bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
 \item{init}{initial values for the parameters. Dimensions must be conformant.}
 
+\item{Treat_order}{a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
+
+\item{Trial_order}{a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
+
 \item{verbose}{logical variable for printing progress bar. Default to FALSE.}
 }
 \value{
@@ -40,6 +45,12 @@ a dataframe with input arguments, posterior samples, Metropolis algorithm accept
 }
 \description{
 This is a function for running the Markov chain Monte Carlo algorithm for the BMVMR_POCov Model. The first six arguments are required.
+fmodel can be one of 5 numbers: 1, 2, 2.5, 3, and 4. The first model, fmodel = 1 denoted by M1, indicates that the \eqn{\Sigma_{tk}}{Sig.tk}
+are diagonal matrices with zero covariances. M2 indicates that \eqn{\Sigma_{tk}}{Sig.tk} are all equivalent but allowed to be full symmetric
+positive definite. M2.5 is where \eqn{\Sigma_{tk}}{Sig.tk} are allowed to differ across treatments, i.e., \eqn{\Sigma_{tk}=\Sigma_t}{Sig.tk=Sig.t}.
+M3 assumes thata the correlation matrix, \eqn{\rho}{Rho}, is identical for all trials/treatments, but the variances are allowed to vary.
+Finally, M4 assumes a hierarchical model where \eqn{(\Sigma_{tk}\mid \Sigma)}{(Sig.tk|Sig)} follows an inverse-Wishart distribution with fixed
+degrees of freedom and scale matrix \eqn{\Sigma}{Sig}. \eqn{\Sigma}{Sig} then follows another inverse-Wishart distribution with fixed parameters.
 }
 \examples{
 \dontrun{

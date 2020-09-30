@@ -6,7 +6,8 @@
 \usage{
 bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
   prior = list(), mcmc = list(), add.z = list(), control = list(),
-  init = list(), verbose = FALSE)
+  init = list(), Treat_order = NULL, Trial_order = NULL,
+  verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -33,6 +34,10 @@ bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
 
 \item{init}{initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.}
 
+\item{Treat_order}{a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
+
+\item{Trial_order}{a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
+
 \item{verbose}{logical variable for printing progress bar. Default to FALSE.}
 }
 \value{
@@ -43,12 +48,14 @@ This is a function for running the Markov chain Monte Carlo algorithm for the BN
 }
 \examples{
 \dontrun{
-data(df)
+data(TNM)
 groupInfo <- list(c(0, 1), c(2, 3), c(4)) # define the variance structure
-x <- df[, 6:10]
-fit <- bayes.nmr(df$y, df$sd, x, df$ids, df$iarm, df$npt, groupInfo,
+x <- TNM[, 6:10]
+fit <- bayes.nmr(TNM$Outcome, TNM$sd, x, TNM$ids, TNM$iarm, TNM$npt, groupInfo,
   prior = list(c01 = 1.0e05, c02 = 4, df = 3),
-  mcmc = list(ndiscard = 2500, nskip = 1, nkeep = 10000)
+  mcmc = list(ndiscard = 2500, nskip = 1, nkeep = 10000),
+  Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE", "AE", "LE", "PE"),
+  verbose = TRUE
 )
 }
 }

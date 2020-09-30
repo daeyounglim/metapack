@@ -17,6 +17,10 @@ fmodel2 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, 
     .Call(`_metapack_fmodel2`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, s0, Omega0, Sigma0, K, T, ndiscard, nskip, nkeep, R_stepsize, theta_init, gamR_init, Omega_init, verbose)
 }
 
+fmodel2p5 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, s0, Omega0, Sigma0, K, T, ndiscard, nskip, nkeep, R_stepsize, theta_init, gamR_init, Omega_init, verbose) {
+    .Call(`_metapack_fmodel2p5`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, s0, Omega0, Sigma0, K, T, ndiscard, nskip, nkeep, R_stepsize, theta_init, gamR_init, Omega_init, verbose)
+}
+
 fmodel3 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose) {
     .Call(`_metapack_fmodel3`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose)
 }

@@ -47,6 +47,19 @@
 		Sigma <- list()
 		Sigma$mean <- apply(object$mcmc.draws$Sigma, c(1,2), mean)
 		Sigma$sd <- apply(object$mcmc.draws$Sigma, c(1,2), sd)
+		R <- list()
+		R$mean <- apply(object$mcmc.draws$R, c(1,2), mean)
+		R$sd <- apply(object$mcmc.draws$R, c(1,2), sd)
+	} else if (object$fmodel == 4) {
+		theta <- list()
+		theta$mean <- rowMeans(object$mcmc.draws$theta)
+		theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+		Omega <- list()
+		Omega$mean <- apply(object$mcmc.draws$Omega, c(1,2), mean)
+		Omega$sd <- apply(object$mcmc.draws$Omega, c(1,2), sd)
+		Sigma <- list()
+		Sigma$mean <- apply(object$mcmc.draws$Sigma, c(1,2), mean)
+		Sigma$sd <- apply(object$mcmc.draws$Sigma, c(1,2), sd)
 		delta <- list()
 		delta$mean <- apply(object$mcmc.draws$delta, c(1,2), mean)
 		delta$sd <- apply(object$mcmc.draws$delta, c(1,2), sd)
@@ -56,7 +69,7 @@
 		R <- list()
 		R$mean <- apply(object$mcmc.draws$R, c(1,2), mean)
 		R$sd <- apply(object$mcmc.draws$R, c(1,2), sd)
-	} else if (object$fmodel == 4) {
+	} else if (object$fmodel == 5) {
 		theta <- list()
 		theta$mean <- rowMeans(object$mcmc.draws$theta)
 		theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
@@ -98,7 +111,7 @@
 			R$lower <- R.hpd[,,1]
 			R$upper <- R.hpd[,,2]
 
-			if (fmodel == 3) {
+			if (fmodel == 4) {
 				delta.hpd <- hpdarray(object$mcmc.draws$delta, conf.level = conf.level)
 				delta$lower <- delta.hpd[,,1]
 				delta$upper <- delta.hpd[,,2]
@@ -106,7 +119,7 @@
 				Rho.hpd <- hpdarray(object$mcmc.draws$Rho, conf.level = conf.level)
 				Rho$lower <- Rho.hpd[,,1]
 				Rho$upper <- Rho.hpd[,,2]
-			} else if (fmodel == 4) {
+			} else if (fmodel == 5) {
 				Delta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=conf.level)
 				Delta$lower <- Delta.hpd[,1]
 				Delta$upper <- Delta.hpd[,2]
@@ -132,13 +145,13 @@
 			R$lower <- apply(object$mcmc.draws$R, 3, function(xx) quantile(xx, prob = sig.level/2))
 			R$upper <- apply(object$mcmc.draws$R, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 
-			if (fmodel == 3) {
+			if (fmodel == 4) {
 				delta$lower <- apply(object$mcmc.draws$delta, 3, function(xx) quantile(xx, prob = sig.level/2))
 				delta$upper <- apply(object$mcmc.draws$delta, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 				Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))
 				Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))
-			} else if (fmodel == 4) {
+			} else if (fmodel == 5) {
 				Delta$lower <- apply(object$mcmc.draws$delta, 1, function(xx) quantile(xx, prob = sig.level/2))
 				Delta$upper <- apply(object$mcmc.draws$delta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
@@ -160,10 +173,10 @@
 	out$Omega <- Omega
 	if (fmodel >= 2) {
 		out$R <- R
-		if (fmodel == 3) {
+		if (fmodel == 4) {
 			out$delta <- delta
 			out$Rho <- Rho
-		} else if (fmodel == 4) {
+		} else if (fmodel == 5) {
 			out$Delta <- Delta
 			out$Rho <- Rho
 			out$Sigma0 <- Sigma0

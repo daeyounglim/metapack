@@ -19,9 +19,9 @@
 #'		\item{bhdlc}{baseline HDL-C}
 #'		\item{btg}{baseline triglycerides (TG)}
 #'		\item{age}{age in years}
-#'		\item{white}{the percentage of white participants}
-#'		\item{male}{the percentage of male participants}
-#'		\item{dm}{the percentage of participants with diabetes mellitus}
+#'		\item{white}{the proportion of white participants}
+#'		\item{male}{the proportion of male participants}
+#'		\item{dm}{the proportion of participants with diabetes mellitus}
 #'		\item{durat}{duration in weeks}
 #' }
 #' @usage data(cholesterol)

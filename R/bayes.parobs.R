@@ -1,6 +1,12 @@
 #' Fit Bayesian Inference for Multivariate Meta-Regression With a Partially Observed Within-Study Sample Covariance Matrix
 #'
 #' This is a function for running the Markov chain Monte Carlo algorithm for the BMVMR_POCov Model. The first six arguments are required.
+#' fmodel can be one of 5 numbers: 1, 2, 3, 4, and 5. The first model, fmodel = 1 denoted by M1, indicates that the \eqn{\Sigma_{tk}}{Sig.tk}
+#' are diagonal matrices with zero covariances. M2 indicates that \eqn{\Sigma_{tk}}{Sig.tk} are all equivalent but allowed to be full symmetric
+#' positive definite. M3 is where \eqn{\Sigma_{tk}}{Sig.tk} are allowed to differ across treatments, i.e., \eqn{\Sigma_{tk}=\Sigma_t}{Sig.tk=Sig.t}.
+#' M4 assumes thata the correlation matrix, \eqn{\rho}{Rho}, is identical for all trials/treatments, but the variances are allowed to vary.
+#' Finally, M5 assumes a hierarchical model where \eqn{(\Sigma_{tk}\mid \Sigma)}{(Sig.tk|Sig)} follows an inverse-Wishart distribution with fixed
+#' degrees of freedom and scale matrix \eqn{\Sigma}{Sig}. \eqn{\Sigma}{Sig} then follows another inverse-Wishart distribution with fixed parameters.
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param Outcome aggregate mean of the responses for each arm of each study
 #' @param SD standard deviation of the responses for each arm of each study
@@ -14,6 +20,8 @@
 #' @param mcmc list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
 #' @param control list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); If not provided, default to 0.02, 0.02, and 0.2, respectively; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed in fmodel=3
 #' @param init initial values for the parameters. Dimensions must be conformant.
+#' @param Treat_order a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param Trial_order a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
 #' @param verbose logical variable for printing progress bar. Default to FALSE.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
@@ -41,7 +49,7 @@
 #' @importFrom stats model.matrix
 #' @importFrom methods is
 #' @export
-bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), verbose = FALSE) {
+bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, verbose = FALSE) {
   if (!is(Outcome, "matrix")) {
     tmp <- try(Outcome <- model.matrix(~ 0 + ., data = Outcome), silent = TRUE)
     if (is(tmp, "try-error")) {
@@ -115,10 +123,18 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   Sigma0 <- priorvals$Sigma0
   nu0 <- priorvals$nu0
 
-  Treat.order <- sort(unique(Treat))
+  if (is.null(Treat_order)) {
+	  Treat.order <- sort(unique(Treat))
+  } else {
+  	Treat.order <- Treat_order
+  }
   Treat.n <- relabel.vec(Treat, Treat.order) - 1 # relabel the treatment numbers
 
-  Trial.order <- sort(unique(Trial))
+  if (is.null(Trial_order)) {
+	  Trial.order <- sort(unique(Trial))
+  } else {
+  	Trial.order <- Trial_order
+  }
   Trial.n <- relabel.vec(Trial, Trial.order) - 1 # relabel the trial numbers
 
   K <- length(unique(Trial))
@@ -196,7 +212,33 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
         as.double(R_stepsize),
         as.logical(verbose)
       )
-    } else if (fmodel == 3) {
+	} else if (fmodel == 3) {
+		fout <- .Call(
+        `_metapack_fmodel2p5`,
+        as.matrix(Outcome),
+        as.matrix(SD),
+        as.matrix(XCovariate),
+        as.matrix(WCovariate),
+        as.integer(Treat.n),
+        as.integer(Trial.n),
+        as.double(Npt),
+        as.double(c0),
+        as.double(dj0),
+        as.double(s0),
+        as.matrix(Omega0),
+        as.matrix(Sigma0),
+        as.integer(K),
+        as.integer(T),
+        as.integer(ndiscard),
+        as.integer(nskip),
+        as.integer(nkeep),
+        as.double(theta_init),
+        as.matrix(gamR_init),
+        as.matrix(Omega_init),
+        as.double(R_stepsize),
+        as.logical(verbose)
+      )
+    } else if (fmodel == 4) {
       fout <- .Call(
         `_metapack_fmodel3`,
         as.matrix(Outcome),
@@ -226,7 +268,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
         as.logical(sample_Rho),
         as.logical(verbose)
       )
-    } else if (fmodel == 4) {
+    } else if (fmodel == 5) {
       fout <- .Call(
         `_metapack_fmodel4`,
         as.matrix(Outcome),
@@ -256,7 +298,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
         as.logical(verbose)
       )
     } else {
-      stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4}.")
+      stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4, 5}.")
     }
   })
   if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
