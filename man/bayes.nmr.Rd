@@ -5,7 +5,7 @@
 \title{Fit Bayesian Network Meta-Regression Hierarchical Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances}
 \usage{
 bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
-  prior = list(), mcmc = list(), add.z = list(), control = list(),
+  prior = list(), mcmc = list(), add.z = NULL, control = list(),
   init = list(), Treat_order = NULL, Trial_order = NULL,
   verbose = FALSE)
 }
@@ -30,7 +30,7 @@ bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
 
 \item{add.z}{additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'}
 
-\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed}
+\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm}
 
 \item{init}{initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.}
 
@@ -50,10 +50,16 @@ This is a function for running the Markov chain Monte Carlo algorithm for the BN
 \dontrun{
 data(TNM)
 groupInfo <- list(c(0, 1), c(2, 3), c(4)) # define the variance structure
-x <- TNM[, 6:10]
-fit <- bayes.nmr(TNM$Outcome, TNM$sd, x, TNM$ids, TNM$iarm, TNM$npt, groupInfo,
+x <- TNM[, 6:15]
+x <- scale(x, center = TRUE, scale = TRUE)
+beta_init <- c(0.05113, -1.38866, 1.09817, -0.85855, -1.12056, -1.14133, -0.22435, 3.63453,
+             -2.09322, 1.07858, 0.80566, -40.76753, -45.07127, -28.27232, -44.14054,
+             -28.13203, -19.19989, -47.21824, -51.31234, -48.46266, -47.71443)
+fit <- bayes.nmr(TNM$ptg, TNM$sdtg, x, TNM$Trial, TNM$Treat, TNM$Npt, groupInfo,
+  add.z = cbind(TNM$bldlc, TNM$btg),
   prior = list(c01 = 1.0e05, c02 = 4, df = 3),
   mcmc = list(ndiscard = 2500, nskip = 1, nkeep = 10000),
+  init = list(beta = beta_init),
   Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE", "AE", "LE", "PE"),
   verbose = TRUE
 )

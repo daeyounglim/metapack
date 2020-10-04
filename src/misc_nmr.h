@@ -42,6 +42,21 @@ double loglik_z(const double& zprho,
 				const arma::vec& resid,
 				const arma::field<arma::mat>& Eks,
 				const arma::field<arma::uvec>& idxks);
+double loglik_df(const double& dfp,
+				 const arma::vec& lam,
+				 const int& K,
+				 const double& nu_a,
+				 const double& nu_b);
 
+double loglik_nua(const double& lognua,
+				  const double& df,
+				  const double& nu_b,
+				  const double& a4,
+				  const double& b4);
 
+double loglik_nub(const double& lognub,
+				  const double& df,
+				  const double& nu_a,
+				  const double& a5,
+				  const double& b5);
 #endif

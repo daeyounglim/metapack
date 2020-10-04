@@ -75,12 +75,69 @@ double loglik_rho_m3(const double& zprho,
 	mat pRRho = vecrinv(arma::tanh(vRhop), J);
 	pRRho.diag().fill(1.0);
 	mat Rhop = pRho_to_Rho(pRRho);
-	mat Rhopinv = arma::inv(Rhop);
+	mat Rhopinv;
+	try {
+		Rhopinv = arma::inv(Rhop);
+	} catch (std::runtime_error & e) {
+		return -arma::datum::inf;
+	}
 	double logdet_val, logdet_sign;
 	arma::log_det(logdet_val, logdet_sign, Rhop);
 
 	double loglik = -0.5 * arma::dot(qq, Rhopinv) - 0.5 * sumNpt * logdet_val;
 	loglik += 0.5 * static_cast<double>(J + 1 - std::abs(iC - iR)) * std::log1p(-z*z);
+	return loglik;
+}
+
+double loglik_vRho_m3(const arma::vec& vRho,
+					 const arma::mat& qq,
+					 const int& J,
+					 const double& sumNpt) {
+	using namespace arma;
+	using namespace std;
+	using namespace Rcpp;
+	using namespace R;
+
+	vec z = arma::tanh(vRho);
+
+	mat pRRho = vecrinv(z, J);
+	pRRho.diag().fill(1.0);
+	mat Rhop = pRho_to_Rho(pRRho);
+	mat Rhopinv = arma::inv(Rhop);
+	double logdet_val, logdet_sign;
+	arma::log_det(logdet_val, logdet_sign, Rhop);
+
+	double loglik = -0.5 * arma::dot(qq, Rhopinv) - 0.5 * sumNpt * logdet_val;
+	for (int ii = 0; ii < J; ++ii) {
+		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
+		int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
+		loglik += 0.5 * static_cast<double>(J + 1 - std::abs(iC - iR)) * std::log1p(-z(ii)*z(ii));
+	}
+	return loglik;
+}
+
+double loglik_phi_m3(const double& zphi,
+					 const arma::mat& Rho_angles,
+					 const arma::mat& qq,
+					 const int& iR,
+					 const int& iC,
+					 const int& J,
+					 const double& sumNpt) {
+	using namespace arma;
+	using namespace std;
+	using namespace Rcpp;
+	using namespace R;
+
+	double phi = M_PI * R::plogis(zphi, 0.0, 1.0, 1, 0);
+	mat mPhi = Rho_angles;
+	mPhi(iR,iC) = phi;
+	mat RhoChol = constructB(mPhi);
+	mat Rhop = RhoChol * RhoChol.t();
+	mat Rhopinv = arma::inv(Rhop);
+	double logdet_val, logdet_sign;
+	arma::log_det(logdet_val, logdet_sign, Rhop);
+	double loglik = -0.5 * arma::dot(qq, Rhopinv) - 0.5 * sumNpt * logdet_val;
+	loglik += R::dlogis(zphi, 0.0, 1.0, TRUE) + M_LN_SQRT_PI * 2.0;
 	return loglik;
 }
 

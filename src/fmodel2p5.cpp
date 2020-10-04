@@ -35,7 +35,7 @@ Rcpp::List fmodel2p5(const arma::mat& Outcome,
 				   const int& nkeep,
 				   const double& R_stepsize,
 				   const arma::vec& theta_init,
-				   const arma::vec& gamR_init,
+				   const arma::mat& gamR_init,
 				   const arma::mat& Omega_init,
 				   const bool& verbose) {
 	using namespace arma;
@@ -80,7 +80,6 @@ Rcpp::List fmodel2p5(const arma::mat& Outcome,
 
 	const mat Omega0inv = arma::inv_sympd(Omega0);
 	const mat Sigma0inv = arma::inv_sympd(Sigma0);
-	const double sumNpt = arma::accu(Npt);
 	const double shape_omega = static_cast<double>(K) + dj0;
 	mat resid = Outcome;
 	mat vR_rates(N, (J*(J-1))/2, fill::zeros);
@@ -512,7 +511,7 @@ Rcpp::List fmodel2p5(const arma::mat& Outcome,
 			mat Sig_post(N, J*(J+1)/2);
 			for (int i = 0; i < N; ++i) {
 				int trt_i = Treat(i);
-				Sig_post.row(i) = arma::trans(vech(Sig.col(trt_i)));
+				Sig_post.row(i) = arma::trans(Sig.col(trt_i));
 			}
 			Sigma_save.slice(ikeep) = Sig_post;
 			Omega_save.slice(ikeep) = Omega;

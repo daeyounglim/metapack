@@ -5,7 +5,7 @@
 #' @importFrom grDevices devAskNewPage rgb
 #' @importFrom graphics axis lines plot
 #' @method plot sucra
-#' @importFrom ggplot2 ggplot geom_line aes labs
+#' @importFrom ggplot2 ggplot geom_line aes labs theme_gray theme ylab
 #' @export
 "plot.sucra" <- function(x, legend.position = "none", ...) {
 	nT <- length(x$SUCRA)
@@ -21,15 +21,6 @@
 			 theme_gray() + theme(legend.position = legend.position) +
 			 ylab("SUCRA") + labs(title = paste0("Trt (", names[TRT], "): ", Area))
 		print(bb)
-		# plot(1:nT,type="n",ylim=c(0,1), xaxt="n",
-		#    xlab=paste("Rank of",as.character(names[TRT])), 
-		#    ylab="Probability", main = paste0("SUCRA = ", Area), ...)
-		# axis(1,at=1:nT,labels=names)
-		# lines(lwd=2,lty=1,c(1,c(1:c(nT)),nT), 
-		#     cumeffectiveness[c(1,1:c(nT),c(nT)),TRT], col=rgb(0, 157, 114, maxColorValue = 255))
-		# lines(lwd=2,lty=3,col="#eab159",c(1,c(1:c(nT)),nT), 
-		#     x$rankProb[c(1,1:c(nT),c(nT)),TRT])
-
 	}
 	on.exit(devAskNewPage(oask))
 }

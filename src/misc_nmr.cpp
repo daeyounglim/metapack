@@ -132,3 +132,48 @@ double loglik_z(const double& zprho,
      	      2.0*zprho - 2.0*std::log(std::exp(2.0*zprho)+1.0);
 	return loglik;
 }
+
+double loglik_df(const double& dfp,
+				 const arma::vec& lam,
+				 const int& K,
+				 const double& nu_a,
+				 const double& nu_b) {
+	using namespace arma;
+	using namespace R;
+	using namespace Rcpp;
+
+	double df = std::exp(dfp);
+
+	return 0.5 * static_cast<double>(K) * df * (dfp - std::log(2)) - static_cast<double>(K) * R::lgammafn(0.5 * df) +
+		   (0.5 * df - 1.0) * arma::accu(arma::log(lam)) - 0.5 * df * accu(lam) +
+		   nu_a * (std::log(nu_a) - std::log(nu_b)) - R::lgammafn(nu_a) + nu_a * dfp - nu_a * df / nu_b;
+}
+
+double loglik_nua(const double& lognua,
+				  const double& df,
+				  const double& nu_b,
+				  const double& a4,
+				  const double& b4) {
+	using namespace arma;
+	using namespace R;
+	using namespace Rcpp;
+
+	double nu_a = std::exp(lognua);
+	return nu_a * (lognua - std::log(nu_b)) - R::lgammafn(nu_a) + nu_a * std::log(df) - nu_a * df / nu_b + a4 * lognua - b4 * nu_a;
+}
+
+double loglik_nub(const double& lognub,
+				  const double& df,
+				  const double& nu_a,
+				  const double& a5,
+				  const double& b5) {
+	using namespace arma;
+	using namespace R;
+	using namespace Rcpp;
+
+	double nu_b = std::exp(lognub);
+	return nu_a * lognub - nu_a * df / nu_b - a5 * lognub - b5 / nu_b;
+}
+
+
+

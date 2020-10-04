@@ -20,7 +20,7 @@ LazyData: true
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
 Imports: Rcpp, RcppArmadillo, RcppProgress, BH,
-	coda, ggplot2, methods
+	coda, ggplot2, methods, Matrix
 Depends: R (>= 3.4)
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, BH
 URL: http://merlot.stat.uconn.edu/packages/metapack/

@@ -4,10 +4,12 @@
 \alias{plot.sucra}
 \title{plot the surface under the cumulative ranking curve (SUCRA)}
 \usage{
-\method{plot}{sucra}(x, ...)
+\method{plot}{sucra}(x, legend.position = "none", ...)
 }
 \arguments{
 \item{x}{the output model from fitting a network meta analysis/regression model}
+
+\item{legend.position}{the position of the legend that will be passed onto ggplot}
 
 \item{...}{additional arguments for plot}
 }

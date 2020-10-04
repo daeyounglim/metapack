@@ -35,7 +35,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 				   const int& nkeep,
 				   const double& R_stepsize,
 				   const arma::vec& theta_init,
-				   const arma::vec& gamR_init,
+				   const arma::mat& gamR_init,
 				   const arma::mat& Omega_init,
 				   const bool& verbose) {
 	using namespace arma;
