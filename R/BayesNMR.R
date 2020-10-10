@@ -9,14 +9,14 @@
 #' @param Treat treatment identifiers for the corresponding trial arm; equivalent to the arm number of each study; will be coerced to consecutive integers
 #' @param Npt number of observations/participants per trial
 #' @param groupInfo list of grouping information; the control(baseline) group must start from 0; the aggregate covariates 'z' explaining the variance of the random effect of the t-th treatment will be construct based on this grouping information
-#' @param prior list of hyperparameters when not given, algorithm will run in default setting.
-#' @param mcmc list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
-#' @param add.z additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'
-#' @param verbose logical variable for printing progress bar. Default to FALSE.
-#' @param control list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm
-#' @param Treat_order a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param Trial_order a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param init initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.
+#' @param prior (Optional) list of hyperparameters when not given, algorithm will run in default setting.
+#' @param mcmc (Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
+#' @param add.z (Optional) additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'
+#' @param verbose (Optional) logical variable for printing progress bar. Default to FALSE.
+#' @param control (Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm
+#' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param Trial_order (Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param init (Optional) initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
 #' \dontrun{

@@ -16,13 +16,15 @@
 #' @param Trial trial identifier
 #' @param Npt number of observations per trial
 #' @param fmodel the model number; defaults to M1
-#' @param prior list of hyperparameters; when not given, algorithm will run in default setting
-#' @param mcmc list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
-#' @param control list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); If not provided, default to 0.02, 0.02, and 0.2, respectively; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed in fmodel=3
-#' @param init initial values for the parameters. Dimensions must be conformant.
-#' @param Treat_order a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param Trial_order a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param verbose logical variable for printing progress bar. Default to FALSE.
+#' @param prior (Optional) list of hyperparameters; when not given, algorithm will run in default setting
+#' @param mcmc (Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
+#' @param control (Optional) list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); If not provided, default to 0.02, 0.02, and 0.2, respectively; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed in fmodel=3
+#' @param init (Optional) initial values for the parameters. Dimensions must be conformant.
+#' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param Trial_order (Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param second_line (Optional) a vector of second-line treatment indicators; it must be binary indicating whether the patients were on another treatment or not
+#' @param second_order (Optional) a vector of unique second-line labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param verbose (Optional) logical variable for printing progress bar. Default to FALSE.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
 #' \dontrun{
@@ -50,7 +52,7 @@
 #' @importFrom methods is
 #' @importFrom Matrix nearPD
 #' @export
-bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, verbose = FALSE) {
+bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, second_line = NULL, second_order = NULL, verbose = FALSE) {
   if (!is(Outcome, "matrix")) {
     tmp <- try(Outcome <- model.matrix(~ 0 + ., data = Outcome), silent = TRUE)
     if (is(tmp, "try-error")) {
@@ -97,6 +99,22 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     stop("Missing data (NA) detected. Handle missing data (e.g., delete missings, delete variables, imputation) before passing it as an argument")
   }
 
+  nr <- 1
+  if (!is.null(second_line)) {
+    sl <- unique(second_line)
+    if (length(sl) != 2) {
+      stop("The second-line trial indicators must be binary.")
+    }
+    nr <- 2
+    if (is.null(second_order)) {
+      second.order <- sort(sl)
+    } else {
+      second.order <- second_order
+    }
+    second.n <- relabel.vec(second_line, second.order) - 1
+  }
+
+
   mcvals <- list(ndiscard = 5000L, nskip = 1L, nkeep = 20000L)
   mcvals[names(mcmc)] <- mcmc
   ndiscard <- mcvals$ndiscard
@@ -111,7 +129,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   sample_Rho <- ctrl$sample_Rho # for fmodel = 4
 
   J <- ncol(Outcome)
-  nw <- ncol(WCovariate)
+  nw <-  ncol(WCovariate)
   priorvals <- list(c0 = 1.0e05, dj0 = 0.1 + nw, d0 = 0.1 + J, s0 = 0.1, a0 = 0.1, b0 = 0.1, Omega0 = diag(10, nw), Sigma0 = diag(10, J), nu0 = 10)
   priorvals[names(prior)] <- prior
   a0 <- priorvals$a0
@@ -143,9 +161,10 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
   xcols <- ncol(XCovariate)
 
+
   init_final <- list(
-    theta = numeric((xcols + nw) * J),
-    gamR = matrix(0, nw * J, K), Omega = diag(1, nrow = nw * J),
+    theta = numeric((xcols + nw*nr) * J),
+    gamR = matrix(0, nw * nr * J, K), Omega = diag(1, nrow = nw*nr*J),
     Rho = diag(1, nrow = J)
   )
   init_final[names(init)] <- init
@@ -154,55 +173,55 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   Omega_init <- init_final$Omega
   Rho_init <- init_final$Rho
 
-  if (fmodel == 4) {
-    N <- nrow(Outcome)
-    pars <- vecr(Rho_init)
-    sumNpt <- sum(Npt)
-    qq <- matrix(0, J, J)
-    for (i in 1:N) {
-      k <- Trial.n[i] + 1
-      ntk <- Npt[i]
-      x_i <- XCovariate[i,]
-      w_i <- WCovariate[i,]
-      pRR <- vecrinv(tanh(rep(0.5, (J*(J-1))/2)), as.integer(J))
-      diag(pRR) <- 1
-      RR <- pRho_to_Rho(pRR)
-      gam_k <- gamR_init[,k]
-      V <- diag(SD[i,], nrow=J)
-      X <- matrix(0, J, xcols * J)
-      W <- matrix(0, J, nw * J)
-      for (j in 1:J) {
-        X[j, ((j-1)*xcols+1):(j*xcols)] <- x_i
-        W[j, ((j-1)*nw+1):(j*nw)] <- w_i
-      }
-      Xstar <- cbind(X,W)
-      ypred_i <- drop(Xstar %*% theta_init)
-      resid_i <- Outcome[i,] - ypred_i - drop(W %*% gam_k)
-      dAd <- ntk * tcrossprod(resid_i) + (ntk - 1) * V %*% RR %*% V
-      siginvm <- diag(1 / SD[i,], nrow=J)
-      qq <- qq + (siginvm %*% dAd %*% siginvm)
-    }
-    fx_vrho <- function(vRho) {
-      z <- tanh(vRho)
-      pRRho <- vecrinv(z, as.integer(J))
-      diag(pRRho) <- 1
-      Rhop <- pRho_to_Rho(pRRho)
-      Rhop <- as.matrix(Matrix::nearPD(Rhop)$mat)
-      Rhopinv <- chol2inv(chol(Rhop))
-      loglik <- -0.5 * sum(qq * Rhopinv) - 0.5 * sumNpt * determinant(Rhop)$modulus[1]
-      for (i in 1:J) {
-        ii <- i - 1
-        iR <- J - 2 - floor(sqrt(-8.0*ii + 4.0*(J*(J-1))-7.0)/2.0 - 0.5);
-        iC <- ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2;
-        loglik <- loglik + 0.5 * (J + 1 - abs(iC-iR)) * log1p(-z[i]^2)
-      }
-      loglik
-    }
-    ff <- optim(pars, fx_vrho, control=list(fnscale=-1), hessian=TRUE)
-    fisher_info <- solve(-ff$hessian)
-    fisher_info <- Matrix::nearPD(fisher_info)$mat
-    fisher_chol <- t(chol(fisher_info))
-  }
+  # if (fmodel == 4) {
+  #   N <- nrow(Outcome)
+  #   pars <- vecr(Rho_init)
+  #   sumNpt <- sum(Npt)
+  #   qq <- matrix(0, J, J)
+  #   for (i in 1:N) {
+  #     k <- Trial.n[i] + 1
+  #     ntk <- Npt[i]
+  #     x_i <- XCovariate[i,]
+  #     w_i <- WCovariate[i,]
+  #     pRR <- vecrinv(tanh(rep(0.5, (J*(J-1))/2)), as.integer(J))
+  #     diag(pRR) <- 1
+  #     RR <- pRho_to_Rho(pRR)
+  #     gam_k <- gamR_init[,k]
+  #     V <- diag(SD[i,], nrow=J)
+  #     X <- matrix(0, J, xcols * J)
+  #     W <- matrix(0, J, nw * J)
+  #     for (j in 1:J) {
+  #       X[j, ((j-1)*xcols+1):(j*xcols)] <- x_i
+  #       W[j, ((j-1)*nw+1):(j*nw)] <- w_i
+  #     }
+  #     Xstar <- cbind(X,W)
+  #     ypred_i <- drop(Xstar %*% theta_init)
+  #     resid_i <- Outcome[i,] - ypred_i - drop(W %*% gam_k)
+  #     dAd <- ntk * tcrossprod(resid_i) + (ntk - 1) * V %*% RR %*% V
+  #     siginvm <- diag(1 / SD[i,], nrow=J)
+  #     qq <- qq + (siginvm %*% dAd %*% siginvm)
+  #   }
+  #   fx_vrho <- function(vRho) {
+  #     z <- tanh(vRho)
+  #     pRRho <- vecrinv(z, as.integer(J))
+  #     diag(pRRho) <- 1
+  #     Rhop <- pRho_to_Rho(pRRho)
+  #     Rhop <- as.matrix(Matrix::nearPD(Rhop)$mat)
+  #     Rhopinv <- chol2inv(chol(Rhop))
+  #     loglik <- -0.5 * sum(qq * Rhopinv) - 0.5 * sumNpt * determinant(Rhop)$modulus[1]
+  #     for (i in 1:J) {
+  #       ii <- i - 1
+  #       iR <- J - 2 - floor(sqrt(-8.0*ii + 4.0*(J*(J-1))-7.0)/2.0 - 0.5);
+  #       iC <- ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2;
+  #       loglik <- loglik + 0.5 * (J + 1 - abs(iC-iR)) * log1p(-z[i]^2)
+  #     }
+  #     loglik
+  #   }
+  #   ff <- optim(pars, fx_vrho, control=list(fnscale=-1), hessian=TRUE)
+  #   fisher_info <- solve(-ff$hessian)
+  #   fisher_info <- Matrix::nearPD(fisher_info)$mat
+  #   fisher_chol <- t(chol(fisher_info))
+  # }
 
   if (any(eigen(Omega_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
     stop("The initial value for Omega is not positive definite")
@@ -291,13 +310,14 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
       )
     } else if (fmodel == 4) {
       fout <- .Call(
-        `_metapack_fmodel3`,
+        `_metapack_fmodel3p`,
         as.matrix(Outcome),
         as.matrix(SD),
         as.matrix(XCovariate),
         as.matrix(WCovariate),
         as.integer(Treat.n),
         as.integer(Trial.n),
+        as.integer(second.n),
         as.double(Npt),
         as.double(c0),
         as.double(dj0),
@@ -316,7 +336,6 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
         as.matrix(gamR_init),
         as.matrix(Omega_init),
         as.matrix(Rho_init),
-        as.matrix(fisher_chol),
         as.logical(sample_Rho),
         as.logical(verbose)
       )
@@ -354,7 +373,11 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     }
   })
   if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
-    rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
+    if (!is.null(second_line)) {
+      rownames(fout$theta) <- c(rep(colnames(XCovariate), J), paste0(rep(colnames(WCovariate), J),"*(1-2nd)"), paste0(rep(colnames(WCovariate), J),"*2nd"))
+    } else {
+      rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
+    }
   }
   out <- list(
     Outcome = Outcome,
@@ -364,8 +387,10 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     WCovariate = WCovariate,
     Treat = Treat.n,
     Trial = Trial.n,
+    Second = second_line,
     TrtLabels = Treat.order,
     TrialLabels = Trial.order,
+    SecondLabels = second.order,
     K = K,
     T = T,
     fmodel = fmodel,
@@ -374,9 +399,9 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     mcmc = mcvals,
     mcmc.draws = fout
   )
-  if (fmodel == 4) {
-    out$fisher_chol <- fisher_chol
-  }
+  # if (fmodel == 4) {
+  #   out$fisher_chol <- fisher_chol
+  # }
   class(out) <- "bayes.parobs"
   out
 }

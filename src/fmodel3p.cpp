@@ -22,6 +22,7 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				   const arma::mat& WCovariate,
 				   const arma::uvec& Treat,
 				   const arma::uvec& Trial,
+				   const arma::uvec& Second,
 				   const arma::vec& Npt,
 				   const double& c0,
 				   const double& dj0, // hyperparameter for Omega
@@ -50,14 +51,20 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 	const int N = Outcome.n_rows;
 	const int J = Outcome.n_cols;
 	const int xcols = XCovariate.n_cols;
-	const int nw = WCovariate.n_cols;
+	const int nn = WCovariate.n_cols;
+	const int nw = nn * 2;
 	const int nt = (xcols + nw) * J;
 
 	arma::field<arma::uvec> idxks(K);
+	vec onstat(K, fill::zeros);
 	for (int k = 0; k < K; ++k) {
 		uvec idx = find(Trial == k);
 		idxks(k) = idx;
+		int i_k = idx(0);
+		onstat(k) = static_cast<double>(Second(i_k));
 	}
+
+
 
 	/***********************
 	Parameter Initialization
@@ -86,7 +93,10 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 
 	const mat Omega0inv = arma::inv_sympd(Omega0);
 	const double sumNpt = arma::accu(Npt);
-	const double shape_omega = static_cast<double>(K) + dj0;
+	const int K1 = arma::accu(arma::find(Second == 0));
+	const int K2 = arma::accu(arma::find(Second == 1));
+	const double shape_omega1 = static_cast<double>(K1) + dj0;
+	const double shape_omega2 = static_cast<double>(K2) + dj0;
 	mat resid = Outcome;
 	mat delta_rates(arma::size(delta), fill::zeros);
 	vec vRho_rates(J*(J-1)/2, fill::zeros);
@@ -131,6 +141,12 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					int i_k = idxk(i);
 					rowvec x_i = XCovariate.row(i_k);
 					rowvec w_i = WCovariate.row(i_k);
+					rowvec wstar_i(nw, fill::zeros);
+					if (Second(i_k) == 0) {
+						wstar_i.head(nn) =  w_i;
+					} else {
+						wstar_i.tail(nn) =  w_i;
+					}
 					rowvec y_i = Outcome.row(i_k);
 					double ntk = Npt(i_k);
 					mat Siginv = vechinv(arma::trans(Siginv_lt.row(i_k)), J);
@@ -138,7 +154,7 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					mat W(J, nw*J, fill::zeros);
 					for (int j = 0; j < J; ++j) {
 						X(j, arma::span(j*xcols, (j+1)*xcols-1)) = x_i;
-						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+						W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					mat Xstar = arma::join_horiz(X,W);
 					XSX += ntk * (Xstar.t() * Siginv * Xstar);
@@ -162,11 +178,17 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				rowvec x_i = XCovariate.row(i);
 				rowvec w_i = WCovariate.row(i);
 				rowvec y_i = Outcome.row(i);
+				rowvec wstar_i(nw, fill::zeros);
+				if (Second(i) == 0) {
+					wstar_i.head(nn) =  w_i;
+				} else {
+					wstar_i.tail(nn) =  w_i;
+				}
 				mat X(J, xcols*J, fill::zeros);
 				mat W(J, nw*J, fill::zeros);
 				for (int j = 0; j < J; ++j) {
 					X(j, arma::span(j*xcols, (j+1)*xcols-1)) = x_i;
-					W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+					W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 				}
 				mat Xstar = arma::join_horiz(X,W);
 				vec ypred_i = Xstar * theta;
@@ -182,12 +204,18 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				for (int i = 0; i < n_k; ++i) {
 					int i_k = idxk(i);
 					rowvec w_i = WCovariate.row(i_k);
+					rowvec wstar_i(nw, fill::zeros);
+					if (Second(i_k) == 0) {
+						wstar_i.head(nn) =  w_i;
+					} else {
+						wstar_i.tail(nn) =  w_i;
+					}
 					rowvec resid_i = resid.row(i_k);
 					double ntk = Npt(i_k);
 					mat Siginv = vechinv(arma::trans(Siginv_lt.row(i_k)), J);
 					mat W(J, nw*J, fill::zeros);
 					for (int j = 0; j < J; ++j) {
-						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+						W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					mat WS = W.t() * Siginv;
 					Siggam += ntk * (WS * W);
@@ -198,15 +226,28 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				vec gtmp(nw*J);
 				std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
 				gamR.col(k) = arma::solve(arma::trimatu(SiggamChol), arma::solve(arma::trimatl(SiggamChol.t()), mugam) + gtmp);
+				for (int j = 0; j < J; ++j) {
+					for (int j2 = 0; j2 < nn; ++j2) {
+						gamR(nw*j+j2, k) = (1.0 - onstat(k)) * gamR(nw*j+j2, k);
+						gamR(nw*j+nn+j2, k) = onstat(k) * gamR(nw*j+nn+j2, k);
+					}
+				}
 			}
+
 			// Update Omega
 			for (int jj = 0; jj < J; ++jj) {
-				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
-				mat qq = Omega0inv + (gamstar * gamstar.t());
-				mat ominv = rwish(shape_omega, arma::inv(qq));
-				mat om = arma::inv_sympd(ominv);
-				Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
-				Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
+				mat gamstar = gamR.rows(nw*jj, nw*jj+nn-1);
+				mat qq1 = Omega0inv + (gamstar * gamstar.t());
+				gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
+				mat qq2 = Omega0inv + (gamstar * gamstar.t());
+				mat ominv1 = rwish(shape_omega1, arma::inv(qq1));
+				mat ominv2 = rwish(shape_omega2, arma::inv(qq2));
+				mat om1 = arma::inv_sympd(ominv1);
+				mat om2 = arma::inv_sympd(ominv2);
+				Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
+				Omegainv(arma::span(nw*jj+nn, nw*(jj+1)-1), arma::span(nw*jj+nn, nw*(jj+1)-1)) = ominv2;
+				Omega(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = om1;
+				Omega(arma::span(nw*jj+nn, nw*(jj+1)-1), arma::span(nw*jj+nn, nw*(jj+1)-1)) = om2;
 			}
 
 			// Update Sigma
@@ -215,6 +256,12 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				int k = Trial(i);
 				double ntk = Npt(i);
 				rowvec w_i = WCovariate.row(i);
+				rowvec wstar_i(nw, fill::zeros);
+					if (Second(i) == 0) {
+						wstar_i.head(nn) =  w_i;
+					} else {
+						wstar_i.tail(nn) =  w_i;
+					}
 				mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
 				pRR.diag().fill(1.0);
 				mat R = pRho_to_Rho(pRR);
@@ -222,7 +269,7 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				mat V = arma::diagmat(SD.row(i));
 				mat W(J, nw*J, fill::zeros);
 				for (int j = 0; j < J; ++j) {
-					W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+					W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
 				}
 				vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 				mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
@@ -293,6 +340,12 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				int k = Trial(i);
 				double ntk = Npt(i);
 				rowvec w_i = WCovariate.row(i);
+				rowvec wstar_i(nw, fill::zeros);
+				if (Second(i) == 0) {
+					wstar_i.head(nn) =  w_i;
+				} else {
+					wstar_i.tail(nn) =  w_i;
+				}
 				mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
 				pRR.diag().fill(1.0);
 				mat R = pRho_to_Rho(pRR);
@@ -300,7 +353,7 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				mat V = arma::diagmat(SD.row(i));
 				mat W(J, nw*J, fill::zeros);
 				for (int j = 0; j < J; ++j) {
-					W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+					W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
 				}
 				vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 				mat dAd = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
@@ -458,7 +511,6 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
 			for (int iskip = 0; iskip < nskip; ++iskip) {
-
 				// Update theta
 				mat Sig_theta(nt, nt, fill::zeros);
 				Sig_theta.diag().fill(1.0 / c0);
@@ -475,6 +527,12 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 						int i_k = idxk(i);
 						rowvec x_i = XCovariate.row(i_k);
 						rowvec w_i = WCovariate.row(i_k);
+						rowvec wstar_i(nw, fill::zeros);
+						if (Second(i_k) == 0) {
+							wstar_i.head(nn) =  w_i;
+						} else {
+							wstar_i.tail(nn) =  w_i;
+						}
 						rowvec y_i = Outcome.row(i_k);
 						double ntk = Npt(i_k);
 						mat Siginv = vechinv(arma::trans(Siginv_lt.row(i_k)), J);
@@ -482,7 +540,7 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 						mat W(J, nw*J, fill::zeros);
 						for (int j = 0; j < J; ++j) {
 							X(j, arma::span(j*xcols, (j+1)*xcols-1)) = x_i;
-							W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+							W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 						}
 						mat Xstar = arma::join_horiz(X,W);
 						XSX += ntk * (Xstar.t() * Siginv * Xstar);
@@ -506,15 +564,20 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					rowvec x_i = XCovariate.row(i);
 					rowvec w_i = WCovariate.row(i);
 					rowvec y_i = Outcome.row(i);
+					rowvec wstar_i(nw, fill::zeros);
+					if (Second(i) == 0) {
+						wstar_i.head(nn) =  w_i;
+					} else {
+						wstar_i.tail(nn) =  w_i;
+					}
 					mat X(J, xcols*J, fill::zeros);
 					mat W(J, nw*J, fill::zeros);
 					for (int j = 0; j < J; ++j) {
 						X(j, arma::span(j*xcols, (j+1)*xcols-1)) = x_i;
-						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+						W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					mat Xstar = arma::join_horiz(X,W);
 					vec ypred_i = Xstar * theta;
-					ypred.row(i) = arma::trans(ypred_i);
 					resid.row(i) = arma::trans(y_i.t() - ypred_i);
 				}
 
@@ -527,12 +590,18 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					for (int i = 0; i < n_k; ++i) {
 						int i_k = idxk(i);
 						rowvec w_i = WCovariate.row(i_k);
+						rowvec wstar_i(nw, fill::zeros);
+						if (Second(i_k) == 0) {
+							wstar_i.head(nn) =  w_i;
+						} else {
+							wstar_i.tail(nn) =  w_i;
+						}
 						rowvec resid_i = resid.row(i_k);
 						double ntk = Npt(i_k);
 						mat Siginv = vechinv(arma::trans(Siginv_lt.row(i_k)), J);
 						mat W(J, nw*J, fill::zeros);
 						for (int j = 0; j < J; ++j) {
-							W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+							W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 						}
 						mat WS = W.t() * Siginv;
 						Siggam += ntk * (WS * W);
@@ -543,16 +612,28 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					vec gtmp(nw*J);
 					std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
 					gamR.col(k) = arma::solve(arma::trimatu(SiggamChol), arma::solve(arma::trimatl(SiggamChol.t()), mugam) + gtmp);
+					for (int j = 0; j < J; ++j) {
+						for (int j2 = 0; j2 < nn; ++j2) {
+							gamR(nw*j+j2, k) = (1.0 - onstat(k)) * gamR(nw*j+j2, k);
+							gamR(nw*j+nn+j2, k) = onstat(k) * gamR(nw*j+nn+j2, k);
+						}
+					}
 				}
 
 				// Update Omega
 				for (int jj = 0; jj < J; ++jj) {
-					mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
-					mat qq = Omega0inv + (gamstar * gamstar.t());
-					mat ominv = rwish(shape_omega, arma::inv(qq));
-					mat om = arma::inv(ominv);
-					Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
-					Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
+					mat gamstar = gamR.rows(nw*jj, nw*jj+nn-1);
+					mat qq1 = Omega0inv + (gamstar * gamstar.t());
+					gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
+					mat qq2 = Omega0inv + (gamstar * gamstar.t());
+					mat ominv1 = rwish(shape_omega1, arma::inv(qq1));
+					mat ominv2 = rwish(shape_omega2, arma::inv(qq2));
+					mat om1 = arma::inv_sympd(ominv1);
+					mat om2 = arma::inv_sympd(ominv2);
+					Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
+					Omegainv(arma::span(nw*jj+nn, nw*(jj+1)-1), arma::span(nw*jj+nn, nw*(jj+1)-1)) = ominv2;
+					Omega(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = om1;
+					Omega(arma::span(nw*jj+nn, nw*(jj+1)-1), arma::span(nw*jj+nn, nw*(jj+1)-1)) = om2;
 				}
 
 				// Update Sigma
@@ -561,6 +642,12 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					int k = Trial(i);
 					double ntk = Npt(i);
 					rowvec w_i = WCovariate.row(i);
+					rowvec wstar_i(nw, fill::zeros);
+						if (Second(i) == 0) {
+							wstar_i.head(nn) =  w_i;
+						} else {
+							wstar_i.tail(nn) =  w_i;
+						}
 					mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
 					pRR.diag().fill(1.0);
 					mat R = pRho_to_Rho(pRR);
@@ -568,7 +655,7 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					mat V = arma::diagmat(SD.row(i));
 					mat W(J, nw*J, fill::zeros);
 					for (int j = 0; j < J; ++j) {
-						W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+						W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 					mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
@@ -626,8 +713,6 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 							delta(i, j) = delta_i(j);
 							mat siginvm = arma::diagmat(1.0 / delta_i);
 							mat Siginv_new = siginvm * Rhoinv * siginvm;
-							mat Sig_new = arma::diagmat(delta_i) * Rho * arma::diagmat(delta_i);
-							Sig_lt.row(i) = arma::trans(vech(Sig_new));
 							Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 
 							++delta_rates(i,j);
@@ -641,15 +726,20 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 					int k = Trial(i);
 					double ntk = Npt(i);
 					rowvec w_i = WCovariate.row(i);
-					mat pRR = vecrinv(arma::trans(arma::tanh(vRtk.row(i))), J);
+					rowvec wstar_i(nw, fill::zeros);
+					if (Second(i) == 0) {
+						wstar_i.head(nn) =  w_i;
+					} else {
+						wstar_i.tail(nn) =  w_i;
+					}
+					mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
 					pRR.diag().fill(1.0);
 					mat R = pRho_to_Rho(pRR);
-
 					vec gam_k = gamR.col(k);
 					mat V = arma::diagmat(SD.row(i));
 					mat W(J, nw*J, fill::zeros);
 					for (int j = 0; j < J; ++j) {
-						W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+						W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 					mat dAd = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
@@ -712,18 +802,17 @@ Rcpp::List fmodel3p(const arma::mat& Outcome,
 						Rho = pRho_to_Rho(pRR);
 						Rhoinv = arma::inv(Rho);
 
-						// Update Sigmainvs
-						for (int i = 0; i < N; ++i) {
-							mat siginvm = arma::diagmat(1.0 / delta.row(i));
-							mat Siginv_new = siginvm * Rhoinv * siginvm;
-							mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
-							Sig_lt.row(i) = arma::trans(vech(Sig_new));
-							Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
-						}
 						++vRho_rates(ii);
 					}
 				}
-
+				// Update Sigmainvs
+				for (int i = 0; i < N; ++i) {
+					mat siginvm = arma::diagmat(1.0 / delta.row(i));
+					mat Siginv_new = siginvm * Rhoinv * siginvm;
+					mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
+					Sig_lt.row(i) = arma::trans(vech(Sig_new));
+					Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
+				}
 
 				// Update Rtk
 				for (int i = 0; i < N; ++i) {

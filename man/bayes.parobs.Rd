@@ -7,7 +7,7 @@
 bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   fmodel = 1, prior = list(), mcmc = list(), control = list(),
   init = list(), Treat_order = NULL, Trial_order = NULL,
-  verbose = FALSE)
+  second_line = NULL, second_order = NULL, verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -26,19 +26,23 @@ bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
 \item{fmodel}{the model number; defaults to M1}
 
-\item{prior}{list of hyperparameters; when not given, algorithm will run in default setting}
+\item{prior}{(Optional) list of hyperparameters; when not given, algorithm will run in default setting}
 
-\item{mcmc}{list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
+\item{mcmc}{(Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
 
-\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); If not provided, default to 0.02, 0.02, and 0.2, respectively; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed in fmodel=3}
+\item{control}{(Optional) list of parameters for localized Metropolis algorithm: the step sizes for R, Rho, delta, and Delta (R_stepsize, Rho_stepsize, delta_stepsize); If not provided, default to 0.02, 0.02, and 0.2, respectively; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed in fmodel=3}
 
-\item{init}{initial values for the parameters. Dimensions must be conformant.}
+\item{init}{(Optional) initial values for the parameters. Dimensions must be conformant.}
 
-\item{Treat_order}{a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
+\item{Treat_order}{(Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
 
-\item{Trial_order}{a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
+\item{Trial_order}{(Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
 
-\item{verbose}{logical variable for printing progress bar. Default to FALSE.}
+\item{second_line}{(Optional) a vector of second-line treatment indicators; it must be binary indicating whether the patients were on another treatment or not}
+
+\item{second_order}{(Optional) a vector of unique second-line labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order}
+
+\item{verbose}{(Optional) logical variable for printing progress bar. Default to FALSE.}
 }
 \value{
 a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc

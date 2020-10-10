@@ -28,6 +28,7 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 						 const arma::uvec& iarm,
 						 const arma::vec& npt,
 						 const double& nu,
+						 const arma::vec& dfs,
 						 const arma::mat& betas,
 						 const arma::mat& sig2s,
 						 const arma::mat& phis,
@@ -81,6 +82,7 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 			vec lam_ikeep = lams.col(ikeep);
 			mat Rho_ikeep = Rhos.slice(ikeep);
 			vec Z_ikeep = arma::exp(z * phi_ikeep);
+			double df_ikeep = dfs(ikeep);
 
 			for (int k=0; k < K; ++k) {
 				uvec idx = idxks(k);
@@ -98,7 +100,7 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 
 				if (t_random_effect) {
 					auto fx_lam = [&](double eta[])->double {
-						return -loglik_lam(eta[0], nu, resid_k, ERE_k, sig2_k, Tk);
+						return -loglik_lam(eta[0], df_ikeep, resid_k, ERE_k, sig2_k, Tk);
 					};
 					double start[] = { std::log(lam_k) };
 					double xmin[] = { 0.0 };
@@ -123,7 +125,7 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 					
 
 					auto fx = [&](double lam)->double {
-						double loglik = (0.5 * nu - 1.0) * std::log(lam) - 0.5 * nu * lam + 0.5 * nu * (std::log(nu) - M_LN2) - R::lgammafn(0.5 * nu);
+						double loglik = (0.5 * df_ikeep - 1.0) * std::log(lam) - 0.5 * df_ikeep * lam + 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep);
 						mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k / lam);
 						ZEREZ_S.diag() += sig2_k;
 						double logdet_val;

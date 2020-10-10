@@ -5,8 +5,8 @@ BayesNMR <- function(y, sd, x, z, ids, iarm, npt, nu, c01_inv, c02_inv, a4, b4, 
     .Call(`_metapack_BayesNMR`, y, sd, x, z, ids, iarm, npt, nu, c01_inv, c02_inv, a4, b4, a5, b5, K, nT, ndiscard, nskip, nkeep, verbose, theta_init, phi_init, sig2_init, Rho_init, lambda_stepsize, phi_stepsize, Rho_stepsize, sample_Rho, sample_df)
 }
 
-calc_modelfit_dic <- function(y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose) {
-    .Call(`_metapack_calc_modelfit_dic`, y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
+calc_modelfit_dic <- function(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose) {
+    .Call(`_metapack_calc_modelfit_dic`, y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
 }
 
 fmodel1 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, theta_init, gamR_init, Omega_init, verbose) {
@@ -25,8 +25,8 @@ fmodel3 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, 
     .Call(`_metapack_fmodel3`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, fisher_chol, sample_Rho, verbose)
 }
 
-fmodel3p <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose) {
-    .Call(`_metapack_fmodel3p`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose)
+fmodel3p <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose) {
+    .Call(`_metapack_fmodel3p`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose)
 }
 
 fmodel4 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, nu0, Sigma0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, verbose) {
@@ -57,7 +57,7 @@ Rho_to_pRho <- function(Rho) {
     .Call(`_metapack_Rho_to_pRho`, Rho)
 }
 
-calc_modelfit_lpml <- function(y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose) {
-    .Call(`_metapack_calc_modelfit_lpml`, y, x, z, ids, iarm, npt, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
+calc_modelfit_lpml <- function(y, x, z, ids, iarm, npt, nu, dfs, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose) {
+    .Call(`_metapack_calc_modelfit_lpml`, y, x, z, ids, iarm, npt, nu, dfs, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose)
 }
 

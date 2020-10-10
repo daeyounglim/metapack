@@ -24,21 +24,21 @@ bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
 
 \item{groupInfo}{list of grouping information; the control(baseline) group must start from 0; the aggregate covariates 'z' explaining the variance of the random effect of the t-th treatment will be construct based on this grouping information}
 
-\item{prior}{list of hyperparameters when not given, algorithm will run in default setting.}
+\item{prior}{(Optional) list of hyperparameters when not given, algorithm will run in default setting.}
 
-\item{mcmc}{list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
+\item{mcmc}{(Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
 
-\item{add.z}{additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'}
+\item{add.z}{(Optional) additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'}
 
-\item{control}{list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm}
+\item{control}{(Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm}
 
-\item{init}{initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.}
+\item{init}{(Optional) initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.}
 
-\item{Treat_order}{a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
+\item{Treat_order}{(Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
 
-\item{Trial_order}{a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
+\item{Trial_order}{(Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
 
-\item{verbose}{logical variable for printing progress bar. Default to FALSE.}
+\item{verbose}{(Optional) logical variable for printing progress bar. Default to FALSE.}
 }
 \value{
 a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc

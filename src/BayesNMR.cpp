@@ -504,7 +504,6 @@ Rcpp::List BayesNMR(const arma::vec& y,
 					++nub_rates;
 				}
 			}
-
 			prog.increment();
 		}
 	}
@@ -919,11 +918,10 @@ Rcpp::List BayesNMR(const arma::vec& y,
 				Rho_save.slice(ikeep) = Rho;
 			}
 			gam_save.col(ikeep) = Rgam;
-			if (sample_df) {
-				df_save(ikeep) = df;
-				nua_save(ikeep) = nu_a;
-				nub_save(ikeep) = nu_b;
-			}
+			
+			df_save(ikeep) = df;
+			nua_save(ikeep) = nu_a;
+			nub_save(ikeep) = nu_b;
 
 			prog.increment();
 		}
