@@ -86,8 +86,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 	double Dev_thetabar = 0.0;
 	vec Z_est = arma::exp(z * phi_est);
 	vec maxll_est(K, fill::zeros);
-	vec loglik_k(K, fill::zeros);
-	ivec flags(K, fill::zeros);
+	vec Q_k(K, fill::zeros);
 	for (int k=0; k < K; ++k) {
 		uvec idx = idxks(k);
 		vec y_k = y(idx);
@@ -124,10 +123,11 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 					maxll = 0.0;
 				}
 			}
-			flags(k) = ifault;
+			if (maxll > 50.0) {
+				maxll = maxll_est(k-1);
+			}
 			maxll_est(k) = maxll;
 			
-
 			auto fx = [&](double lam)->double {
 				double loglik = (0.5 * df_est - 1.0) * std::log(lam) - 0.5 * df_est * lam + 0.5 * df_est * (std::log(df_est) - M_LN2) - R::lgammafn(0.5 * df_est);
 				mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_est * E_k * diagmat(Z_k / lam);
@@ -145,7 +145,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 
 		    double error;
 			double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
-			loglik_k(k) = -2.0 * (maxll + std::log(Q));
+			Q_k(k) = Q;
 			Dev_thetabar += -2.0 * (maxll + std::log(Q));
     	} else {
     		double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
@@ -161,9 +161,8 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 
 
 	double Dev_bar = 0;
-	mat loglik_keep(K, nkeep, fill::zeros);
-	mat maxll_keep(K,nkeep,fill::zeros);
-	imat flags_keep(K, nkeep, fill::zeros);
+	mat Qs(K, nkeep, fill::zeros);
+	mat maxll_keep(K, nkeep, fill::zeros);
 	{
 		Progress prog(nkeep, verbose);
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
@@ -220,10 +219,10 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 							maxll = 0.0;
 						}
 					}
-					flags_keep(k,ikeep) = ifault;
-					maxll_keep(k,ikeep) = maxll;
+					if (maxll > 50.0) {
+						maxll = maxll_keep(k-1,ikeep);
+					}
 					
-
 					auto fx = [&](double lam)->double {
 						double loglik = (0.5 * df_ikeep - 1.0) * std::log(lam) - 0.5 * df_ikeep * lam + 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep);
 						mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k / lam);
@@ -241,7 +240,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 
 					double error;
 					double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
-					loglik_keep(ikeep) = -2.0 * (maxll + std::log(Q));
+					Qs(k,ikeep) = Q;
 					Dev_bar += -2.0 * (maxll + std::log(Q));
 				} else {
 					double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
@@ -260,13 +259,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 		Dev_bar /= static_cast<double>(nkeep);
 		double p_D = Dev_bar - Dev_thetabar;
 		double DIC = Dev_thetabar + 2.0 * p_D;
-		return Rcpp::List::create(Rcpp::Named("dic")=DIC,
-								  Rcpp::Named("loglik_k") = loglik_k,
-								  Rcpp::Named("loglik_keep") = loglik_keep,
-								  Rcpp::Named("maxll_est") = maxll_est,
-								  Rcpp::Named("maxll_keep") = maxll_keep,
-								  Rcpp::Named("flags") = flags,
-								  Rcpp::Named("flags_keep") = flags_keep);
+		return Rcpp::List::create(Rcpp::Named("dic")=DIC);
 	}
 }
 

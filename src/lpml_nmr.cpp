@@ -125,6 +125,9 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 							maxll = 0.0;
 						}
 					}
+					if (maxll > 50) {
+						maxll = maxll_keep(k-1, ikeep);
+					}
 					maxll_keep(k,ikeep) = maxll;
 					
 
