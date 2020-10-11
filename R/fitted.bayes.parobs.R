@@ -95,7 +95,7 @@
 	sig.level <- 1 - conf.level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=conf.level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
@@ -120,7 +120,7 @@
 				Rho$lower <- Rho.hpd[,,1]
 				Rho$upper <- Rho.hpd[,,2]
 			} else if (fmodel == 5) {
-				Delta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=conf.level)
+				Delta.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=conf.level)
 				Delta$lower <- Delta.hpd[,1]
 				Delta$upper <- Delta.hpd[,2]
 

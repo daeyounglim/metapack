@@ -25,8 +25,8 @@
 					 as.integer(ids),
 					 as.integer(iarm),
 					 as.double(npt),
-					 as.double(nu),
 					 as.double(object$mcmc.draws$df),
+					 as.double(nu),
 					 as.matrix(object$mcmc.draws$theta),
 					 as.matrix(object$mcmc.draws$sig2),
 					 as.matrix(object$mcmc.draws$phi),
@@ -35,6 +35,7 @@
 					 as.integer(K),
 					 as.integer(nT),
 					 as.integer(nkeep),
+					 as.logical(object$control$sample_df),
 					 as.logical(verbose))
 	} else if (type == "lpml") {
 		gof <- .Call(`_metapack_calc_modelfit_lpml`,
@@ -44,8 +45,8 @@
 					 as.integer(ids),
 					 as.integer(iarm),
 					 as.double(npt),
-					 as.double(nu),
 					 as.double(object$mcmc.draws$df),
+					 as.double(nu),
 					 as.matrix(object$mcmc.draws$theta),
 					 as.matrix(object$mcmc.draws$sig2),
 					 as.matrix(object$mcmc.draws$phi),
@@ -54,6 +55,7 @@
 					 as.integer(K),
 					 as.integer(nT),
 					 as.integer(nkeep),
+					 as.logical(object$control$sample_df),
 					 as.logical(verbose))
 	}
 

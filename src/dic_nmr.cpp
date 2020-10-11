@@ -37,7 +37,8 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 						 const int& K,
 						 const int& nT,
 						 const int& nkeep,
-						 const bool verbose) {
+						 const bool& sample_df,
+						 const bool& verbose) {
 	using namespace arma;
 	using namespace boost::math::quadrature;
 
@@ -63,7 +64,11 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 	double df_est = 0.0;
 	if (R_FINITE(nu)) {
 		t_random_effect = true;
-		df_est = arma::mean(dfs);
+		if (sample_df) {
+			df_est = arma::mean(dfs);
+		} else {
+			df_est = nu;
+		}
 	}
 
 	vec beta_est = arma::mean(betas, 1);
@@ -79,8 +84,10 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 	Dev(thetabar) = -2 * log L(thetabar | D_oy)
 	*******************************************/
 	double Dev_thetabar = 0.0;
-	vec maxll_est(K, fill::zeros);
 	vec Z_est = arma::exp(z * phi_est);
+	vec maxll_est(K, fill::zeros);
+	vec loglik_k(K, fill::zeros);
+	ivec flags(K, fill::zeros);
 	for (int k=0; k < K; ++k) {
 		uvec idx = idxks(k);
 		vec y_k = y(idx);
@@ -117,6 +124,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 					maxll = 0.0;
 				}
 			}
+			flags(k) = ifault;
 			maxll_est(k) = maxll;
 			
 
@@ -137,6 +145,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 
 		    double error;
 			double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
+			loglik_k(k) = -2.0 * (maxll + std::log(Q));
 			Dev_thetabar += -2.0 * (maxll + std::log(Q));
     	} else {
     		double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
@@ -152,7 +161,9 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 
 
 	double Dev_bar = 0;
+	mat loglik_keep(K, nkeep, fill::zeros);
 	mat maxll_keep(K,nkeep,fill::zeros);
+	imat flags_keep(K, nkeep, fill::zeros);
 	{
 		Progress prog(nkeep, verbose);
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
@@ -166,7 +177,11 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 			vec lam_ikeep = lams.col(ikeep);
 			mat Rho_ikeep = Rhos.slice(ikeep);
 			vec Z_ikeep = arma::exp(z * phi_ikeep);
-			double df_ikeep = dfs(ikeep);
+
+			double df_ikeep = nu;
+			if (sample_df) {
+				df_ikeep = dfs(ikeep);
+			}
 
 			for (int k=0; k < K; ++k) {
 				uvec idx = idxks(k);
@@ -205,6 +220,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 							maxll = 0.0;
 						}
 					}
+					flags_keep(k,ikeep) = ifault;
 					maxll_keep(k,ikeep) = maxll;
 					
 
@@ -225,6 +241,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 
 					double error;
 					double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
+					loglik_keep(ikeep) = -2.0 * (maxll + std::log(Q));
 					Dev_bar += -2.0 * (maxll + std::log(Q));
 				} else {
 					double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
@@ -243,7 +260,13 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 		Dev_bar /= static_cast<double>(nkeep);
 		double p_D = Dev_bar - Dev_thetabar;
 		double DIC = Dev_thetabar + 2.0 * p_D;
-		return Rcpp::List::create(Rcpp::Named("dic")=DIC);
+		return Rcpp::List::create(Rcpp::Named("dic")=DIC,
+								  Rcpp::Named("loglik_k") = loglik_k,
+								  Rcpp::Named("loglik_keep") = loglik_keep,
+								  Rcpp::Named("maxll_est") = maxll_est,
+								  Rcpp::Named("maxll_keep") = maxll_keep,
+								  Rcpp::Named("flags") = flags,
+								  Rcpp::Named("flags_keep") = flags_keep);
 	}
 }
 

@@ -27,8 +27,8 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 						 const arma::uvec& ids,
 						 const arma::uvec& iarm,
 						 const arma::vec& npt,
-						 const double& nu,
 						 const arma::vec& dfs,
+						 const double& nu,
 						 const arma::mat& betas,
 						 const arma::mat& sig2s,
 						 const arma::mat& phis,
@@ -37,7 +37,8 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 						 const int& K,
 						 const int& nT,
 						 const int& nkeep,
-						 const bool verbose) {
+						 const bool& sample_df,
+						 const bool& verbose) {
 	using namespace arma;
 	using namespace boost::math::quadrature;
 
@@ -82,7 +83,10 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 			vec lam_ikeep = lams.col(ikeep);
 			mat Rho_ikeep = Rhos.slice(ikeep);
 			vec Z_ikeep = arma::exp(z * phi_ikeep);
-			double df_ikeep = dfs(ikeep);
+			double df_ikeep = nu;
+			if (sample_df) {
+				df_ikeep = dfs(ikeep);
+			}
 
 			for (int k=0; k < K; ++k) {
 				uvec idx = idxks(k);
@@ -171,7 +175,7 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 		// Dev_bar /= static_cast<double>(nkeep);
 		// double p_D = Dev_bar - Dev_thetabar;
 		// double DIC = Dev_thetabar + 2.0 * p_D;
-		return Rcpp::List::create(Rcpp::Named("lpml")=alpml);
+		return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo);
 	}
 }
 

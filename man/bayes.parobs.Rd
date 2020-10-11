@@ -7,7 +7,7 @@
 bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   fmodel = 1, prior = list(), mcmc = list(), control = list(),
   init = list(), Treat_order = NULL, Trial_order = NULL,
-  second_line = NULL, second_order = NULL, verbose = FALSE)
+  group = NULL, group_order = NULL, verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -38,9 +38,9 @@ bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
 \item{Trial_order}{(Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
 
-\item{second_line}{(Optional) a vector of second-line treatment indicators; it must be binary indicating whether the patients were on another treatment or not}
+\item{group}{(Optional) a vector of binary group indicators; it must be binary indicating groups that have different random effects}
 
-\item{second_order}{(Optional) a vector of unique second-line labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order}
+\item{group_order}{(Optional) a vector of unique group labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order}
 
 \item{verbose}{(Optional) logical variable for printing progress bar. Default to FALSE.}
 }

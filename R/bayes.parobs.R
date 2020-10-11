@@ -22,8 +22,8 @@
 #' @param init (Optional) initial values for the parameters. Dimensions must be conformant.
 #' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
 #' @param Trial_order (Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param second_line (Optional) a vector of second-line treatment indicators; it must be binary indicating whether the patients were on another treatment or not
-#' @param second_order (Optional) a vector of unique second-line labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param group (Optional) a vector of binary group indicators; it must be binary indicating groups that have different random effects
+#' @param group_order (Optional) a vector of unique group labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order
 #' @param verbose (Optional) logical variable for printing progress bar. Default to FALSE.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
@@ -37,22 +37,22 @@
 #' XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc,
 #' 		cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white,
 #' 		cholesterol$male, cholesterol$dm)
-#' WCovariate <- cbind(1 - cholesterol$onstat, cholesterol$trt * (1 - cholesterol$onstat),
-#' 		cholesterol$onstat, cholesterol$trt * cholesterol$onstat)
+#' WCovariate <- cbind(1, cholesterol$trt)
 #' 
 #' fmodel <- 3
 #' fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale = TRUE, center = TRUE),
 #' 			WCovariate, Treat, Trial, Npt, fmodel,
 #'   		mcmc = list(ndiscard = 100000, nskip = 1, nkeep = 20000),
 #' 			control = list(delta_stepsize = 0.1,
-#' 			rho_stepsize = 0.05, R_stepsize = 0.05), verbose = TRUE
-#' )
+#' 			rho_stepsize = 0.05, R_stepsize = 0.05),
+#'      group = cholesterol$onstat,
+#'      verbose = TRUE)
 #' }
 #' @importFrom stats model.matrix optim
 #' @importFrom methods is
 #' @importFrom Matrix nearPD
 #' @export
-bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, second_line = NULL, second_order = NULL, verbose = FALSE) {
+bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, group = NULL, group_order = NULL, verbose = FALSE) {
   if (!is(Outcome, "matrix")) {
     tmp <- try(Outcome <- model.matrix(~ 0 + ., data = Outcome), silent = TRUE)
     if (is(tmp, "try-error")) {
@@ -100,18 +100,20 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   }
 
   nr <- 1
-  if (!is.null(second_line)) {
-    sl <- unique(second_line)
+  second.exist <- FALSE
+  if (!is.null(group)) {
+    second.exist <- TRUE
+    sl <- unique(group)
     if (length(sl) != 2) {
       stop("The second-line trial indicators must be binary.")
     }
     nr <- 2
-    if (is.null(second_order)) {
-      second.order <- sort(sl)
+    if (is.null(group_order)) {
+      group.order <- sort(sl)
     } else {
-      second.order <- second_order
+      group.order <- group_order
     }
-    second.n <- relabel.vec(second_line, second.order) - 1
+    group.n <- relabel.vec(group, group.order) - 1
   }
 
 
@@ -231,149 +233,295 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   }
   
   mcmctime <- system.time({
-    if (fmodel == 1) {
+    if (second.exist) {
+      if (fmodel == 1) {
+        fout <- .Call(
+          `_metapack_fmodel1p`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.integer(group.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(a0),
+          as.double(b0),
+          as.matrix(Omega0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+      } else if (fmodel == 2) {
+        fout <- .Call(
+          `_metapack_fmodel2p`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.integer(group.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(s0),
+          as.matrix(Omega0),
+          as.matrix(Sigma0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+    } else if (fmodel == 3) {
       fout <- .Call(
-        `_metapack_fmodel1`,
-        as.matrix(Outcome),
-        as.matrix(SD),
-        as.matrix(XCovariate),
-        as.matrix(WCovariate),
-        as.integer(Treat.n),
-        as.integer(Trial.n),
-        as.double(Npt),
-        as.double(c0),
-        as.double(dj0),
-        as.double(a0),
-        as.double(b0),
-        as.matrix(Omega0),
-        as.integer(K),
-        as.integer(T),
-        as.integer(ndiscard),
-        as.integer(nskip),
-        as.integer(nkeep),
-        as.double(theta_init),
-        as.matrix(gamR_init),
-        as.matrix(Omega_init),
-        as.logical(verbose)
-      )
-    } else if (fmodel == 2) {
-      fout <- .Call(
-        `_metapack_fmodel2`,
-        as.matrix(Outcome),
-        as.matrix(SD),
-        as.matrix(XCovariate),
-        as.matrix(WCovariate),
-        as.integer(Treat.n),
-        as.integer(Trial.n),
-        as.double(Npt),
-        as.double(c0),
-        as.double(dj0),
-        as.double(s0),
-        as.matrix(Omega0),
-        as.matrix(Sigma0),
-        as.integer(K),
-        as.integer(T),
-        as.integer(ndiscard),
-        as.integer(nskip),
-        as.integer(nkeep),
-        as.double(R_stepsize),
-        as.double(theta_init),
-        as.matrix(gamR_init),
-        as.matrix(Omega_init),
-        as.logical(verbose)
-      )
-	} else if (fmodel == 3) {
-		fout <- .Call(
-        `_metapack_fmodel2p5`,
-        as.matrix(Outcome),
-        as.matrix(SD),
-        as.matrix(XCovariate),
-        as.matrix(WCovariate),
-        as.integer(Treat.n),
-        as.integer(Trial.n),
-        as.double(Npt),
-        as.double(c0),
-        as.double(dj0),
-        as.double(s0),
-        as.matrix(Omega0),
-        as.matrix(Sigma0),
-        as.integer(K),
-        as.integer(T),
-        as.integer(ndiscard),
-        as.integer(nskip),
-        as.integer(nkeep),
-        as.double(R_stepsize),
-        as.double(theta_init),
-        as.matrix(gamR_init),
-        as.matrix(Omega_init),
-        as.logical(verbose)
-      )
-    } else if (fmodel == 4) {
-      fout <- .Call(
-        `_metapack_fmodel3p`,
-        as.matrix(Outcome),
-        as.matrix(SD),
-        as.matrix(XCovariate),
-        as.matrix(WCovariate),
-        as.integer(Treat.n),
-        as.integer(Trial.n),
-        as.integer(second.n),
-        as.double(Npt),
-        as.double(c0),
-        as.double(dj0),
-        as.double(a0),
-        as.double(b0),
-        as.matrix(Omega0),
-        as.integer(K),
-        as.integer(T),
-        as.integer(ndiscard),
-        as.integer(nskip),
-        as.integer(nkeep),
-        as.double(delta_stepsize),
-        as.double(Rho_stepsize),
-        as.double(R_stepsize),
-        as.double(theta_init),
-        as.matrix(gamR_init),
-        as.matrix(Omega_init),
-        as.matrix(Rho_init),
-        as.logical(sample_Rho),
-        as.logical(verbose)
-      )
-    } else if (fmodel == 5) {
-      fout <- .Call(
-        `_metapack_fmodel4`,
-        as.matrix(Outcome),
-        as.matrix(SD),
-        as.matrix(XCovariate),
-        as.matrix(WCovariate),
-        as.integer(Treat.n),
-        as.integer(Trial.n),
-        as.double(Npt),
-        as.double(c0),
-        as.double(dj0),
-        as.double(d0),
-        as.double(nu0),
-        as.matrix(Sigma0),
-        as.matrix(Omega0),
-        as.integer(K),
-        as.integer(T),
-        as.integer(ndiscard),
-        as.integer(nskip),
-        as.integer(nkeep),
-        as.double(delta_stepsize),
-        as.double(Rho_stepsize),
-        as.double(R_stepsize),
-        as.double(theta_init),
-        as.matrix(gamR_init),
-        as.matrix(Omega_init),
-        as.logical(verbose)
-      )
+          `_metapack_fmodel2p5p`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.integer(group.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(s0),
+          as.matrix(Omega0),
+          as.matrix(Sigma0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+      } else if (fmodel == 4) {
+        fout <- .Call(
+          `_metapack_fmodel3p`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.integer(group.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(a0),
+          as.double(b0),
+          as.matrix(Omega0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(delta_stepsize),
+          as.double(Rho_stepsize),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.matrix(Rho_init),
+          as.logical(sample_Rho),
+          as.logical(verbose)
+        )
+      } else if (fmodel == 5) {
+        fout <- .Call(
+          `_metapack_fmodel4p`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.integer(group.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(d0),
+          as.double(nu0),
+          as.matrix(Sigma0),
+          as.matrix(Omega0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(delta_stepsize),
+          as.double(Rho_stepsize),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+      } else {
+        stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4, 5}.")
+      }
     } else {
-      stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4, 5}.")
+      if (fmodel == 1) {
+        fout <- .Call(
+          `_metapack_fmodel1`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(a0),
+          as.double(b0),
+          as.matrix(Omega0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+      } else if (fmodel == 2) {
+        fout <- .Call(
+          `_metapack_fmodel2`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(s0),
+          as.matrix(Omega0),
+          as.matrix(Sigma0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+  	} else if (fmodel == 3) {
+  		fout <- .Call(
+          `_metapack_fmodel2p5`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(s0),
+          as.matrix(Omega0),
+          as.matrix(Sigma0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+      } else if (fmodel == 4) {
+        fout <- .Call(
+          `_metapack_fmodel3`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(a0),
+          as.double(b0),
+          as.matrix(Omega0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(delta_stepsize),
+          as.double(Rho_stepsize),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.matrix(Rho_init),
+          as.logical(sample_Rho),
+          as.logical(verbose)
+        )
+      } else if (fmodel == 5) {
+        fout <- .Call(
+          `_metapack_fmodel4`,
+          as.matrix(Outcome),
+          as.matrix(SD),
+          as.matrix(XCovariate),
+          as.matrix(WCovariate),
+          as.integer(Treat.n),
+          as.integer(Trial.n),
+          as.double(Npt),
+          as.double(c0),
+          as.double(dj0),
+          as.double(d0),
+          as.double(nu0),
+          as.matrix(Sigma0),
+          as.matrix(Omega0),
+          as.integer(K),
+          as.integer(T),
+          as.integer(ndiscard),
+          as.integer(nskip),
+          as.integer(nkeep),
+          as.double(delta_stepsize),
+          as.double(Rho_stepsize),
+          as.double(R_stepsize),
+          as.double(theta_init),
+          as.matrix(gamR_init),
+          as.matrix(Omega_init),
+          as.logical(verbose)
+        )
+      } else {
+        stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4, 5}.")
+      }
     }
   })
   if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
-    if (!is.null(second_line)) {
+    if (!is.null(group)) {
       rownames(fout$theta) <- c(rep(colnames(XCovariate), J), paste0(rep(colnames(WCovariate), J),"*(1-2nd)"), paste0(rep(colnames(WCovariate), J),"*2nd"))
     } else {
       rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
@@ -387,10 +535,10 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     WCovariate = WCovariate,
     Treat = Treat.n,
     Trial = Trial.n,
-    Second = second_line,
+    Second = group,
     TrtLabels = Treat.order,
     TrialLabels = Trial.order,
-    SecondLabels = second.order,
+    GroupLabels = group.order,
     K = K,
     T = T,
     fmodel = fmodel,
