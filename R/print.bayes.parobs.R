@@ -67,19 +67,33 @@
 
 	print(mm, justify = "left")
 	cat("---\n")
+	if (x$scale_x) {
+		J <- ncol(x$Outcome)
+		xcols <- ncol(x$XCovariate)
+		tlength <- nrow(x$mcmc.draws$theta)
+		trlength <- tlength - xcols * J
+		tscale <- c(rep(apply(x$XCovariate, 2, sd), J), rep(1, trlength))
+	} else {
+		tlength <- nrow(x$mcmc.draws$theta)
+		tscale <- rep(1, tlength)
+	}
 	theta <- list()
-	theta$mean <- rowMeans(x$mcmc.draws$theta)
-	theta$sd <- apply(x$mcmc.draws$theta, 1, sd)
+	theta.post <- vapply(1:x$mcmc$nkeep, function(ikeep) {
+		x$mcmc.draws$theta[,ikeep] / tscale
+	}, FUN.VALUE = numeric(tlength))
+	theta <- list()
+	theta$mean <- rowMeans(theta.post)
+	theta$sd <- apply(theta.post, 1, sd)
 
 	sig.level <- 1 - conf.level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$theta), end=x$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(mcmc(t(theta.post), end=x$mcmc$nkeep), prob=conf.level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 	} else {
-		theta$lower <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(theta.post, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 	}
 	theta_print <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
 	if (HPD) {
@@ -87,18 +101,16 @@
 	} else {
 		colnames(theta_print) <- c("Post.Mean", "Std.Dev", "CI(Lower)", "CI(Upper)")
 	}
-	xcc <- if (!is.null(colnames(x$XCovariate))) colnames(x$XCovariate) else paste0("beta_", 1:ncol(x$XCovariate))
-	wcc <- if (!is.null(colnames(x$WCovariate))) colnames(x$WCovariate) else paste0("gam_", 1:ncol(x$WCovariate))
+	xcc <- if (!is.null(colnames(x$XCovariate))) colnames(x$XCovariate) else paste0("beta", 1:ncol(x$XCovariate))
+	wcc <- if (!is.null(colnames(x$WCovariate))) colnames(x$WCovariate) else paste0("gam", 1:ncol(x$WCovariate))
 
 	J <- ncol(x$Outcome)
 	if (is.null(x$group)) {
 		rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
 	} else {
-		# rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J),"*(1-2nd)", "_", rep(1:J, each = length(wcc))), paste0(rep(wcc, J),"*2nd", "_", rep(1:J, each = length(wcc))))
 		rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
 						 paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
 	}
-	# rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
 
 	print(theta_print, justify="left", digits=2)
 	cat("---\n")

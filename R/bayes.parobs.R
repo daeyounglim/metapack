@@ -24,7 +24,8 @@
 #' @param Trial_order (Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
 #' @param group (Optional) a vector of binary group indicators; it must be binary indicating groups that have different random effects
 #' @param group_order (Optional) a vector of unique group labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param verbose (Optional) logical variable for printing progress bar. Default to FALSE.
+#' @param scale_x (Optional) a logical variable whether `XCovariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling
+#' @param verbose (Optional) a logical variable for printing progress bar. Default to FALSE.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
 #' \dontrun{
@@ -51,8 +52,9 @@
 #' @importFrom stats model.matrix optim
 #' @importFrom methods is
 #' @importFrom Matrix nearPD
+#' @md
 #' @export
-bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, group = NULL, group_order = NULL, verbose = FALSE) {
+bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, group = NULL, group_order = NULL, scale_x = FALSE, verbose = FALSE) {
   if (!is(Outcome, "matrix")) {
     tmp <- try(Outcome <- model.matrix(~ 0 + ., data = Outcome), silent = TRUE)
     if (is(tmp, "try-error")) {
@@ -232,6 +234,12 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     stop("The initial value for Omega is not positive definite")
   }
   
+  if (scale_x) {
+    XCovariate_ <- scale(XCovariate, center = FALSE, scale = TRUE)
+  } else {
+    XCovariate_ <- XCovariate
+  }
+
   mcmctime <- system.time({
     if (second.exist) {
       if (fmodel == 1) {
@@ -239,7 +247,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel1p`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -265,7 +273,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel2p`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -292,7 +300,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel2p5p`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -319,7 +327,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel3p`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -350,7 +358,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel4p`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -384,7 +392,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel1`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -409,7 +417,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel2`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -435,7 +443,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel2p5`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -461,7 +469,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel3`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -491,7 +499,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           `_metapack_fmodel4`,
           as.matrix(Outcome),
           as.matrix(SD),
-          as.matrix(XCovariate),
+          as.matrix(XCovariate_),
           as.matrix(WCovariate),
           as.integer(Treat.n),
           as.integer(Trial.n),
@@ -520,11 +528,14 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
       }
     }
   })
+  xcc <- if (!is.null(colnames(XCovariate))) colnames(XCovariate) else paste0("beta", 1:ncol(XCovariate))
+  wcc <- if (!is.null(colnames(WCovariate))) colnames(WCovariate) else paste0("gam", 1:ncol(WCovariate))
   if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
     if (!is.null(group)) {
       rownames(fout$theta) <- c(rep(colnames(XCovariate), J), paste0(rep(colnames(WCovariate), J),"*(1-2nd)"), paste0(rep(colnames(WCovariate), J),"*2nd"))
     } else {
-      rownames(fout$theta) <- c(rep(colnames(XCovariate), J), rep(colnames(WCovariate), J))
+      rownames(fout$theta) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
+             paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
     }
   }
   out <- list(
@@ -542,6 +553,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     K = K,
     T = T,
     fmodel = fmodel,
+    scale_x = scale_x,
     prior = priorvals,
     mcmctime = mcmctime,
     mcmc = mcvals,

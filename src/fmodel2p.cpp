@@ -193,7 +193,7 @@ Rcpp::List fmodel2p(const arma::mat& Outcome,
 					double ntk = Npt(i_k);
 					mat W(J, nw*J, fill::zeros);
 					for (int j = 0; j < J; ++j) {
-						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+						W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					mat WS = W.t() * Siginv;
 					Siggam += ntk * (WS * W);
@@ -422,7 +422,7 @@ Rcpp::List fmodel2p(const arma::mat& Outcome,
 						double ntk = Npt(i_k);
 						mat W(J, nw*J, fill::zeros);
 						for (int j = 0; j < J; ++j) {
-							W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
+							W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 						}
 						mat WS = W.t() * Siginv;
 						Siggam += ntk * (WS * W);

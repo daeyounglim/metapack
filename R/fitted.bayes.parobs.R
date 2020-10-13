@@ -14,10 +14,24 @@
 	ypred <- list()
 	ypred$mean <- apply(object$mcmc.draws$ypred, c(1,2), mean)
 	ypred$sd <- apply(object$mcmc.draws$ypred, c(1,2), sd)
+
+	if (object$scale_x) {
+		J <- ncol(object$Outcome)
+		xcols <- ncol(object$XCovariate)
+		tlength <- nrow(object$mcmc.draws$theta)
+		trlength <- tlength - xcols * J
+		tscale <- c(rep(apply(object$XCovariate, 2, sd), J), rep(1, trlength))
+	} else {
+		tlength <- nrow(object$mcmc.draws$theta)
+		tscale <- rep(1, tlength)
+	}
 	if (object$fmodel == 1) {
 		theta <- list()
-		theta$mean <- rowMeans(object$mcmc.draws$theta)
-		theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+		theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
+			object$mcmc.draws$theta[,ikeep] / tscale
+		}, FUN.VALUE = numeric(tlength))
+		theta$mean <- rowMeans(theta.post)
+		theta$sd <- apply(theta.post, 1, sd)
 		Omega <- list()
 		Omega$mean <- apply(object$mcmc.draws$Omega, c(1,2), mean)
 		Omega$sd <- apply(object$mcmc.draws$Omega, c(1,2), sd)
@@ -26,8 +40,11 @@
 		Sigma$sd <- apply(object$mcmc.draws$Sigma, c(1,2), sd)
 	} else if (object$fmodel == 2) {
 		theta <- list()
-		theta$mean <- rowMeans(object$mcmc.draws$theta)
-		theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+		theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
+			object$mcmc.draws$theta[,ikeep] / tscale
+		}, FUN.VALUE = numeric(tlength))
+		theta$mean <- rowMeans(theta.post)
+		theta$sd <- apply(theta.post, 1, sd)
 		Omega <- list()
 		Omega$mean <- apply(object$mcmc.draws$Omega, c(1,2), mean)
 		Omega$sd <- apply(object$mcmc.draws$Omega, c(1,2), sd)
@@ -39,8 +56,11 @@
 		R$sd <- apply(object$mcmc.draws$R, c(1,2), sd)
 	} else if (object$fmodel == 3) {
 		theta <- list()
-		theta$mean <- rowMeans(object$mcmc.draws$theta)
-		theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+		theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
+			object$mcmc.draws$theta[,ikeep] / tscale
+		}, FUN.VALUE = numeric(tlength))
+		theta$mean <- rowMeans(theta.post)
+		theta$sd <- apply(theta.post, 1, sd)
 		Omega <- list()
 		Omega$mean <- apply(object$mcmc.draws$Omega, c(1,2), mean)
 		Omega$sd <- apply(object$mcmc.draws$Omega, c(1,2), sd)
@@ -52,8 +72,11 @@
 		R$sd <- apply(object$mcmc.draws$R, c(1,2), sd)
 	} else if (object$fmodel == 4) {
 		theta <- list()
-		theta$mean <- rowMeans(object$mcmc.draws$theta)
-		theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+		theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
+			object$mcmc.draws$theta[,ikeep] / tscale
+		}, FUN.VALUE = numeric(tlength))
+		theta$mean <- rowMeans(theta.post)
+		theta$sd <- apply(theta.post, 1, sd)
 		Omega <- list()
 		Omega$mean <- apply(object$mcmc.draws$Omega, c(1,2), mean)
 		Omega$sd <- apply(object$mcmc.draws$Omega, c(1,2), sd)
@@ -71,8 +94,11 @@
 		R$sd <- apply(object$mcmc.draws$R, c(1,2), sd)
 	} else if (object$fmodel == 5) {
 		theta <- list()
-		theta$mean <- rowMeans(object$mcmc.draws$theta)
-		theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+		theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
+			object$mcmc.draws$theta[,ikeep] / tscale
+		}, FUN.VALUE = numeric(tlength))
+		theta$mean <- rowMeans(theta.post)
+		theta$sd <- apply(theta.post, 1, sd)
 		Omega <- list()
 		Omega$mean <- apply(object$mcmc.draws$Omega, c(1,2), mean)
 		Omega$sd <- apply(object$mcmc.draws$Omega, c(1,2), sd)
@@ -95,7 +121,7 @@
 	sig.level <- 1 - conf.level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=conf.level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
@@ -134,8 +160,8 @@
 			}
 		}
 	} else {
-		theta$lower <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(theta.post, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 		Omega$lower <- apply(object$mcmc.draws$Omega, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$Omega[,,1])]
 		Omega$upper <- apply(object$mcmc.draws$Omega, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$Omega[,,1])]
 		Sigma$lower <- apply(object$mcmc.draws$Sigma, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$Sigma[,,1])]

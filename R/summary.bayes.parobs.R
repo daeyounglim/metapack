@@ -11,25 +11,38 @@
 	if (class(object) != "bayes.parobs") {
 		stop("'summary.bayes.parobs' designed for 'bayes.parobs' objects")
 	}
+	if (object$scale_x) {
+		J <- ncol(object$Outcome)
+		xcols <- ncol(object$XCovariate)
+		tlength <- nrow(object$mcmc.draws$theta)
+		trlength <- tlength - xcols * J
+		tscale <- c(rep(apply(object$XCovariate, 2, sd), J), rep(1, trlength))
+	} else {
+		tlength <- nrow(object$mcmc.draws$theta)
+		tscale <- rep(1, tlength)
+	}
 	theta <- list()
-	theta$mean <- rowMeans(object$mcmc.draws$theta)
-	theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+	theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
+		object$mcmc.draws$theta[,ikeep] / tscale
+	}, FUN.VALUE = numeric(tlength))
+	theta <- list()
+	theta$mean <- rowMeans(theta.post)
+	theta$sd <- apply(theta.post, 1, sd)
 
 	sig.level <- 1 - 0.95
 
-	theta.hpd <- coda::HPDinterval(mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=0.95)
+	theta.hpd <- coda::HPDinterval(mcmc(t(theta.post), end=object$mcmc$nkeep), prob=0.95)
 	theta$lower <- theta.hpd[,1]
 	theta$upper <- theta.hpd[,2]
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
 	colnames(r) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
-	xcc <- if (!is.null(colnames(object$XCovariate))) colnames(object$XCovariate) else paste0("beta_", 1:ncol(object$XCovariate))
-	wcc <- if (!is.null(colnames(object$WCovariate))) colnames(object$WCovariate) else paste0("gam_", 1:ncol(object$WCovariate))
+	xcc <- if (!is.null(colnames(object$XCovariate))) colnames(object$XCovariate) else paste0("beta", 1:ncol(object$XCovariate))
+	wcc <- if (!is.null(colnames(object$WCovariate))) colnames(object$WCovariate) else paste0("gam", 1:ncol(object$WCovariate))
 
 	J <- ncol(object$Outcome)
 	if (is.null(object$group)) {
 		rownames(r) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
 	} else {
-		# rownames(r) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J),"*(1-2nd)", "_", rep(1:J, each = length(wcc))), paste0(rep(wcc, J),"*2nd", "_", rep(1:J, each = length(wcc))))
 		rownames(r) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
 						 paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
 	}

@@ -7,7 +7,8 @@
 bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   fmodel = 1, prior = list(), mcmc = list(), control = list(),
   init = list(), Treat_order = NULL, Trial_order = NULL,
-  group = NULL, group_order = NULL, verbose = FALSE)
+  group = NULL, group_order = NULL, scale_x = FALSE,
+  verbose = FALSE)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -42,7 +43,9 @@ bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 
 \item{group_order}{(Optional) a vector of unique group labels; the first element will be assigned zero; if not provided, the numbering will default to an alphabetical/numerical order}
 
-\item{verbose}{(Optional) logical variable for printing progress bar. Default to FALSE.}
+\item{scale_x}{(Optional) a logical variable whether \code{XCovariate} should be scaled; if \code{TRUE}, \code{theta} will be scaled back to its original scale after posterior sampling}
+
+\item{verbose}{(Optional) a logical variable for printing progress bar. Default to FALSE.}
 }
 \value{
 a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
