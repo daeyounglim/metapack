@@ -67,16 +67,16 @@ Npt <- cholesterol$Npt
 XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc,
 		cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white,
 		cholesterol$male, cholesterol$dm)
-WCovariate <- cbind(1 - cholesterol$onstat, cholesterol$trt * (1 - cholesterol$onstat),
-		cholesterol$onstat, cholesterol$trt * cholesterol$onstat)
+WCovariate <- cbind(1, cholesterol$trt)
 
 fmodel <- 3
 fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale = TRUE, center = TRUE),
 			WCovariate, Treat, Trial, Npt, fmodel,
   		mcmc = list(ndiscard = 100000, nskip = 1, nkeep = 20000),
 			control = list(delta_stepsize = 0.1,
-			rho_stepsize = 0.05, R_stepsize = 0.05), verbose = TRUE
-)
+			rho_stepsize = 0.05, R_stepsize = 0.05),
+     group = cholesterol$onstat,
+     verbose = TRUE)
 }
 }
 \author{

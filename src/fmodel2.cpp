@@ -13,7 +13,7 @@
 #include "loglik_POCov.h"
 #include "nelmin.h"
 #include "ListBuilder.h"
-// [[Rcpp::depends(RcppArmadillo,RcppProgress))]]
+// [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
 Rcpp::List fmodel2(const arma::mat& Outcome,

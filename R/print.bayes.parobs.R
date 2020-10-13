@@ -91,7 +91,14 @@
 	wcc <- if (!is.null(colnames(x$WCovariate))) colnames(x$WCovariate) else paste0("gam_", 1:ncol(x$WCovariate))
 
 	J <- ncol(x$Outcome)
-	rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
+	if (is.null(x$group)) {
+		rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
+	} else {
+		# rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J),"*(1-2nd)", "_", rep(1:J, each = length(wcc))), paste0(rep(wcc, J),"*2nd", "_", rep(1:J, each = length(wcc))))
+		rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
+						 paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
+	}
+	# rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
 
 	print(theta_print, justify="left", digits=2)
 	cat("---\n")

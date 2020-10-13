@@ -13,7 +13,7 @@
 #include "loglik_POCov.h"
 #include "nelmin.h"
 #include "ListBuilder.h"
-// [[Rcpp::depends(RcppArmadillo,RcppProgress))]]
+// [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
 Rcpp::List fmodel1p(const arma::mat& Outcome,
@@ -70,8 +70,8 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 	mat Siginv_diag(N, J, fill::ones);
 
 	const mat Omega0inv = arma::inv_sympd(Omega0);
-	const int K1 = arma::accu(arma::find(Second == 0));
-	const int K2 = arma::accu(arma::find(Second == 1));
+	const int K2 = arma::accu(onstat);
+	const int K1 = static_cast<double>(K) - K2;
 	const double shape_omega1 = static_cast<double>(K1) + dj0;
 	const double shape_omega2 = static_cast<double>(K2) + dj0;
 	mat resid = Outcome;
@@ -414,6 +414,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 						sig2inv(j) = ::Rf_rgamma(shape, 1.0) / rate;
 					}
 					Siginv_diag.row(i) = arma::trans(sig2inv);
+					Sig_diag.row(i) = 1.0 / arma::trans(sig2inv);
 				}
 			}
 			theta_save.col(ikeep) = theta;

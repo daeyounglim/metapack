@@ -535,7 +535,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     WCovariate = WCovariate,
     Treat = Treat.n,
     Trial = Trial.n,
-    Second = group,
+    group = group,
     TrtLabels = Treat.order,
     TrialLabels = Trial.order,
     GroupLabels = group.order,
@@ -547,9 +547,6 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     mcmc = mcvals,
     mcmc.draws = fout
   )
-  # if (fmodel == 4) {
-  #   out$fisher_chol <- fisher_chol
-  # }
   class(out) <- "bayes.parobs"
   out
 }

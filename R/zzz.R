@@ -7,4 +7,5 @@
    packageStartupMessage("## Meta-Analysis (metapack)")
    packageStartupMessage("## Copyright (C) ", this.year,
       " Daeyoung Lim, Ming-Hui Chen, Sungduk Kim, and Joseph G. Ibrahim", sep="")
+   packageStartupMessage("## Visit merlot.stat.uconn.edu/packages/metapack")
 }
