@@ -16,6 +16,7 @@
 #' @param control (Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm
 #' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
 #' @param Trial_order (Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
+#' @param scale_x (Optional) a logical variable whether `Covariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling
 #' @param init (Optional) initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
@@ -39,7 +40,7 @@
 #' @importFrom stats model.matrix
 #' @importFrom methods is
 #' @export
-bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prior = list(), mcmc = list(), add.z = NULL, control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, verbose = FALSE) {
+bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prior = list(), mcmc = list(), scale_x = FALSE, add.z = NULL, control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, verbose = FALSE) {
   if (!is(Outcome, "vector")) {
     tmp <- try(Outcome <- as.vector(Outcome))
     if (is(tmp, "try-error")) {
@@ -131,10 +132,39 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
       }
     }
   }
+  xn <- if (!is.null(colnames(Covariate))) colnames(Covariate) else paste0("beta", 1:ncol(Covariate))
   if (!is.null(add.z)) {
     z <- cbind(z, add.z)
   }
-  init_final <- list(theta = numeric(nx + nT), phi = numeric(ncol(z)), sig2 = rep(1, ns), Rho = diag(1, nrow = nT))
+
+  if (scale_x) {
+    Covariate_ <- scale(Covariate, center = FALSE, scale = TRUE)
+  } else {
+    Covariate_ <- Covariate
+  }
+
+  nt <- ncol(Covariate) + nT
+  XSX <- matrix(0, nt, nt)
+  XSy <- numeric(nt)
+  for (k in 1:K) {
+    idx <- which(Trial.n == k-1)
+    Xk <- Covariate_[idx,]
+    idx_l = length(idx)
+    Ek <- matrix(0, nT, idx_l)
+    iarm_k = Treat.n[idx]
+    for (j in 1:idx_l) {
+      Ek[iarm_k[j]+1,j] = 1
+    }
+    Xstar <- cbind(Xk, t(Ek))
+    Skinv <- diag(Npt[idx] / SD[idx]^2, nrow=idx_l)
+    XSX <- XSX + crossprod(Xstar, Skinv %*% Xstar)
+    XSy <- XSy + crossprod(Xstar, Skinv %*% Outcome[idx])
+  }
+  thetahat <- solve(XSX + 0.1 * diag(1, nrow=nt), XSy)
+
+  # zn <- if (!is.null(colnames(z))) colnames(z) else paste0("gam", 1:ncol(z))
+  zn <- if (!is.null(Treat_order)) Treat_order else paste0("gam", 1:nT)
+  init_final <- list(theta = thetahat, phi = numeric(ncol(z)), sig2 = SD^2, Rho = diag(1, nrow = nT))
   init_final[names(init)] <- init
   Rho_init <- init_final$Rho
   if (any(eigen(Rho_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
@@ -159,12 +189,13 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
     stop("Cannot sample degrees of freedom for a normal random effects model")
   }
 
+
   mcmctime <- system.time({
     fout <- .Call(
       `_metapack_BayesNMR`,
       as.double(Outcome),
       as.double(SD),
-      as.matrix(Covariate),
+      as.matrix(Covariate_),
       as.matrix(z),
       as.integer(Trial.n),
       as.integer(Treat.n),
@@ -193,7 +224,7 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
       as.logical(sample_df)
     )
   })
-
+  rownames(fout$theta) <- c(xn, zn)
   out <- list(
     Outcome = Outcome,
     SD = SD,
@@ -206,6 +237,7 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
     K = K,
     nT = nT,
     groupInfo = groupInfo,
+    scale_x = scale_x,
     prior = priorvals,
     control = ctrl,
     mcmctime = mcmctime,

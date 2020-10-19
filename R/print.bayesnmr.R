@@ -1,6 +1,6 @@
 #' Print results
 #' 
-#' @param x the output model from fitting a meta analysis/regression model
+#' @param x the output model from fitting a network meta analysis/regression model
 #' @param conf.level credible level for interval estimation; set to 0.95 by default
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for print
@@ -33,8 +33,21 @@
 	gam <- list()
 	sig2 <- list()
 	Rho <- list()
-	theta$mean <- rowMeans(x$mcmc.draws$theta)
-	theta$sd <- apply(x$mcmc.draws$theta, 1, sd)
+	param <- x$mcmc.draws$theta
+	if (x$scale_x) {
+		xcols <- ncol(x$Covariate)
+		tlength <- nrow(param)
+		trlength <- tlength - xcols
+		tscale <- c(apply(x$Covariate, 2, sd), rep(1, trlength))
+	} else {
+		tlength <- nrow(param)
+		tscale <- rep(1, tlength)
+	}
+	theta.post <- vapply(1:x$mcmc$nkeep, function(ikeep) {
+		param[,ikeep] / tscale
+	}, FUN.VALUE = numeric(tlength))
+	theta$mean <- rowMeans(param)
+	theta$sd <- apply(param, 1, sd)
 	phi$mean <- rowMeans(x$mcmc.draws$phi)
 	phi$sd <- apply(x$mcmc.draws$phi, 1, sd)
 	gam$mean <- rowMeans(x$mcmc.draws$gam)
@@ -43,7 +56,7 @@
 	sig.level <- 1 - conf.level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$theta), end=x$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(mcmc(t(param), end=x$mcmc$nkeep), prob=conf.level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
@@ -55,8 +68,8 @@
 		gam$lower <- gam.hpd[,1]
 		gam$upper <- gam.hpd[,2]
 	} else {
-		theta$lower <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(x$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		theta$lower <- apply(param, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(param, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 		phi$lower <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = sig.level/2))
 		phi$upper <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = 1-sig.level/2))

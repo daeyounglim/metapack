@@ -91,10 +91,10 @@ Rcpp::List fmodel4p(const arma::mat& Outcome,
 
 	const mat Omega0inv = arma::inv_sympd(Omega0);
 	const mat Sigma0inv = arma::inv_sympd(Sigma0);
-	const int K2 = arma::accu(onstat);
-	const int K1 = static_cast<double>(K) - K2;
-	const double shape_omega1 = static_cast<double>(K1) + dj0;
-	const double shape_omega2 = static_cast<double>(K2) + dj0;
+	const double K2 = arma::accu(onstat);
+	const double K1 = static_cast<double>(K) - K2;
+	const double shape_omega1 = K1 + dj0;
+	const double shape_omega2 = K2 + dj0;
 	mat resid = Outcome;
 	vec delta_rates(J, fill::zeros);
 	vec vRho_rates(J*(J-1)/2, fill::zeros);

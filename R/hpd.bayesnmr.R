@@ -16,6 +16,9 @@
 		out$gam <- coda::HPDinterval(mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=level)
 		out$sig2 <- coda::HPDinterval(mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=level)
 		out$Rho <- coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$Rho, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=level)
+		if (object$control$sample_df) {
+			out$df <- coda::HPDinterval(mcmc(object$mcmc.draws$df, end=object$mcmc$nkeep), prob=level)
+		}
 		class(out) <- "bayesnmr.hpd"
 		return(out)
 	} else {
@@ -25,6 +28,9 @@
 		cl$gam <- quote(coda::HPDinterval(mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=level))
 		cl$sig2 <- quote(coda::HPDinterval(mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=level))
 		cl$Rho <- quote(coda::HPDinterval(mcmc(t(apply(object$mcmc.draws$Rho, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=level))
+		if (object$control$sample_df) {
+			out$df <- coda::HPDinterval(mcmc(object$mcmc.draws$df, end=object$mcmc$nkeep), prob=level)
+		}
 		return(eval(cl[[parm]]))
 	}
 }

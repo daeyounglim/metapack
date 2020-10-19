@@ -17,8 +17,20 @@
 	gam <- list()
 	sig2 <- list()
 	Rho <- list()
-	theta$mean <- rowMeans(object$mcmc.draws$theta)
-	theta$sd <- apply(object$mcmc.draws$theta, 1, sd)
+	if (object$scale_x) {
+		xcols <- ncol(object$Covariate)
+		tlength <- nrow(object$mcmc.draws$theta)
+		trlength <- tlength - xcols
+		tscale <- c(apply(object$Covariate, 2, sd), rep(1, trlength))
+	} else {
+		tlength <- nrow(object$mcmc.draws$theta)
+		tscale <- rep(1, tlength)
+	}
+	theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
+		object$mcmc.draws$theta[,ikeep] / tscale
+	}, FUN.VALUE = numeric(tlength))
+	theta$mean <- rowMeans(theta.post)
+	theta$sd <- apply(theta.post, 1, sd)
 	phi$mean <- rowMeans(object$mcmc.draws$phi)
 	phi$sd <- apply(object$mcmc.draws$phi, 1, sd)
 	gam$mean <- rowMeans(object$mcmc.draws$gam)
@@ -36,7 +48,7 @@
 	sig.level <- 1 - conf.level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=conf.level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
@@ -62,8 +74,8 @@
 			df$upper <- df.hpd[,2]			
 		}
 	} else {
-		theta$lower <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(object$mcmc.draws$theta, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(theta.post, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 		phi$lower <- apply(object$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = sig.level/2))
 		phi$upper <- apply(object$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
