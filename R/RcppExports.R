@@ -41,6 +41,10 @@ fmodel3p <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, 
     .Call(`_metapack_fmodel3p`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose)
 }
 
+fmodel3pp <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose) {
+    .Call(`_metapack_fmodel3pp`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose)
+}
+
 fmodel4 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, nu0, Sigma0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, verbose) {
     .Call(`_metapack_fmodel4`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, d0, nu0, Sigma0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, verbose)
 }

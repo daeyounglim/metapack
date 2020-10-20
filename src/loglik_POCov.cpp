@@ -79,6 +79,7 @@ double loglik_rho_m3(const double& zprho,
 	try {
 		Rhopinv = arma::inv(Rhop);
 	} catch (std::runtime_error & e) {
+		Rcpp::Rcout << z << std::endl;
 		return -arma::datum::inf;
 	}
 	double logdet_val, logdet_sign;
@@ -89,32 +90,33 @@ double loglik_rho_m3(const double& zprho,
 	return loglik;
 }
 
-// double loglik_vRho_m3(const arma::vec& vRho,
-// 					 const arma::mat& qq,
-// 					 const int& J,
-// 					 const double& sumNpt) {
-// 	using namespace arma;
-// 	using namespace std;
-// 	using namespace Rcpp;
-// 	using namespace R;
+double loglik_vRho_m3(const arma::vec& vRho,
+					 const arma::mat& Rhopinv,
+					 const arma::mat& qq,
+					 const int& J,
+					 const double& sumNpt) {
+	using namespace arma;
+	using namespace std;
+	using namespace Rcpp;
+	using namespace R;
 
-// 	vec z = arma::tanh(vRho);
+	vec z = arma::tanh(vRho);
 
-// 	mat pRRho = vecrinv(z, J);
-// 	pRRho.diag().fill(1.0);
-// 	mat Rhop = pRho_to_Rho(pRRho);
-// 	mat Rhopinv = arma::inv(Rhop);
-// 	double logdet_val, logdet_sign;
-// 	arma::log_det(logdet_val, logdet_sign, Rhop);
+	// mat pRRho = vecrinv(z, J);
+	// pRRho.diag().fill(1.0);
+	// mat Rhop = pRho_to_Rho(pRRho);
+	// mat Rhopinv = arma::inv(Rhop);
+	double logdet_val, logdet_sign;
+	arma::log_det(logdet_val, logdet_sign, Rhopinv);
 
-// 	double loglik = -0.5 * arma::dot(qq, Rhopinv) - 0.5 * sumNpt * logdet_val;
-// 	for (int ii = 0; ii < J; ++ii) {
-// 		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
-// 		int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
-// 		loglik += 0.5 * static_cast<double>(J + 1 - std::abs(iC - iR)) * std::log1p(-z(ii)*z(ii));
-// 	}
-// 	return loglik;
-// }
+	double loglik = -0.5 * arma::dot(qq, Rhopinv) + 0.5 * sumNpt * logdet_val;
+	for (int ii = 0; ii < J; ++ii) {
+		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
+		int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
+		loglik += 0.5 * static_cast<double>(J + 1 - std::abs(iC - iR)) * std::log1p(-z(ii)*z(ii));
+	}
+	return loglik;
+}
 
 // double loglik_phi_m3(const double& zphi,
 // 					 const arma::mat& Rho_angles,

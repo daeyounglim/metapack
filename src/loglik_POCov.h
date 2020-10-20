@@ -33,10 +33,11 @@ double loglik_rho_m3(const double& zprho,
 					 const int& iC,
 					 const int& J,
 					 const double& sumNpt);
-// double loglik_vRho_m3(const arma::vec& vRho,
-// 					 const arma::mat& qq,
-// 					 const int& J,
-// 					 const double& sumNpt);
+double loglik_vRho_m3(const arma::vec& vRho,
+					 const arma::mat& Rhopinv,
+					 const arma::mat& qq,
+					 const int& J,
+					 const double& sumNpt);
 // double loglik_phi_m3(const double& zphi,
 // 					 const arma::mat& Rho_angles,
 // 					 const arma::mat& qq,

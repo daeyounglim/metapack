@@ -324,7 +324,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
         )
       } else if (fmodel == 4) {
         fout <- .Call(
-          `_metapack_fmodel3p`,
+          `_metapack_fmodel3pp`,
           as.matrix(Outcome),
           as.matrix(SD),
           as.matrix(XCovariate_),

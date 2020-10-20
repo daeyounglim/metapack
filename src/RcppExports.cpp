@@ -339,6 +339,43 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fmodel3pp
+Rcpp::List fmodel3pp(const arma::mat& Outcome, const arma::mat& SD, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::uvec& Treat, const arma::uvec& Trial, const arma::uvec& Second, const arma::vec& Npt, const double& c0, const double& dj0, const double& a0, const double& b0, const arma::mat& Omega0, const int& K, const int& T, const int& ndiscard, const int& nskip, const int& nkeep, const double& delta_stepsize, const double& Rho_stepsize, const double& R_stepsize, const arma::vec& theta_init, const arma::mat& gamR_init, const arma::mat& Omega_init, const arma::mat& Rho_init, const bool& sample_Rho, const bool& verbose);
+RcppExport SEXP _metapack_fmodel3pp(SEXP OutcomeSEXP, SEXP SDSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP TreatSEXP, SEXP TrialSEXP, SEXP SecondSEXP, SEXP NptSEXP, SEXP c0SEXP, SEXP dj0SEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP Omega0SEXP, SEXP KSEXP, SEXP TSEXP, SEXP ndiscardSEXP, SEXP nskipSEXP, SEXP nkeepSEXP, SEXP delta_stepsizeSEXP, SEXP Rho_stepsizeSEXP, SEXP R_stepsizeSEXP, SEXP theta_initSEXP, SEXP gamR_initSEXP, SEXP Omega_initSEXP, SEXP Rho_initSEXP, SEXP sample_RhoSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Outcome(OutcomeSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type SD(SDSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type XCovariate(XCovariateSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type WCovariate(WCovariateSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Treat(TreatSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Trial(TrialSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Second(SecondSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Npt(NptSEXP);
+    Rcpp::traits::input_parameter< const double& >::type c0(c0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type dj0(dj0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type a0(a0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type b0(b0SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Omega0(Omega0SEXP);
+    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int& >::type T(TSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ndiscard(ndiscardSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nskip(nskipSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
+    Rcpp::traits::input_parameter< const double& >::type delta_stepsize(delta_stepsizeSEXP);
+    Rcpp::traits::input_parameter< const double& >::type Rho_stepsize(Rho_stepsizeSEXP);
+    Rcpp::traits::input_parameter< const double& >::type R_stepsize(R_stepsizeSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type theta_init(theta_initSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type gamR_init(gamR_initSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Omega_init(Omega_initSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Rho_init(Rho_initSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type sample_Rho(sample_RhoSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(fmodel3pp(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, Rho_init, sample_Rho, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fmodel4
 Rcpp::List fmodel4(const arma::mat& Outcome, const arma::mat& SD, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::uvec& Treat, const arma::uvec& Trial, const arma::vec& Npt, const double& c0, const double& dj0, const double& d0, const double& nu0, const arma::mat& Sigma0, const arma::mat& Omega0, const int& K, const int& T, const int& ndiscard, const int& nskip, const int& nkeep, const double& delta_stepsize, const double& Rho_stepsize, const double& R_stepsize, const arma::vec& theta_init, const arma::mat& gamR_init, const arma::mat& Omega_init, const bool& verbose);
 RcppExport SEXP _metapack_fmodel4(SEXP OutcomeSEXP, SEXP SDSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP TreatSEXP, SEXP TrialSEXP, SEXP NptSEXP, SEXP c0SEXP, SEXP dj0SEXP, SEXP d0SEXP, SEXP nu0SEXP, SEXP Sigma0SEXP, SEXP Omega0SEXP, SEXP KSEXP, SEXP TSEXP, SEXP ndiscardSEXP, SEXP nskipSEXP, SEXP nkeepSEXP, SEXP delta_stepsizeSEXP, SEXP Rho_stepsizeSEXP, SEXP R_stepsizeSEXP, SEXP theta_initSEXP, SEXP gamR_initSEXP, SEXP Omega_initSEXP, SEXP verboseSEXP) {
@@ -541,6 +578,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_metapack_fmodel2p5p", (DL_FUNC) &_metapack_fmodel2p5p, 23},
     {"_metapack_fmodel3", (DL_FUNC) &_metapack_fmodel3, 26},
     {"_metapack_fmodel3p", (DL_FUNC) &_metapack_fmodel3p, 27},
+    {"_metapack_fmodel3pp", (DL_FUNC) &_metapack_fmodel3pp, 27},
     {"_metapack_fmodel4", (DL_FUNC) &_metapack_fmodel4, 25},
     {"_metapack_fmodel4p", (DL_FUNC) &_metapack_fmodel4p, 26},
     {"_metapack_lpml_parcov", (DL_FUNC) &_metapack_lpml_parcov, 13},
