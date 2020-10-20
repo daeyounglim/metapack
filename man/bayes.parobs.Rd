@@ -4,11 +4,26 @@
 \alias{bayes.parobs}
 \title{Fit Bayesian Inference for Multivariate Meta-Regression With a Partially Observed Within-Study Sample Covariance Matrix}
 \usage{
-bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
-  fmodel = 1, prior = list(), mcmc = list(), control = list(),
-  init = list(), Treat_order = NULL, Trial_order = NULL,
-  group = NULL, group_order = NULL, scale_x = FALSE,
-  verbose = FALSE)
+bayes.parobs(
+  Outcome,
+  SD,
+  XCovariate,
+  WCovariate,
+  Treat,
+  Trial,
+  Npt,
+  fmodel = 1,
+  prior = list(),
+  mcmc = list(),
+  control = list(),
+  init = list(),
+  Treat_order = NULL,
+  Trial_order = NULL,
+  group = NULL,
+  group_order = NULL,
+  scale_x = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}

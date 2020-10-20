@@ -4,7 +4,8 @@
 \name{cholesterol}
 \alias{cholesterol}
 \title{26 Merck-sponsored double-blind, randomized, active, or placebo-controlled clinical trials on patients with primary hypercholesterolemia}
-\format{A data frame with 52 rows and 19 variables
+\format{
+A data frame with 52 rows and 19 variables
 \describe{
 	\item{Study}{study identifier}
 	\item{Trial}{trial identifier}
@@ -25,7 +26,8 @@
 	\item{male}{the proportion of male participants}
 	\item{dm}{the proportion of participants with diabetes mellitus}
 	\item{durat}{duration in weeks}
-}}
+}
+}
 \usage{
 data(cholesterol)
 }

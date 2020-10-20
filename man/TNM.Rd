@@ -4,7 +4,8 @@
 \name{TNM}
 \alias{TNM}
 \title{Triglycerides Network Meta (TNM) data}
-\format{A data frame with 73 rows and 15 variables
+\format{
+A data frame with 73 rows and 15 variables
 \describe{
 	\item{Trial}{trial identifier}
 	\item{Treat}{treatment indicator for placebo (PBO), simvastatin (S), atorvastatin (A), lovastatin (L), rosuvastatin (R), pravastatin (P), ezetimibe (E), simvastatin+ezetimibe (SE), atorvastatin+ezetimibe (AE), lovastatin+ezetimibe (LE), or pravastatin+ezetimibe (PE)}
@@ -21,7 +22,8 @@
 	\item{potencymed}{the proportion of medium statin potency}
 	\item{potencyhigh}{the proportion of high statin potency}
 	\item{durat}{duration in weeks}
-}}
+}
+}
 \usage{
 data(TNM)
 }

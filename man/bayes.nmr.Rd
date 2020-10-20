@@ -4,10 +4,24 @@
 \alias{bayes.nmr}
 \title{Fit Bayesian Network Meta-Regression Hierarchical Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances}
 \usage{
-bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
-  prior = list(), mcmc = list(), add.z = NULL, control = list(),
-  init = list(), Treat_order = NULL, Trial_order = NULL,
-  verbose = FALSE)
+bayes.nmr(
+  Outcome,
+  SD,
+  Covariate,
+  Trial,
+  Treat,
+  Npt,
+  groupInfo,
+  prior = list(),
+  mcmc = list(),
+  scale_x = FALSE,
+  add.z = NULL,
+  control = list(),
+  init = list(),
+  Treat_order = NULL,
+  Trial_order = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{Outcome}{aggregate mean of the responses for each arm of each study}
@@ -27,6 +41,8 @@ bayes.nmr(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo,
 \item{prior}{(Optional) list of hyperparameters when not given, algorithm will run in default setting.}
 
 \item{mcmc}{(Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
+
+\item{scale_x}{(Optional) a logical variable whether `Covariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling}
 
 \item{add.z}{(Optional) additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'}
 

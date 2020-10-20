@@ -7,7 +7,7 @@
 \method{print}{bayesnmr}(x, conf.level = 0.95, HPD = TRUE, ...)
 }
 \arguments{
-\item{x}{the output model from fitting a meta analysis/regression model}
+\item{x}{the output model from fitting a network meta analysis/regression model}
 
 \item{conf.level}{credible level for interval estimation; set to 0.95 by default}
 

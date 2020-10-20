@@ -4,8 +4,7 @@
 \alias{fitted.bayes.parobs}
 \title{get fitted values}
 \usage{
-\method{fitted}{bayes.parobs}(object, conf.level = 0.95, HPD = TRUE,
-  ...)
+\method{fitted}{bayes.parobs}(object, conf.level = 0.95, HPD = TRUE, ...)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}

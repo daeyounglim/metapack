@@ -3,7 +3,6 @@
 \docType{package}
 \name{metapack}
 \alias{metapack}
-\alias{metapack-package}
 \title{metapack: a package for Bayesian meta-analysis and network meta-analysis}
 \description{
 The metapack package provides one category of functions:

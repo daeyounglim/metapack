@@ -482,6 +482,7 @@ Rcpp::List fmodel2p(const arma::mat& Outcome,
 					qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 				}
 				Siginv = rwish(df, arma::inv_sympd(qq));
+				Sig = Siginv.i();
 
 				for (int i = 0; i < N; ++i) {
 					rowvec y_i = Outcome.row(i);
