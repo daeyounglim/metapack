@@ -21,7 +21,7 @@ Calculate the goodness of fit measures
 ***************************************************/
 
 // [[Rcpp::export]]
-Rcpp::List calc_modelfit_dic(const arma::vec& y,
+Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 						 const arma::mat& x,
 						 const arma::mat& z,
 						 const arma::uvec& ids,
@@ -87,6 +87,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 	vec Z_est = arma::exp(z * phi_est);
 	vec maxll_est(K, fill::zeros);
 	vec Q_k(K, fill::zeros);
+	const double h = 0.5;
 	for (int k=0; k < K; ++k) {
 		uvec idx = idxks(k);
 		vec y_k = y(idx);
@@ -145,8 +146,27 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 				return std::exp(loglik - maxll);
 			};
 
-		    double error;
-			double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
+			double lam_start = 0.0001;
+			std::vector<double> ygrid_;
+			while (true) {
+				double fv = fx(lam_start);
+				if (fv > 0.0) {
+					ygrid_.push_back(fv);
+					lam_start += h;
+				} else {
+					break;
+				}
+			}
+			vec ygrid = arma::conv_to<arma::vec>::from(ygrid_);
+			double ngrid = ygrid.n_elem;
+			double Q = 0.5 * ygrid(0) + 0.5 * ygrid(ngrid-1);
+			for (int ii = 1; ii < ngrid-1; ++ii) {
+				Q += ygrid(ii);
+			}
+			Q *= h;
+
+		    // double error;
+			// double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
 			Q_k(k) = Q;
 			Dev_thetabar += -2.0 * (maxll + std::log(Q));
     	} else {
@@ -242,9 +262,26 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 						***********************************/
 						return std::exp(loglik - maxll);
 					};
-
-					double error;
-					double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
+					double lam_start = 0.0001;
+					std::vector<double> ygrid_;
+					while (true) {
+						double fv = fx(lam_start);
+						if (fv > 0.0) {
+							ygrid_.push_back(fv);
+							lam_start += h;
+						} else {
+							break;
+						}
+					}
+					vec ygrid = arma::conv_to<arma::vec>::from(ygrid_);
+					double ngrid = ygrid.n_elem;
+					double Q = 0.5 * ygrid(0) + 0.5 * ygrid(ngrid-1);
+					for (int ii = 1; ii < ngrid-1; ++ii) {
+						Q += ygrid(ii);
+					}
+					Q *= h;
+					// double error;
+					// double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
 					Qs(k,ikeep) = Q;
 					Dev_bar += -2.0 * (maxll + std::log(Q));
 				} else {

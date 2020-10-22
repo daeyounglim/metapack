@@ -103,7 +103,7 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 				int Tk = idx.n_elem;
 
 				if (t_random_effect) {
-					auto fx_lam = [&](double eta[])->double {
+					auto fx_lam = [&](double eta[]) -> double {
 						double loglik = loglik_lam(eta[0], df_ikeep, resid_k, ERE_k, sig2_k, Tk);
 						loglik += 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep) - M_LN_SQRT_2PI * static_cast<double>(Tk);
 						return -loglik;
@@ -180,7 +180,7 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 		// Dev_bar /= static_cast<double>(nkeep);
 		// double p_D = Dev_bar - Dev_thetabar;
 		// double DIC = Dev_thetabar + 2.0 * p_D;
-		return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo);
+		return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo, Rcpp::Named("g")=g);
 	}
 }
 

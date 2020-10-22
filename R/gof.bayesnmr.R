@@ -18,7 +18,7 @@
 	nu <- object$prior$df
 
 	if (type == "dic") {
-		gof <- .Call(`_metapack_calc_modelfit_dic`,
+		gof <- .Call(`_metapack_calc_modelfit_dic_trap`,
 					 as.double(y),
 					 as.matrix(x),
 					 as.matrix(z),

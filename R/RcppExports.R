@@ -9,6 +9,10 @@ calc_modelfit_dic <- function(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, ph
     .Call(`_metapack_calc_modelfit_dic`, y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose)
 }
 
+calc_modelfit_dic_trap <- function(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose) {
+    .Call(`_metapack_calc_modelfit_dic_trap`, y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose)
+}
+
 fmodel1 <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, theta_init, gamR_init, Omega_init, verbose) {
     .Call(`_metapack_fmodel1`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, c0, dj0, a0, b0, Omega0, K, T, ndiscard, nskip, nkeep, theta_init, gamR_init, Omega_init, verbose)
 }
