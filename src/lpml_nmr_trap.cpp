@@ -13,7 +13,6 @@
 #endif
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::depends(RcppArmadillo, RcppProgress)]]
-using namespace arma;
 
 /**************************************************
 Calculate the goodness of fit measures
@@ -22,9 +21,8 @@ Calculate the goodness of fit measures
 + p_D = E[Dev(theta)] - Dev(thetabar)
 + DIC = Dev(thetabar) + 2 * p_D
 ***************************************************/
-
 // [[Rcpp::export]]
-Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
+Rcpp::List calc_modelfit_lpml_trap(const arma::vec& y,
 						 const arma::mat& x,
 						 const arma::mat& z,
 						 const arma::uvec& ids,
@@ -64,135 +62,24 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 	}
 
 	bool t_random_effect = false;
-	double df_est = 0.0;
 	if (R_FINITE(nu)) {
 		t_random_effect = true;
-		if (sample_df) {
-			df_est = arma::mean(dfs);
-		} else {
-			df_est = nu;
-		}
 	}
 
-	vec beta_est = arma::mean(betas, 1);
-	vec sig2_est = arma::mean(sig2s, 1);
-	vec lam_est = arma::mean(lams, 1);
-	vec phi_est = arma::mean(phis, 1);
-	mat Rho_est(nT, nT, fill::zeros);
-	for (int ikeep=0; ikeep < nkeep; ++ikeep) {
-		Rho_est += Rhos.slice(ikeep);
-	}
-	Rho_est /= static_cast<double>(nkeep);
-	/*******************************************
-	Dev(thetabar) = -2 * log L(thetabar | D_oy)
-	*******************************************/
-	double Dev_thetabar = 0.0;
-	vec Z_est = arma::exp(z * phi_est);
-	vec maxll_est(K, fill::zeros);
-	vec Q_k(K, fill::zeros);
-	const double h = 0.5;
-	#ifdef _OPENMP
-	#pragma omp parallel for schedule(static) num_threads(ncores)
-	#endif
-	for (int k=0; k < K; ++k) {
-		uvec idx = idxks(k);
-		vec y_k = y(idx);
-		mat E_k = Eks(k);
-		mat X_k = arma::join_horiz(Xks(k), E_k.t());
-		vec resid_k = y_k - X_k * beta_est;
-		vec Z_k = Z_est(idx);
-		mat ERE_k = diagmat(Z_k) * E_k.t() * Rho_est * E_k * diagmat(Z_k);
-		vec sig2_k = sig2_est(idx) / npt(idx);
-
-		int Tk = idx.n_elem;
-		
-    
-    	if (t_random_effect) {
-			auto fx_lam = [&](double eta[])->double {
-				double loglik = loglik_lam(eta[0], df_est, resid_k, ERE_k, sig2_k, Tk);
-				loglik += 0.5 * df_est * (std::log(df_est) - M_LN2) - R::lgammafn(0.5 * df_est) - M_LN_SQRT_2PI * static_cast<double>(Tk);
-				return -loglik;
-			};
-			double start[] = { std::log(lam_est(k)) };
-			double xmin[] = { 0.0 };
-			double ynewlo = 0.0;
-			double reqmin = 1.0e-20;
-			int konvge = 5;
-			int kcount = 1000;
-			double step[] = { 0.2 };
-			int icount = 0;
-			int numres = 0;
-			int ifault = 0;
-			nelmin(fx_lam, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
-			double maxll = -ynewlo;
-			if (R_IsNaN(maxll)) {
-				if (k != 0) {
-					maxll = maxll_est(k-1);
-				} else {
-					maxll = 0.0;
-				}
-			}
-			if (maxll > 50.0) {
-				maxll = maxll_est(k-1);
-			}
-			maxll_est(k) = maxll;
-			
-			auto fx = [&](double lam)->double {
-				double loglik = (0.5 * df_est - 1.0) * std::log(lam) - 0.5 * df_est * lam + 0.5 * df_est * (std::log(df_est) - M_LN2) - R::lgammafn(0.5 * df_est);
-				mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_est * E_k * diagmat(Z_k / lam);
-				ZEREZ_S.diag() += sig2_k;
-				double logdet_val;
-				double logdet_sign;
-				log_det(logdet_val, logdet_sign, ZEREZ_S);
-				loglik -= 0.5 * (logdet_val + arma::accu(resid_k % arma::solve(ZEREZ_S, resid_k))) + M_LN_SQRT_2PI * static_cast<double>(Tk);
-				/***********************************
-				subtract by maximum likelihood value
-				for numerical stability
-				***********************************/
-				return std::exp(loglik - maxll);
-			};
-
-			double lam_start = 0.0001;
-			std::vector<double> ygrid_;
-			while (true) {
-				double fv = fx(lam_start);
-				if (fv > 0.0) {
-					ygrid_.push_back(fv);
-					lam_start += h;
-				} else {
-					break;
-				}
-			}
-			vec ygrid = arma::conv_to<arma::vec>::from(ygrid_);
-			double ngrid = ygrid.n_elem;
-			double Q = 0.5 * ygrid(0) + 0.5 * ygrid(ngrid-1);
-			for (int ii = 1; ii < ngrid-1; ++ii) {
-				Q += ygrid(ii);
-			}
-			Q *= h;
-
-		    // double error;
-			// double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
-			Q_k(k) = Q;
-			Dev_thetabar += -2.0 * (maxll + std::log(Q));
-    	} else {
-    		double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
-    		// mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_est * E_k * diagmat(Z_k);
-			ERE_k.diag() += sig2_k;
-    		double logdet_val;
-			double logdet_sign;
-			log_det(logdet_val, logdet_sign, ERE_k);
-			loglik -= 0.5 * (logdet_val + arma::accu(resid_k % arma::solve(ERE_k, resid_k)));
-    		Dev_thetabar += -2.0 * loglik;
-    	}
-	}
-
-
-	double Dev_bar = 0;
 	mat Qs(K, nkeep, fill::zeros);
-	mat maxll_keep(K, nkeep, fill::zeros);
+	mat g(K, nkeep, fill::zeros);
+	vec gmax(K, fill::zeros);
+	vec alogcpo(K, fill::zeros);
+	double alpml = 0.0;
+
+
+	const double h = 0.5;
+	mat maxll_keep(K,nkeep,fill::zeros);
 	{
 		Progress prog(nkeep, verbose);
+		#ifdef _OPENMP
+		#pragma omp parallel for schedule(static) num_threads(ncores)
+		#endif
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
 			if (!Progress::check_abort()) {
 				vec beta_ikeep = betas.col(ikeep);
@@ -201,7 +88,6 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 				vec lam_ikeep = lams.col(ikeep);
 				mat Rho_ikeep = Rhos.slice(ikeep);
 				vec Z_ikeep = arma::exp(z * phi_ikeep);
-
 				double df_ikeep = nu;
 				if (sample_df) {
 					df_ikeep = dfs(ikeep);
@@ -222,7 +108,7 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 					int Tk = idx.n_elem;
 
 					if (t_random_effect) {
-						auto fx_lam = [&](double eta[])->double {
+						auto fx_lam = [&](double eta[]) -> double {
 							double loglik = loglik_lam(eta[0], df_ikeep, resid_k, ERE_k, sig2_k, Tk);
 							loglik += 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep) - M_LN_SQRT_2PI * static_cast<double>(Tk);
 							return -loglik;
@@ -246,11 +132,12 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 								maxll = 0.0;
 							}
 						}
-						if (maxll > 100.0) {
-							maxll = maxll_keep(k-1,ikeep);
+						if (maxll > 100) {
+							maxll = maxll_keep(k-1, ikeep);
 						}
-						maxll_keep(k, ikeep) = maxll;
+						maxll_keep(k,ikeep) = maxll;
 						
+
 						auto fx = [&](double lam)->double {
 							double loglik = (0.5 * df_ikeep - 1.0) * std::log(lam) - 0.5 * df_ikeep * lam + 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep);
 							mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k / lam);
@@ -265,6 +152,7 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 							***********************************/
 							return std::exp(loglik - maxll);
 						};
+
 						double lam_start = 0.0001;
 						std::vector<double> ygrid_;
 						while (true) {
@@ -276,6 +164,8 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 								break;
 							}
 						}
+
+						
 						vec ygrid = arma::conv_to<arma::vec>::from(ygrid_);
 						double ngrid = ygrid.n_elem;
 						double Q = 0.5 * ygrid(0) + 0.5 * ygrid(ngrid-1);
@@ -283,44 +173,41 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 							Q += ygrid(ii);
 						}
 						Q *= h;
-						// double error;
-						// double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
-						Qs(k,ikeep) = Q;
-						Dev_bar += -2.0 * (maxll + std::log(Q));
+						Qs(k, ikeep) = Q;
+						g(k,ikeep) -= maxll + std::log(Q);
 					} else {
 						double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
-						// mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k);
 						ERE_k.diag() += sig2_k;
 			    		double logdet_val;
 						double logdet_sign;
 						log_det(logdet_val, logdet_sign, ERE_k);
 						loglik -= 0.5 * (logdet_val + arma::accu(resid_k % arma::solve(ERE_k, resid_k)));
-			    		Dev_bar += -2.0 * loglik;
+			    		g(k,ikeep) -= loglik;
 					}
 				}
-
 				prog.increment();
 			}
-
 		}
-		Dev_bar /= static_cast<double>(nkeep);
-		double p_D = Dev_bar - Dev_thetabar;
-		double DIC = Dev_thetabar + 2.0 * p_D;
-		return Rcpp::List::create(Rcpp::Named("dic")=DIC,
-			Rcpp::Named("maxll_keep") = maxll_keep,
-			Rcpp::Named("maxll_est") = maxll_est);
+		for (int k = 0; k < K; ++k) {
+			gmax(k) = g(k,0);
+			for (int j1 = 1; j1 < nkeep; ++j1) {
+				if (gmax(k) < g(k, j1)) {
+					gmax(k) = g(k, j1);
+				}
+			}
+			double sumrep = 0.0;
+			for (int j1 = 1; j1 < nkeep; ++j1) {
+				sumrep += std::exp(g(k,j1) - gmax(k));
+			}
+			alogcpo(k) -= gmax(k) + std::log(sumrep / static_cast<double>(nkeep));
+			alpml += alogcpo(k);
+		}
+		// Dev_bar /= static_cast<double>(nkeep);
+		// double p_D = Dev_bar - Dev_thetabar;
+		// double DIC = Dev_thetabar + 2.0 * p_D;
+		return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo, Rcpp::Named("g")=g, Rcpp::Named("Qs")=Qs);
 	}
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

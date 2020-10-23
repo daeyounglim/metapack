@@ -27,8 +27,8 @@
 	theta.post <- vapply(1:object$mcmc$nkeep, function(ikeep) {
 		param[,ikeep] / tscale
 	}, FUN.VALUE = numeric(tlength))
-	theta$mean <- rowMeans(param)
-	theta$sd <- apply(param, 1, sd)
+	theta$mean <- rowMeans(theta.post)
+	theta$sd <- apply(theta.post, 1, sd)
 	phi$mean <- rowMeans(object$mcmc.draws$phi)
 	phi$sd <- apply(object$mcmc.draws$phi, 1, sd)
 	gam$mean <- rowMeans(object$mcmc.draws$gam)
@@ -37,14 +37,10 @@
 	conf.level <- 0.95
 	sig.level <- 1 - conf.level
 
-	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(param), end=object$mcmc$nkeep), prob=conf.level)
-		theta$lower <- theta.hpd[,1]
-		theta$upper <- theta.hpd[,2]
-	} else {
-		theta$lower <- apply(param, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(param, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
-	}
+
+	theta.hpd <- coda::HPDinterval(mcmc(t(theta.post), end=object$mcmc$nkeep), prob=conf.level)
+	theta$lower <- theta.hpd[,1]
+	theta$upper <- theta.hpd[,2]
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
 	if (HPD) {
 		colnames(r) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
