@@ -4,7 +4,7 @@
 \alias{gof.bayes.parobs}
 \title{get goodness of fit}
 \usage{
-\method{gof}{bayes.parobs}(object, type = "lpml", verbose = FALSE)
+\method{gof}{bayes.parobs}(object, type = "lpml", ncores = NULL, verbose = FALSE)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}

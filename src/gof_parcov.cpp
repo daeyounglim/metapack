@@ -7,7 +7,11 @@
 #include <progress_bar.hpp>
 #include <Rdefines.h>
 #include "linearalgebra.h"
-// [[Rcpp::depends(RcppArmadillo, RcppProgress, BH)]]
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+// [[Rcpp::plugins(openmp)]]
+// [[Rcpp::depends(RcppArmadillo, RcppProgress)]]
 
 
 /**************************************************
@@ -46,7 +50,8 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 			  		   const arma::mat& Omegahat,
 			  		   const int& fmodel,
 			  		   const int& nkeep,
-			  		   const bool verbose) {
+			  		   const bool& verbose,
+			  		   const int& ncores) {
 	using namespace arma;
 	const int N = Outcome.n_rows;
 	const int J = Outcome.n_cols;
@@ -56,37 +61,38 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 	double alpml = 0.0;
 	{
 		Progress prog(nkeep, verbose);
+		#ifdef _OPENMP
+		#pragma omp parallel for schedule(static) num_threads(ncores)
+		#endif
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
-			if (Progress::check_abort()) {
-				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
-			}
+			if (!Progress::check_abort()) {
+				mat Sig_ikeep = Sigma.slice(ikeep);
+				mat Omega_ikeep = Omega.slice(ikeep);
+				vec theta_ikeep = theta.col(ikeep);
 
-			mat Sig_ikeep = Sigma.slice(ikeep);
-			mat Omega_ikeep = Omega.slice(ikeep);
-			vec theta_ikeep = theta.col(ikeep);
-
-			for (int i = 0; i < N; ++i) {
-				double ntk = Npt(i);
-				rowvec x_i = XCovariate.row(i);
-				rowvec w_i = WCovariate.row(i);
-				vec y_i = arma::trans(Outcome.row(i));
-				mat X(J, xcols * J, fill::zeros);
-				mat W(J, nw*J, fill::zeros);
-				for (int j = 0; j < J; ++j) {
-					X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
-					W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+				for (int i = 0; i < N; ++i) {
+					double ntk = Npt(i);
+					rowvec x_i = XCovariate.row(i);
+					rowvec w_i = WCovariate.row(i);
+					vec y_i = arma::trans(Outcome.row(i));
+					mat X(J, xcols * J, fill::zeros);
+					mat W(J, nw*J, fill::zeros);
+					for (int j = 0; j < J; ++j) {
+						X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+						W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+					}
+					mat Xstar = arma::join_horiz(X, W);
+					if (fmodel != 2) {
+						mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
+						mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
+						g(i,ikeep) -= mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
+					} else {
+						mat Q = Sig_ikeep / ntk + W * Omega_ikeep * W.t();
+						g(i,ikeep) -= mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
+					}
 				}
-				mat Xstar = arma::join_horiz(X, W);
-				if (fmodel != 2) {
-					mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
-					mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
-					g(i,ikeep) -= mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
-				} else {
-					mat Q = Sig_ikeep / ntk + W * Omega_ikeep * W.t();
-					g(i,ikeep) -= mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
-				}
+				prog.increment();
 			}
-			prog.increment();
 		}
 
 		vec gmax(N, fill::zeros);
@@ -123,7 +129,8 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 			  		  const arma::mat& Omegahat,
 			  		  const int& fmodel,
 			  		  const int& nkeep,
-			  		  const bool verbose) {
+			  		  const bool& verbose,
+			  		  const int& ncores) {
 	using namespace arma;
 	double Dev_thetabar = 0.0;
 	const int N = Outcome.n_rows;
@@ -156,37 +163,38 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 	double Dev_bar = 0;
 	{
 		Progress prog(nkeep, verbose);
+		#ifdef _OPENMP
+		#pragma omp parallel for schedule(static) num_threads(ncores)
+		#endif
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
-			if (Progress::check_abort()) {
-				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
-			}
+			if (!Progress::check_abort()) {
+				mat Sig_ikeep = Sigma.slice(ikeep);
+				mat Omega_ikeep = Omega.slice(ikeep);
+				vec theta_ikeep = theta.col(ikeep);
 
-			mat Sig_ikeep = Sigma.slice(ikeep);
-			mat Omega_ikeep = Omega.slice(ikeep);
-			vec theta_ikeep = theta.col(ikeep);
-
-			for (int i = 0; i < N; ++i) {
-				double ntk = Npt(i);
-				rowvec x_i = XCovariate.row(i);
-				rowvec w_i = WCovariate.row(i);
-				vec y_i = arma::trans(Outcome.row(i));
-				mat X(J, xcols * J, fill::zeros);
-				mat W(J, nw*J, fill::zeros);
-				for (int j = 0; j < J; ++j) {
-					X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
-					W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+				for (int i = 0; i < N; ++i) {
+					double ntk = Npt(i);
+					rowvec x_i = XCovariate.row(i);
+					rowvec w_i = WCovariate.row(i);
+					vec y_i = arma::trans(Outcome.row(i));
+					mat X(J, xcols * J, fill::zeros);
+					mat W(J, nw*J, fill::zeros);
+					for (int j = 0; j < J; ++j) {
+						X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+						W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+					}
+					mat Xstar = arma::join_horiz(X, W);
+					if (fmodel != 2) {
+						mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
+						mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
+						Dev_bar -= 2.0 * mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
+					} else {
+						mat Q = Sig_ikeep / ntk + W * Omega_ikeep * W.t();
+						Dev_bar -= 2.0 * mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
+					}
 				}
-				mat Xstar = arma::join_horiz(X, W);
-				if (fmodel != 2) {
-					mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
-					mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
-					Dev_bar -= 2.0 * mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
-				} else {
-					mat Q = Sig_ikeep / ntk + W * Omega_ikeep * W.t();
-					Dev_bar -= 2.0 * mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
-				}
+				prog.increment();
 			}
-			prog.increment();
 		}
 	}
 	Dev_bar /= static_cast<double>(nkeep);

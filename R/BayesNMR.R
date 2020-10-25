@@ -229,7 +229,7 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
     Outcome = Outcome,
     SD = SD,
     Npt = Npt,
-    Covariate = Covariate,
+    Covariate = Covariate_,
     z = z,
     Trial = Trial.n,
     Treat = Treat.n,

@@ -57,12 +57,12 @@ fmodel4p <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, 
     .Call(`_metapack_fmodel4p`, Outcome, SD, XCovariate, WCovariate, Treat, Trial, Second, Npt, c0, dj0, d0, nu0, Sigma0, Omega0, K, T, ndiscard, nskip, nkeep, delta_stepsize, Rho_stepsize, R_stepsize, theta_init, gamR_init, Omega_init, verbose)
 }
 
-lpml_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose) {
-    .Call(`_metapack_lpml_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose)
+lpml_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores) {
+    .Call(`_metapack_lpml_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores)
 }
 
-dic_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose) {
-    .Call(`_metapack_dic_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose)
+dic_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores) {
+    .Call(`_metapack_dic_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores)
 }
 
 vecr <- function(X) {

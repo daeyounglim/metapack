@@ -477,8 +477,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // lpml_parcov
-Rcpp::List lpml_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool verbose);
-RcppExport SEXP _metapack_lpml_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP) {
+Rcpp::List lpml_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool& verbose, const int& ncores);
+RcppExport SEXP _metapack_lpml_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -494,14 +494,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type Omegahat(OmegahatSEXP);
     Rcpp::traits::input_parameter< const int& >::type fmodel(fmodelSEXP);
     Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
-    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(lpml_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose));
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lpml_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores));
     return rcpp_result_gen;
 END_RCPP
 }
 // dic_parcov
-Rcpp::List dic_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool verbose);
-RcppExport SEXP _metapack_dic_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP) {
+Rcpp::List dic_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool& verbose, const int& ncores);
+RcppExport SEXP _metapack_dic_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -517,8 +518,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type Omegahat(OmegahatSEXP);
     Rcpp::traits::input_parameter< const int& >::type fmodel(fmodelSEXP);
     Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
-    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(dic_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose));
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(dic_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -640,8 +642,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_metapack_fmodel3pp", (DL_FUNC) &_metapack_fmodel3pp, 27},
     {"_metapack_fmodel4", (DL_FUNC) &_metapack_fmodel4, 25},
     {"_metapack_fmodel4p", (DL_FUNC) &_metapack_fmodel4p, 26},
-    {"_metapack_lpml_parcov", (DL_FUNC) &_metapack_lpml_parcov, 13},
-    {"_metapack_dic_parcov", (DL_FUNC) &_metapack_dic_parcov, 13},
+    {"_metapack_lpml_parcov", (DL_FUNC) &_metapack_lpml_parcov, 14},
+    {"_metapack_dic_parcov", (DL_FUNC) &_metapack_dic_parcov, 14},
     {"_metapack_vecr", (DL_FUNC) &_metapack_vecr, 1},
     {"_metapack_vecrinv", (DL_FUNC) &_metapack_vecrinv, 2},
     {"_metapack_pRho_to_Rho", (DL_FUNC) &_metapack_pRho_to_Rho, 1},

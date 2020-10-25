@@ -42,11 +42,7 @@
 	theta$lower <- theta.hpd[,1]
 	theta$upper <- theta.hpd[,2]
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
-	if (HPD) {
-		colnames(r) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
-	} else {
-		colnames(r) <- c("Post.Mean", "Std.Dev", "CI(Lower)", "CI(Upper)")
-	}
+	colnames(r) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
 	cat("\nPosterior inference in network meta-regression models\n")
 	cat("Fixed-effects:\n")
 	r <- round(r, digits=digits)

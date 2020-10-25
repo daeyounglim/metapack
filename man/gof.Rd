@@ -4,12 +4,14 @@
 \alias{gof}
 \title{get goodness of fit: DIC or LPML}
 \usage{
-gof(object, type = "lpml", verbose = FALSE)
+gof(object, type = "lpml", ncores = NULL, verbose = FALSE)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}
 
 \item{type}{the type of goodness of fit to compute; DIC or LPML}
+
+\item{ncores}{the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores}
 
 \item{verbose}{FALSE by default; If TRUE, then progress bar will appear}
 }
