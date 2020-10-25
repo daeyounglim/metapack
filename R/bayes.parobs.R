@@ -51,7 +51,6 @@
 #' }
 #' @importFrom stats model.matrix optim
 #' @importFrom methods is
-#' @importFrom Matrix nearPD
 #' @md
 #' @export
 bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, group = NULL, group_order = NULL, scale_x = FALSE, verbose = FALSE) {
@@ -176,56 +175,6 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   gamR_init <- init_final$gamR
   Omega_init <- init_final$Omega
   Rho_init <- init_final$Rho
-
-  # if (fmodel == 4) {
-  #   N <- nrow(Outcome)
-  #   pars <- vecr(Rho_init)
-  #   sumNpt <- sum(Npt)
-  #   qq <- matrix(0, J, J)
-  #   for (i in 1:N) {
-  #     k <- Trial.n[i] + 1
-  #     ntk <- Npt[i]
-  #     x_i <- XCovariate[i,]
-  #     w_i <- WCovariate[i,]
-  #     pRR <- vecrinv(tanh(rep(0.5, (J*(J-1))/2)), as.integer(J))
-  #     diag(pRR) <- 1
-  #     RR <- pRho_to_Rho(pRR)
-  #     gam_k <- gamR_init[,k]
-  #     V <- diag(SD[i,], nrow=J)
-  #     X <- matrix(0, J, xcols * J)
-  #     W <- matrix(0, J, nw * J)
-  #     for (j in 1:J) {
-  #       X[j, ((j-1)*xcols+1):(j*xcols)] <- x_i
-  #       W[j, ((j-1)*nw+1):(j*nw)] <- w_i
-  #     }
-  #     Xstar <- cbind(X,W)
-  #     ypred_i <- drop(Xstar %*% theta_init)
-  #     resid_i <- Outcome[i,] - ypred_i - drop(W %*% gam_k)
-  #     dAd <- ntk * tcrossprod(resid_i) + (ntk - 1) * V %*% RR %*% V
-  #     siginvm <- diag(1 / SD[i,], nrow=J)
-  #     qq <- qq + (siginvm %*% dAd %*% siginvm)
-  #   }
-  #   fx_vrho <- function(vRho) {
-  #     z <- tanh(vRho)
-  #     pRRho <- vecrinv(z, as.integer(J))
-  #     diag(pRRho) <- 1
-  #     Rhop <- pRho_to_Rho(pRRho)
-  #     Rhop <- as.matrix(Matrix::nearPD(Rhop)$mat)
-  #     Rhopinv <- chol2inv(chol(Rhop))
-  #     loglik <- -0.5 * sum(qq * Rhopinv) - 0.5 * sumNpt * determinant(Rhop)$modulus[1]
-  #     for (i in 1:J) {
-  #       ii <- i - 1
-  #       iR <- J - 2 - floor(sqrt(-8.0*ii + 4.0*(J*(J-1))-7.0)/2.0 - 0.5);
-  #       iC <- ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2;
-  #       loglik <- loglik + 0.5 * (J + 1 - abs(iC-iR)) * log1p(-z[i]^2)
-  #     }
-  #     loglik
-  #   }
-  #   ff <- optim(pars, fx_vrho, control=list(fnscale=-1), hessian=TRUE)
-  #   fisher_info <- solve(-ff$hessian)
-  #   fisher_info <- Matrix::nearPD(fisher_info)$mat
-  #   fisher_chol <- t(chol(fisher_info))
-  # }
 
   if (any(eigen(Omega_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
     stop("The initial value for Omega is not positive definite")

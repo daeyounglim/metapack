@@ -1,6 +1,8 @@
 #' get goodness of fit 
 #' @param x the output model from fitting a meta analysis/regression model
 #' @param ... additional parameters for plot
+#' @importFrom graphics par
+#' @importFrom stats density 
 #' @method plot bayesnmr
 #' @export
 #' 

@@ -1,8 +1,10 @@
 #' get goodness of fit 
 #' @param object the output model from fitting a meta analysis/regression model
 #' @param type the type of goodness of fit to compute; DIC or LPML
+#' @param ncores the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores
 #' @param verbose FALSE by default; If TRUE, then progress bar will appear
 #' @method gof bayes.parobs
+#' @importFrom parallel detectCores
 #' @export
 "gof.bayes.parobs" <- function(object, type="lpml", ncores=NULL, verbose=FALSE) {
 	nkeep <- object$mcmc$nkeep
