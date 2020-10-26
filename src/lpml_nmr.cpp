@@ -6,13 +6,18 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 #include <Rdefines.h>
-#include <boost/math/quadrature/gauss_kronrod.hpp>
+#include <boost/math/quadrature/exp_sinh.hpp>
 #include "nelmin.h"
 #include "misc_nmr.h"
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::depends(RcppArmadillo, RcppProgress, BH)]]
 using namespace arma;
 
 /**************************************************
+// #include <boost/math/quadrature/gauss_kronrod.hpp>
 Calculate the goodness of fit measures
 
 + Dev(theta) = -2 * log L(theta | D_oy)
@@ -38,7 +43,8 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 						 const int& nT,
 						 const int& nkeep,
 						 const bool& sample_df,
-						 const bool& verbose) {
+						 const bool& verbose,
+						 const int& ncores) {
 	using namespace arma;
 	using namespace boost::math::quadrature;
 
@@ -72,97 +78,106 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 	mat maxll_keep(K,nkeep,fill::zeros);
 	{
 		Progress prog(nkeep, verbose);
+		#ifdef _OPENMP
+		#pragma omp parallel for schedule(static) num_threads(ncores)
+		#endif
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
-			if (Progress::check_abort()) {
-				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
-			}
-
-			vec beta_ikeep = betas.col(ikeep);
-			vec sig2_ikeep = sig2s.col(ikeep);
-			vec phi_ikeep = phis.col(ikeep);
-			vec lam_ikeep = lams.col(ikeep);
-			mat Rho_ikeep = Rhos.slice(ikeep);
-			vec Z_ikeep = arma::exp(z * phi_ikeep);
-			double df_ikeep = nu;
-			if (sample_df) {
-				df_ikeep = dfs(ikeep);
-			}
-
-			for (int k=0; k < K; ++k) {
-				uvec idx = idxks(k);
-				vec y_k = y(idx);
-				mat E_k = Eks(k);
-				mat X_k = arma::join_horiz(Xks(k), E_k.t());
-				vec resid_k = y_k - X_k * beta_ikeep;
-				vec Z_k = Z_ikeep(idx);
-				double lam_k = lam_ikeep(k);
-				mat ERE_k = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k);
-				vec sig2_k = sig2_ikeep(idx) / npt(idx);
-
-
-				int Tk = idx.n_elem;
-
-				if (t_random_effect) {
-					auto fx_lam = [&](double eta[]) -> double {
-						double loglik = loglik_lam(eta[0], df_ikeep, resid_k, ERE_k, sig2_k, Tk);
-						loglik += 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep) - M_LN_SQRT_2PI * static_cast<double>(Tk);
-						return -loglik;
-					};
-					double start[] = { std::log(lam_k) };
-					double xmin[] = { 0.0 };
-					double ynewlo = 0.0;
-					double reqmin = 1.0e-20;
-					int konvge = 5;
-					int kcount = 1000;
-					double step[] = { 0.2 };
-					int icount = 0;
-					int numres = 0;
-					int ifault = 0;
-					nelmin(fx_lam, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
-					double maxll = -ynewlo;
-					if (R_IsNaN(maxll)) {
-						if (k != 0) {
-							maxll = maxll_keep(k-1,ikeep);
-						} else {
-							maxll = 0.0;
-						}
-					}
-					if (maxll > 50) {
-						maxll = maxll_keep(k-1, ikeep);
-					}
-					maxll_keep(k,ikeep) = maxll;
-					
-
-					auto fx = [&](double lam)->double {
-						double loglik = (0.5 * df_ikeep - 1.0) * std::log(lam) - 0.5 * df_ikeep * lam + 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep);
-						mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k / lam);
-						ZEREZ_S.diag() += sig2_k;
-						double logdet_val;
-						double logdet_sign;
-						log_det(logdet_val, logdet_sign, ZEREZ_S);
-						loglik -= 0.5 * (logdet_val + arma::accu(resid_k % arma::solve(ZEREZ_S, resid_k))) + M_LN_SQRT_2PI * static_cast<double>(Tk);
-						/***********************************
-						subtract by maximum likelihood value
-						for numerical stability
-						***********************************/
-						return std::exp(loglik - maxll);
-					};
-
-					double error;
-					double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
-					g(k,ikeep) -= maxll + std::log(Q);
-				} else {
-					double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
-					ERE_k.diag() += sig2_k;
-		    		double logdet_val;
-					double logdet_sign;
-					log_det(logdet_val, logdet_sign, ERE_k);
-					loglik -= 0.5 * (logdet_val + arma::accu(resid_k % arma::solve(ERE_k, resid_k)));
-		    		g(k,ikeep) -= loglik;
+			if (!Progress::check_abort()) {
+				vec beta_ikeep = betas.col(ikeep);
+				vec sig2_ikeep = sig2s.col(ikeep);
+				vec phi_ikeep = phis.col(ikeep);
+				vec lam_ikeep = lams.col(ikeep);
+				mat Rho_ikeep = Rhos.slice(ikeep);
+				vec Z_ikeep = arma::exp(z * phi_ikeep);
+				double df_ikeep = nu;
+				if (sample_df) {
+					df_ikeep = dfs(ikeep);
 				}
+
+				for (int k=0; k < K; ++k) {
+					uvec idx = idxks(k);
+					vec y_k = y(idx);
+					mat E_k = Eks(k);
+					mat X_k = arma::join_horiz(Xks(k), E_k.t());
+					vec resid_k = y_k - X_k * beta_ikeep;
+					vec Z_k = Z_ikeep(idx);
+					double lam_k = lam_ikeep(k);
+					mat ERE_k = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k);
+					vec sig2_k = sig2_ikeep(idx) / npt(idx);
+
+
+					int Tk = idx.n_elem;
+
+					if (t_random_effect) {
+						auto fx_lam = [&](double eta[]) -> double {
+							double loglik = loglik_lam(eta[0], df_ikeep, resid_k, ERE_k, sig2_k, Tk);
+							loglik += 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep) - M_LN_SQRT_2PI * static_cast<double>(Tk);
+							return -loglik;
+						};
+						double start[] = { std::log(lam_k) };
+						double xmin[] = { 0.0 };
+						double ynewlo = 0.0;
+						double reqmin = 1.0e-20;
+						int konvge = 5;
+						int kcount = 1000;
+						double step[] = { 0.2 };
+						int icount = 0;
+						int numres = 0;
+						int ifault = 0;
+						nelmin(fx_lam, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
+						double maxll = -ynewlo;
+						if (R_IsNaN(maxll)) {
+							if (k != 0) {
+								maxll = maxll_keep(k-1,ikeep);
+							} else {
+								maxll = 0.0;
+							}
+						}
+						if (maxll > 50) {
+							maxll = maxll_keep(k-1, ikeep);
+						}
+						maxll_keep(k,ikeep) = maxll;
+						
+
+						auto fx = [&](double lam)->double {
+							double loglik = (0.5 * df_ikeep - 1.0) * std::log(lam) - 0.5 * df_ikeep * lam + 0.5 * df_ikeep * (std::log(df_ikeep) - M_LN2) - R::lgammafn(0.5 * df_ikeep);
+							mat ZEREZ_S = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k / lam);
+							ZEREZ_S.diag() += sig2_k;
+							double logdet_val;
+							double logdet_sign;
+							log_det(logdet_val, logdet_sign, ZEREZ_S);
+							loglik -= 0.5 * (logdet_val + arma::accu(resid_k % arma::solve(ZEREZ_S, resid_k))) + M_LN_SQRT_2PI * static_cast<double>(Tk);
+							/***********************************
+							subtract by maximum likelihood value
+							for numerical stability
+							***********************************/
+							return std::exp(loglik - maxll);
+						};
+
+						// double error;
+						// double Q = gauss_kronrod<double, 15>::integrate(fx, 0.0, std::numeric_limits<double>::infinity(), 5, 1e-10, &error);
+						exp_sinh<double> integrator;
+						double termination = sqrt(std::numeric_limits<double>::epsilon());
+						double error;
+						double L1;
+						double Q = integrator.integrate(fx, termination, &error, &L1);
+						g(k,ikeep) -= maxll + std::log(Q);
+					} else {
+						double loglik = -M_LN_SQRT_2PI * static_cast<double>(Tk);
+						ERE_k.diag() += sig2_k;
+			    		double logdet_val;
+						double logdet_sign;
+						log_det(logdet_val, logdet_sign, ERE_k);
+						loglik -= 0.5 * (logdet_val + arma::accu(resid_k % arma::solve(ERE_k, resid_k)));
+			    		g(k,ikeep) -= loglik;
+					}
+				}
+				prog.increment();
 			}
-			prog.increment();
 		}
+		#ifdef _OPENMP
+		#pragma omp parallel for schedule(static) num_threads(ncores)
+		#endif
 		for (int k = 0; k < K; ++k) {
 			gmax(k) = g(k,0);
 			for (int j1 = 1; j1 < nkeep; ++j1) {

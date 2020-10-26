@@ -51,13 +51,17 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 			  		   const int& fmodel,
 			  		   const int& nkeep,
 			  		   const bool& verbose,
+			  		   const bool& grouped,
+			  		   const arma::uvec& Second,
 			  		   const int& ncores) {
 	using namespace arma;
 	const int N = Outcome.n_rows;
 	const int J = Outcome.n_cols;
 	const int xcols = XCovariate.n_cols;
-	const int nw = WCovariate.n_cols;
+	const int nn = WCovariate.n_cols;
+	const int nw = (grouped) ?  nn*2 : nn;
 	mat g(N, nkeep, fill::zeros);
+	vec alogcpo(N, fill::zeros);
 	double alpml = 0.0;
 	{
 		Progress prog(nkeep, verbose);
@@ -77,13 +81,31 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 					vec y_i = arma::trans(Outcome.row(i));
 					mat X(J, xcols * J, fill::zeros);
 					mat W(J, nw*J, fill::zeros);
-					for (int j = 0; j < J; ++j) {
-						X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
-						W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+					if (!grouped) {
+						for (int j = 0; j < J; ++j) {
+							X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+							W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+						}
+					} else {
+						rowvec wstar_i(nw, fill::zeros);
+						if (Second(i) == 0) {
+							wstar_i.head(nn) =  w_i;
+						} else {
+							wstar_i.tail(nn) =  w_i;
+						}
+						for (int j = 0; j < J; ++j) {
+							X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+							W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
+						}
 					}
 					mat Xstar = arma::join_horiz(X, W);
 					if (fmodel != 2) {
-						mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
+						mat Sig_i;
+						if (fmodel == 1) {
+							Sig_i = diagmat(Sig_ikeep.row(i));
+						} else {
+							Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
+						}
 						mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
 						g(i,ikeep) -= mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
 					} else {
@@ -96,7 +118,6 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 		}
 
 		vec gmax(N, fill::zeros);
-		vec alogcpo(N, fill::zeros);
 		for (int i = 0; i < N; ++i) {
 			gmax(i) = g(i,0);
 			for (int j1 = 1; j1 < nkeep; ++j1) {
@@ -112,7 +133,7 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 			alpml += alogcpo(i);
 		}
 	}
-	return Rcpp::List::create(Rcpp::Named("lpml")=alpml);
+	return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo);
 }
 
 
@@ -130,13 +151,19 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 			  		  const int& fmodel,
 			  		  const int& nkeep,
 			  		  const bool& verbose,
+			  		  const bool& grouped,
+			  		  const arma::uvec& Second,
 			  		  const int& ncores) {
 	using namespace arma;
 	double Dev_thetabar = 0.0;
 	const int N = Outcome.n_rows;
 	const int J = Outcome.n_cols;
 	const int xcols = XCovariate.n_cols;
-	const int nw = WCovariate.n_cols;
+	const int nn = WCovariate.n_cols;
+	const int nw = (grouped) ? nn*2 : nn;
+	#ifdef _OPENMP
+	#pragma omp parallel for schedule(static) num_threads(ncores)
+	#endif
 	for (int i = 0; i < N; ++i) {
 		double ntk = Npt(i);
 		rowvec x_i = XCovariate.row(i);
@@ -144,13 +171,31 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 		vec y_i = arma::trans(Outcome.row(i));
 		mat X(J, xcols * J, fill::zeros);
 		mat W(J, nw*J, fill::zeros);
-		for (int j = 0; j < J; ++j) {
-			X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
-			W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+		if (!grouped) {
+			for (int j = 0; j < J; ++j) {
+				X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+				W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+			}
+		} else {
+			rowvec wstar_i(nw, fill::zeros);
+			if (Second(i) == 0) {
+				wstar_i.head(nn) =  w_i;
+			} else {
+				wstar_i.tail(nn) =  w_i;
+			}
+			for (int j = 0; j < J; ++j) {
+				X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+				W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
+			}
 		}
 		mat Xstar = arma::join_horiz(X, W);
 		if (fmodel != 2) {
-			mat Sighat = vechinv(arma::trans(Sigmahat.row(i)), J);
+			mat Sighat;
+			if (fmodel == 1) {
+				Sighat = arma::diagmat(Sigmahat.row(i));
+			} else {
+				Sighat = vechinv(arma::trans(Sigmahat.row(i)), J);
+			}
 			mat Q = Sighat / ntk + W * Omegahat * W.t();
 			Dev_thetabar -= 2.0 * mvnpdf(y_i, Xstar * thetahat, Q, true);
 		} else {
@@ -179,13 +224,31 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 					vec y_i = arma::trans(Outcome.row(i));
 					mat X(J, xcols * J, fill::zeros);
 					mat W(J, nw*J, fill::zeros);
-					for (int j = 0; j < J; ++j) {
-						X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
-						W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+					if (!grouped) {
+						for (int j = 0; j < J; ++j) {
+							X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+							W(j, span(j*nw, (j+1)*nw-1)) = w_i;
+						}
+					} else {
+						rowvec wstar_i(nw, fill::zeros);
+						if (Second(i) == 0) {
+							wstar_i.head(nn) =  w_i;
+						} else {
+							wstar_i.tail(nn) =  w_i;
+						}
+						for (int j = 0; j < J; ++j) {
+							X(j, span(j*xcols, (j+1)*xcols-1)) = x_i;
+							W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
+						}
 					}
 					mat Xstar = arma::join_horiz(X, W);
 					if (fmodel != 2) {
-						mat Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
+						mat Sig_i;
+						if (fmodel == 1) {
+							Sig_i = diagmat(Sig_ikeep.row(i));
+						} else {
+							Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
+						}
 						mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
 						Dev_bar -= 2.0 * mvnpdf(y_i, Xstar * theta_ikeep, Q, true);
 					} else {

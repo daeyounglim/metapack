@@ -12,15 +12,19 @@
 	cumeffectiveness <- apply(x$rankProb, 2, cumsum)
 	names <- x$names
 	oask <- devAskNewPage(TRUE)
+	gglist <- vector(mode = "list", nT)
 	for (TRT in 1:nT) {
 		Area=round(x$SUCRA[TRT], 3)
-		ddd <- data.frame(trt = names, cdf = cumeffectiveness[,TRT], pdf = x$rankProb[,TRT])
-		bb <- ggplot(ddd, aes(x = trt)) +
+		ddd <- data.frame(trt = names, cdf = cumeffectiveness[,TRT], pdf = x$rankProb[,TRT], stringAsFactors = FALSE)
+		ddd$trt <- factor(ddd$trt, levels = ddd$trt)
+		bb <- ggplot(ddd, aes(x = trt, group = 1)) +
 			 geom_line(aes(y = cdf), color = "#eab159", size = 1) +
 			 geom_line(aes(y = pdf), color = rgb(0, 157, 114, maxColorValue = 255), linetype = "twodash", size = 1) +
 			 theme_gray() + theme(legend.position = legend.position) +
 			 ylab("SUCRA") + labs(title = paste0("Trt (", names[TRT], "): ", Area))
+		gglist[[TRT]] <- bb
 		print(bb)
 	}
 	on.exit(devAskNewPage(oask))
+	invisible(gglist)
 }

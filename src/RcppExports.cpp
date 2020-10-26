@@ -46,36 +46,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calc_modelfit_dic
-Rcpp::List calc_modelfit_dic(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose);
-RcppExport SEXP _metapack_calc_modelfit_dic(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type ids(idsSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type iarm(iarmSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type npt(nptSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type dfs(dfsSEXP);
-    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type betas(betasSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sig2s(sig2sSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type phis(phisSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type lams(lamsSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type Rhos(RhosSEXP);
-    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nT(nTSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type sample_df(sample_dfSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_modelfit_dic(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// calc_modelfit_dic_trap
-Rcpp::List calc_modelfit_dic_trap(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose, const int& ncores);
-RcppExport SEXP _metapack_calc_modelfit_dic_trap(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
+Rcpp::List calc_modelfit_dic(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose, const int& ncores);
+RcppExport SEXP _metapack_calc_modelfit_dic(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -98,7 +70,37 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool& >::type sample_df(sample_dfSEXP);
     Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_modelfit_dic_trap(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores));
+    rcpp_result_gen = Rcpp::wrap(calc_modelfit_dic(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calc_modelfit_dic_trap
+Rcpp::List calc_modelfit_dic_trap(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose, const int& ncores, const double& h);
+RcppExport SEXP _metapack_calc_modelfit_dic_trap(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP, SEXP ncoresSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type ids(idsSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type iarm(iarmSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type npt(nptSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type dfs(dfsSEXP);
+    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type betas(betasSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sig2s(sig2sSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type phis(phisSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type lams(lamsSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type Rhos(RhosSEXP);
+    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nT(nTSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type sample_df(sample_dfSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
+    Rcpp::traits::input_parameter< const double& >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_modelfit_dic_trap(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores, h));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -477,8 +479,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // lpml_parcov
-Rcpp::List lpml_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool& verbose, const int& ncores);
-RcppExport SEXP _metapack_lpml_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
+Rcpp::List lpml_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool& verbose, const bool& grouped, const arma::uvec& Second, const int& ncores);
+RcppExport SEXP _metapack_lpml_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP groupedSEXP, SEXP SecondSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -495,14 +497,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int& >::type fmodel(fmodelSEXP);
     Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
     Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type grouped(groupedSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Second(SecondSEXP);
     Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(lpml_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores));
+    rcpp_result_gen = Rcpp::wrap(lpml_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, grouped, Second, ncores));
     return rcpp_result_gen;
 END_RCPP
 }
 // dic_parcov
-Rcpp::List dic_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool& verbose, const int& ncores);
-RcppExport SEXP _metapack_dic_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
+Rcpp::List dic_parcov(const arma::mat& Outcome, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::vec& Npt, const arma::cube& Sigma, const arma::cube& Omega, const arma::mat& theta, const arma::vec& thetahat, const arma::mat& Sigmahat, const arma::mat& Omegahat, const int& fmodel, const int& nkeep, const bool& verbose, const bool& grouped, const arma::uvec& Second, const int& ncores);
+RcppExport SEXP _metapack_dic_parcov(SEXP OutcomeSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP OmegaSEXP, SEXP thetaSEXP, SEXP thetahatSEXP, SEXP SigmahatSEXP, SEXP OmegahatSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP groupedSEXP, SEXP SecondSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -519,8 +523,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int& >::type fmodel(fmodelSEXP);
     Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
     Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type grouped(groupedSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Second(SecondSEXP);
     Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(dic_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, ncores));
+    rcpp_result_gen = Rcpp::wrap(dic_parcov(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, grouped, Second, ncores));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -570,36 +576,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calc_modelfit_lpml
-Rcpp::List calc_modelfit_lpml(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose);
-RcppExport SEXP _metapack_calc_modelfit_lpml(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type ids(idsSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type iarm(iarmSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type npt(nptSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type dfs(dfsSEXP);
-    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type betas(betasSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sig2s(sig2sSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type phis(phisSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type lams(lamsSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type Rhos(RhosSEXP);
-    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nT(nTSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type sample_df(sample_dfSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_modelfit_lpml(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// calc_modelfit_lpml_trap
-Rcpp::List calc_modelfit_lpml_trap(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose, const int& ncores);
-RcppExport SEXP _metapack_calc_modelfit_lpml_trap(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
+Rcpp::List calc_modelfit_lpml(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose, const int& ncores);
+RcppExport SEXP _metapack_calc_modelfit_lpml(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -622,15 +600,45 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool& >::type sample_df(sample_dfSEXP);
     Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_modelfit_lpml_trap(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores));
+    rcpp_result_gen = Rcpp::wrap(calc_modelfit_lpml(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calc_modelfit_lpml_trap
+Rcpp::List calc_modelfit_lpml_trap(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::vec& dfs, const double& nu, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& sample_df, const bool& verbose, const int& ncores, const double& h);
+RcppExport SEXP _metapack_calc_modelfit_lpml_trap(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP dfsSEXP, SEXP nuSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP sample_dfSEXP, SEXP verboseSEXP, SEXP ncoresSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type ids(idsSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type iarm(iarmSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type npt(nptSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type dfs(dfsSEXP);
+    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type betas(betasSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sig2s(sig2sSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type phis(phisSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type lams(lamsSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type Rhos(RhosSEXP);
+    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nT(nTSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type sample_df(sample_dfSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
+    Rcpp::traits::input_parameter< const double& >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_modelfit_lpml_trap(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores, h));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_metapack_BayesNMR", (DL_FUNC) &_metapack_BayesNMR, 29},
-    {"_metapack_calc_modelfit_dic", (DL_FUNC) &_metapack_calc_modelfit_dic, 18},
-    {"_metapack_calc_modelfit_dic_trap", (DL_FUNC) &_metapack_calc_modelfit_dic_trap, 19},
+    {"_metapack_calc_modelfit_dic", (DL_FUNC) &_metapack_calc_modelfit_dic, 19},
+    {"_metapack_calc_modelfit_dic_trap", (DL_FUNC) &_metapack_calc_modelfit_dic_trap, 20},
     {"_metapack_fmodel1", (DL_FUNC) &_metapack_fmodel1, 21},
     {"_metapack_fmodel1p", (DL_FUNC) &_metapack_fmodel1p, 22},
     {"_metapack_fmodel2", (DL_FUNC) &_metapack_fmodel2, 22},
@@ -642,14 +650,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_metapack_fmodel3pp", (DL_FUNC) &_metapack_fmodel3pp, 27},
     {"_metapack_fmodel4", (DL_FUNC) &_metapack_fmodel4, 25},
     {"_metapack_fmodel4p", (DL_FUNC) &_metapack_fmodel4p, 26},
-    {"_metapack_lpml_parcov", (DL_FUNC) &_metapack_lpml_parcov, 14},
-    {"_metapack_dic_parcov", (DL_FUNC) &_metapack_dic_parcov, 14},
+    {"_metapack_lpml_parcov", (DL_FUNC) &_metapack_lpml_parcov, 16},
+    {"_metapack_dic_parcov", (DL_FUNC) &_metapack_dic_parcov, 16},
     {"_metapack_vecr", (DL_FUNC) &_metapack_vecr, 1},
     {"_metapack_vecrinv", (DL_FUNC) &_metapack_vecrinv, 2},
     {"_metapack_pRho_to_Rho", (DL_FUNC) &_metapack_pRho_to_Rho, 1},
     {"_metapack_Rho_to_pRho", (DL_FUNC) &_metapack_Rho_to_pRho, 1},
-    {"_metapack_calc_modelfit_lpml", (DL_FUNC) &_metapack_calc_modelfit_lpml, 18},
-    {"_metapack_calc_modelfit_lpml_trap", (DL_FUNC) &_metapack_calc_modelfit_lpml_trap, 19},
+    {"_metapack_calc_modelfit_lpml", (DL_FUNC) &_metapack_calc_modelfit_lpml, 19},
+    {"_metapack_calc_modelfit_lpml_trap", (DL_FUNC) &_metapack_calc_modelfit_lpml_trap, 20},
     {NULL, NULL, 0}
 };
 

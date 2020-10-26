@@ -1,12 +1,13 @@
 #' get goodness of fit 
 #' @param object the output model from fitting a meta analysis/regression model
 #' @param type the type of goodness of fit to compute; DIC or LPML
-#' @param ncores the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores
 #' @param verbose FALSE by default; If TRUE, then progress bar will appear
+#' @param ncores the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores
+#' @param h the interval width for trapezoidal rule (ignored for bayes.parobs)
 #' @method gof bayes.parobs
 #' @importFrom parallel detectCores
 #' @export
-"gof.bayes.parobs" <- function(object, type="lpml", ncores=NULL, verbose=FALSE) {
+"gof.bayes.parobs" <- function(object, type="lpml", verbose=FALSE, ncores=NULL, h=0.5) {
 	nkeep <- object$mcmc$nkeep
 	
 	Sigmahat <- apply(object$mcmc.draws$Sigma, c(1,2), mean)
@@ -20,6 +21,11 @@
 		}
 	} else {
 		ncores <- parallel::detectCores()
+	}
+	if (is.null(object$group)) {
+		second <- numeric(1)
+	} else {
+		second <- object$group
 	}
 
 	if (type == "dic") {
@@ -37,6 +43,8 @@
 			  		  as.integer(object$fmodel),
 			  		  as.integer(nkeep),
 			  		  as.logical(verbose),
+			  		  as.logical(!is.null(object$group)),
+			  		  as.integer(second),
 			  		  as.integer(ncores))
 	} else if (type == "lpml") {
 		gof <- .Call(`_metapack_lpml_parcov`,
@@ -53,6 +61,8 @@
 			  		  as.integer(object$fmodel),
 			  		  as.integer(nkeep),
 			  		  as.logical(verbose),
+			  		  as.logical(!is.null(object$group)),
+			  		  as.integer(second),
 			  		  as.integer(ncores))
 	}
 

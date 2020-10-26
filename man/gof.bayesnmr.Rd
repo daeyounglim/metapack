@@ -4,16 +4,18 @@
 \alias{gof.bayesnmr}
 \title{get goodness of fit}
 \usage{
-\method{gof}{bayesnmr}(object, type = "lpml", ncores = NULL, verbose = FALSE)
+\method{gof}{bayesnmr}(object, type = "lpml", verbose = FALSE, ncores = NULL, h = 0.5)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}
 
 \item{type}{the type of goodness of fit to compute; DIC or LPML}
 
+\item{verbose}{FALSE by default; If TRUE, then progress bar will appear}
+
 \item{ncores}{the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores}
 
-\item{verbose}{FALSE by default; If TRUE, then progress bar will appear}
+\item{h}{the interval width for trapezoidal rule}
 }
 \description{
 get goodness of fit

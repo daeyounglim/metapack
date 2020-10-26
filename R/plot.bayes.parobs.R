@@ -12,12 +12,13 @@
 	param <- x$mcmc.draws$theta
 	p <- nrow(param)
 	if (x$scale_x) {
-		xcols <- ncol(x$Covariate)
-		tlength <- nrow(param)
-		trlength <- tlength - xcols
-		tscale <- c(apply(x$Covariate, 2, sd), rep(1, trlength))
+		J <- ncol(x$Outcome)
+		xcols <- ncol(x$XCovariate)
+		tlength <- nrow(x$mcmc.draws$theta)
+		trlength <- tlength - xcols * J
+		tscale <- c(rep(apply(x$XCovariate, 2, sd), J), rep(1, trlength))
 	} else {
-		tlength <- nrow(param)
+		tlength <- nrow(x$mcmc.draws$theta)
 		tscale <- rep(1, tlength)
 	}
 	theta.post <- vapply(1:x$mcmc$nkeep, function(ikeep) {

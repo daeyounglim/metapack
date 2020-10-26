@@ -42,7 +42,8 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 						 const int& nkeep,
 						 const bool& sample_df,
 						 const bool& verbose,
-						 const int& ncores) {
+						 const int& ncores,
+						 const double& h) {
 	using namespace arma;
 
 	/* make a list of y_k, X_k, z_k*/
@@ -90,7 +91,6 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 	vec Z_est = arma::exp(z * phi_est);
 	vec maxll_est(K, fill::zeros);
 	vec Q_k(K, fill::zeros);
-	const double h = 0.5;
 	#ifdef _OPENMP
 	#pragma omp parallel for schedule(static) num_threads(ncores)
 	#endif
@@ -193,6 +193,9 @@ Rcpp::List calc_modelfit_dic_trap(const arma::vec& y,
 	mat maxll_keep(K, nkeep, fill::zeros);
 	{
 		Progress prog(nkeep, verbose);
+		#ifdef _OPENMP
+		#pragma omp parallel for schedule(static) num_threads(ncores)
+		#endif
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
 			if (!Progress::check_abort()) {
 				vec beta_ikeep = betas.col(ikeep);

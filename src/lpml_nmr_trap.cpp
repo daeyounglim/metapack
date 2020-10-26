@@ -40,7 +40,8 @@ Rcpp::List calc_modelfit_lpml_trap(const arma::vec& y,
 						 const int& nkeep,
 						 const bool& sample_df,
 						 const bool& verbose,
-						 const int& ncores) {
+						 const int& ncores,
+						 const double& h) {
 	using namespace arma;
 
 	/* make a list of y_k, X_k, z_k*/
@@ -73,7 +74,6 @@ Rcpp::List calc_modelfit_lpml_trap(const arma::vec& y,
 	double alpml = 0.0;
 
 
-	const double h = 0.5;
 	mat maxll_keep(K,nkeep,fill::zeros);
 	{
 		Progress prog(nkeep, verbose);
@@ -205,7 +205,7 @@ Rcpp::List calc_modelfit_lpml_trap(const arma::vec& y,
 		// Dev_bar /= static_cast<double>(nkeep);
 		// double p_D = Dev_bar - Dev_thetabar;
 		// double DIC = Dev_thetabar + 2.0 * p_D;
-		return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo, Rcpp::Named("g")=g, Rcpp::Named("Qs")=Qs);
+		return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo);
 	}
 }
 

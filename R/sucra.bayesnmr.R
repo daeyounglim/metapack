@@ -6,12 +6,12 @@
 "sucra.bayesnmr" <- function(object) {
 	nT <- object$nT
 	nx <- ncol(object$Covariate)
-	gam.posterior <- object$mcmc.draws$gam[(nx+1):(nx+nT),] # treatment effects
+	theta.posterior <- object$mcmc.draws$theta[(nx+1):(nx+nT),] # treatment effects
 	nkeep <- object$mcmc$nkeep
 
 	TRT.rank=matrix(0, nkeep, nT)
 	for (i in 1:nkeep){
-	  	TRT.rank[i,] <- sort(gam.posterior[,i],index.return=TRUE)$ix
+	  	TRT.rank[i,] <- sort(theta.posterior[,i],index.return=TRUE)$ix
 	}
 
 	R = matrix(0, nT, nT)
