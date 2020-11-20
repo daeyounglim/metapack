@@ -5,11 +5,280 @@
 #include <Rdefines.h>
 #include <progress.hpp>
 #include <progress_bar.hpp>
+#include "random.h"
 using namespace std;
 using namespace Rcpp;
 using namespace R;
 using namespace arma;
 // [[Rcpp::depends(RcppArmadillo, RcppProgress)]]
+
+using namespace std;
+using namespace RNG;
+
+// double RNG::runif( int &seed ) {
+//   const int i4_huge = 2147483647;
+//   int k = seed / 127773;
+//   seed = 16807 * ( seed - k * 127773 ) - k * 2836;
+//   if ( seed < 0 )
+//   {
+//     seed = seed + i4_huge;
+//   }
+//   double r = static_cast<double>( seed ) * 4.656612875E-10;
+//   return r;
+// }
+
+// double RNG::rnorm ( int &seed ) {
+//   const double r8_pi = 3.141592653589793;
+
+//   double r1 = RNG::runif ( seed );
+//   double r2 = RNG::runif ( seed );
+//   double x = std::sqrt ( - 2.0 * std::log ( r1 ) ) * std::cos ( 2.0 * r8_pi * r2 );
+//   return x;
+// }
+
+// double RNG::rexp ( int& seed )
+// {
+//   double r = RNG::runif ( seed );
+//   return - std::log ( r );
+// }
+
+// double RNG::rchisq ( const double& df, int& seed )
+// {
+//   if ( df <= 0.0 )
+//   {
+//     Rcpp::stop("rchisq df <= 0.0.");
+//   }
+//   return 2.0 * RNG::rgamma ( 1.0, df / 2.0, seed );
+// }
+
+// double RNG::rgamma ( const double& shape, const double& rate, int& seed )
+// {
+//   return RNG::sgamma ( shape, seed ) / rate;
+// }
+
+// double RNG::sgamma ( const double& shape, int& seed )
+// {
+//   const double a1 =  0.3333333;
+//   const double a2 = -0.2500030;
+//   const double a3 =  0.2000062;
+//   const double a4 = -0.1662921;
+//   const double a5 =  0.1423657;
+//   const double a6 = -0.1367177;
+//   const double a7 =  0.1233795;
+//   double b;
+//   double c;
+//   double d;
+//   double e;
+//   const double e1 = 1.0;
+//   const double e2 = 0.4999897;
+//   const double e3 = 0.1668290;
+//   const double e4 = 0.0407753;
+//   const double e5 = 0.0102930;
+//   double p;
+//   double q;
+//   double q0;
+//   const double q1 =  0.04166669;
+//   const double q2 =  0.02083148;
+//   const double q3 =  0.00801191;
+//   const double q4 =  0.00144121;
+//   const double q5 = -0.00007388;
+//   const double q6 =  0.00024511;
+//   const double q7 =  0.00024240;
+//   double r;
+//   double s;
+//   double s2;
+//   double si;
+//   const double sqrt32 = 5.656854;
+//   double t;
+//   double u;
+//   double v;
+//   double value = 0.0;
+//   double w;
+//   double x;
+
+//   if ( 1.0 <= shape )
+//   {
+//     s2 = shape - 0.5;
+//     s = std::sqrt ( s2 );
+//     d = sqrt32 - 12.0 * s;
+// //
+// //  Immediate acceptance.
+// //
+//     t = RNG::rnorm ( seed );
+//     x = s + 0.5 * t;
+//     value = x * x;
+
+//     if ( 0.0 <= t )
+//     {
+//       return value;
+//     }
+// //
+// //  Squeeze acceptance.
+// //
+//     u = RNG::runif ( seed );
+//     if ( d * u <= t * t * t )
+//     {
+//       return value;
+//     }
+
+//     r = 1.0 / shape;
+//     q0 = (((((( q7 
+//       * r + q6 ) 
+//       * r + q5 ) 
+//       * r + q4 ) 
+//       * r + q3 ) 
+//       * r + q2 ) 
+//       * r + q1 ) 
+//       * r;
+// //
+// //  Approximation depending on size of parameter shape.
+// //
+//     if ( 13.022 < shape )
+//     {
+//       b = 1.77;
+//       si = 0.75;
+//       c = 0.1515 / s;
+//     }
+//     else if ( 3.686 < shape )
+//     {
+//       b = 1.654 + 0.0076 * s2;
+//       si = 1.68 / s + 0.275;
+//       c = 0.062 / s + 0.024;
+//     }
+//     else
+//     {
+//       b = 0.463 + s + 0.178 * s2;
+//       si = 1.235;
+//       c = 0.195 / s - 0.079 + 0.16 * s;
+//     }
+// //
+// //  Quotient test.
+// //
+//     if ( 0.0 < x )
+//     {
+//       v = 0.5 * t / s;
+
+//       if ( 0.25 < std::fabs ( v ) )
+//       {
+//         q = q0 - s * t + 0.25 * t * t + 2.0 * s2 * std::log ( 1.0 + v );
+//       }
+//       else
+//       {
+//         q = q0 + 0.5 * t * t * (((((( 
+//             a7   * v 
+//           + a6 ) * v 
+//           + a5 ) * v 
+//           + a4 ) * v 
+//           + a3 ) * v 
+//           + a2 ) * v 
+//           + a1 ) * v;
+//       }
+
+//       if ( std::log ( 1.0 - u ) <= q )
+//       {
+//         return value;
+//       }
+//     }
+
+//     for ( ; ; )
+//     {
+//       e = RNG::rexp ( seed );
+//       u = 2.0 * RNG::runif ( seed ) - 1.0;
+ 
+//       if ( 0.0 <= u )
+//       {
+//         t = b + std::fabs ( si * e );
+//       }
+//       else
+//       {
+//         t = b - std::fabs ( si * e );
+//       }
+// //
+// //  Possible rejection.
+// //
+//       if ( t < -0.7187449 )
+//       {
+//         continue;
+//       }
+// //
+// //  Calculate V and quotient Q.
+// //
+//       v = 0.5 * t / s;
+
+//       if ( 0.25 < std::fabs ( v ) )
+//       {
+//         q = q0 - s * t + 0.25 * t * t + 2.0 * s2 * std::log ( 1.0 + v );
+//       }
+//       else
+//       {
+//         q = q0 + 0.5 * t * t * (((((( 
+//             a7   * v 
+//           + a6 ) * v 
+//           + a5 ) * v 
+//           + a4 ) * v 
+//           + a3 ) * v 
+//           + a2 ) * v 
+//           + a1 ) * v;
+//       }
+// //
+// //  Hat acceptance.
+// //
+//       if ( q <= 0.0 )
+//       {
+//         continue;
+//       }
+
+//       if ( 0.5 < q )
+//       {
+//         w = std::exp ( q ) - 1.0;
+//       }
+//       else
+//       {
+//         w = (((( e5 * q + e4 ) * q + e3 ) * q + e2 ) * q + e1 ) * q;
+//       }
+// //
+// //  May have to sample again.
+// //
+//       if ( c * std::fabs ( u ) <= w * std::exp ( e - 0.5 * t * t ) )
+//       {
+//         break;
+//       }
+//     }
+
+//     x = s + 0.5 * t;
+//     value = x * x;
+//   }
+// //
+// //  Method for shape < 1.
+// //
+//   else if ( shape < 1.0 )
+//   {
+//     b = 1.0 + 0.3678794 * shape;
+
+//     for ( ; ; )
+//     {
+//       p = b * RNG::runif ( seed );
+
+//       if ( p < 1.0 )
+//       {
+//         value = std::exp ( std::log ( p ) / shape );
+//         if ( value <= RNG::rexp ( seed ) )
+//         {
+//           break;
+//         }
+//       }
+//       else
+//       {
+//         value = - std::log ( ( b - p ) / shape );
+//         if ( ( 1.0 - shape ) * std::log ( value ) <= RNG::rexp ( seed ) )
+//         {
+//           break;
+//         }
+//       }
+//     }
+//   }
+//   return value;
+// }
 
 /* 
  * rgig.c:
@@ -21,7 +290,7 @@ using namespace arma;
 #define ZTOL (DOUBLE_EPS*10.0)
 
 
-double _gig_mode(const double& lambda, const double& omega)
+double RNG::_gig_mode(const double& lambda, const double& omega)
 /*---------------------------------------------------------------------------*/
 /* Compute mode of GIG distribution.                                         */
 /*                                                                           */
@@ -43,7 +312,7 @@ double _gig_mode(const double& lambda, const double& omega)
 
 /*---------------------------------------------------------------------------*/
 
-double _rgig_ROU_noshift (const double& lambda, const double& lambda_old, const double& omega, const double& alpha)
+double RNG::_rgig_ROU_noshift (const double& lambda, const double& lambda_old, const double& omega, const double& alpha)
 /*---------------------------------------------------------------------------*/
 /* Tpye 1:                                                                   */
 /* Ratio-of-uniforms without shift.                                          */
@@ -65,7 +334,7 @@ double _rgig_ROU_noshift (const double& lambda, const double& lambda_old, const 
   s = 0.25 * omega;
   
   /* mode = location of maximum of sqrt(f(x)) */
-  xm = _gig_mode(lambda, omega);
+  xm = RNG::_gig_mode(lambda, omega);
 
   /* normalization constant: c = log(sqrt(f(xm))) */
   nc = t*log(xm) - s*(xm + 1./xm);
@@ -101,7 +370,7 @@ double _rgig_ROU_noshift (const double& lambda, const double& lambda_old, const 
 
 /*---------------------------------------------------------------------------*/
 
-double _rgig_newapproach1 (const double& lambda, const double& lambda_old, const double& omega, const double& alpha)
+double RNG::_rgig_newapproach1 (const double& lambda, const double& lambda_old, const double& omega, const double& alpha)
 /*---------------------------------------------------------------------------*/
 /* Type 4:                                                                   */
 /* New approach, constant hat in log-concave part.                           */
@@ -140,7 +409,7 @@ double _rgig_newapproach1 (const double& lambda, const double& lambda_old, const
   /* -- Setup -------------------------------------------------------------- */
 
   /* mode = location of maximum of sqrt(f(x)) */
-  xm = _gig_mode(lambda, omega);
+  xm = RNG::_gig_mode(lambda, omega);
 
   /* splitting point */
   x0 = omega/(1.-lambda);
@@ -225,7 +494,7 @@ double _rgig_newapproach1 (const double& lambda, const double& lambda_old, const
 
 /*---------------------------------------------------------------------------*/
 
-double _rgig_ROU_shift_alt (const double& lambda, const double& lambda_old, const double& omega, const double& alpha)
+double RNG::_rgig_ROU_shift_alt (const double& lambda, const double& lambda_old, const double& omega, const double& alpha)
 /*---------------------------------------------------------------------------*/
 /* Type 8:                                                                   */
 /* Ratio-of-uniforms with shift by 'mode', alternative implementation.       */
@@ -254,7 +523,7 @@ double _rgig_ROU_shift_alt (const double& lambda, const double& lambda_old, cons
   s = 0.25 * omega;
 
   /* mode = location of maximum of sqrt(f(x)) */
-  xm = _gig_mode(lambda, omega);
+  xm = RNG::_gig_mode(lambda, omega);
 
   /* normalization constant: c = log(sqrt(f(xm))) */
   nc = t*log(xm) - s*(xm + 1./xm);
@@ -301,7 +570,7 @@ double _rgig_ROU_shift_alt (const double& lambda, const double& lambda_old, cons
 }
 
 
-double gigrnd(const double& lambda, const double& chi, const double& psi) {
+double RNG::gigrnd(const double& lambda, const double& chi, const double& psi) {
   double omega, alpha;
   if ( !(R_FINITE(lambda) && R_FINITE(chi) && R_FINITE(psi)) ||
        (chi <  0. || psi < 0)      || 
@@ -313,20 +582,20 @@ double gigrnd(const double& lambda, const double& chi, const double& psi) {
   if (chi < ZTOL) { 
     /* special cases which are basically Gamma and Inverse Gamma distribution */
     if (lambda > 0.0) {
-      return rgamma(lambda, 2.0/psi); 
+      return R::rgamma(lambda, 2.0/psi); 
     }
     else {
-      return 1.0/rgamma(-lambda, 2.0/psi); 
+      return 1.0/R::rgamma(-lambda, 2.0/psi); 
     }    
   }
 
   else if (psi < ZTOL) {
     /* special cases which are basically Gamma and Inverse Gamma distribution */
     if (lambda > 0.0) {
-      return 1.0/rgamma(lambda, 2.0/chi); 
+      return 1.0/R::rgamma(lambda, 2.0/chi); 
     }
     else {
-      return rgamma(-lambda, 2.0/chi); 
+      return R::rgamma(-lambda, 2.0/chi); 
     }    
 
   }
@@ -340,15 +609,15 @@ double gigrnd(const double& lambda, const double& chi, const double& psi) {
 
     do {
       if (lam > 2. || omega > 3.) {
-        return _rgig_ROU_shift_alt(lam, lambda_old, omega, alpha);
+        return RNG::_rgig_ROU_shift_alt(lam, lambda_old, omega, alpha);
       }
 
       if (lam >= 1.-2.25*omega*omega || omega > 0.2) {
-        return _rgig_ROU_noshift(lam, lambda_old, omega, alpha);
+        return RNG::_rgig_ROU_noshift(lam, lambda_old, omega, alpha);
       }
 
       if (lam >= 0. && omega > 0.) {
-        return _rgig_newapproach1(lam, lambda_old, omega, alpha);
+        return RNG::_rgig_newapproach1(lam, lambda_old, omega, alpha);
       }
       throw Rcpp::exception("parameters must satisfy lambda>=0 and omega>0.");
       
@@ -356,7 +625,7 @@ double gigrnd(const double& lambda, const double& chi, const double& psi) {
   }
 }
 
-double besselM3(const double& lambda, const double& x, const bool& logvalue)
+double RNG::besselM3(const double& lambda, const double& x, const bool& logvalue)
 {
 	double res = 0.0;
 	if (abs(lambda) == 0.5) {
@@ -380,7 +649,7 @@ double besselM3(const double& lambda, const double& x, const bool& logvalue)
 Calculate E(X)
 where X ~ GIG(lambda, chi, psi)
 *******************************/
-double EGIG_x(const double& lambda, const double& chi, const double& psi)
+double RNG::EGIG_x(const double& lambda, const double& chi, const double& psi)
 {
 	if (psi == 0.0) {
 		// Inv Gamma -> Student-t
@@ -409,7 +678,7 @@ double EGIG_x(const double& lambda, const double& chi, const double& psi)
 Calculate E(1/X)
 where X ~ GIG(lambda, chi, psi)
 *******************************/
-double EGIG_xinv(const double& lambda, const double& chi, const double& psi)
+double RNG::EGIG_xinv(const double& lambda, const double& chi, const double& psi)
 {
 	if (psi == 0.0) {
 		double beta = 0.5 * chi;
@@ -432,7 +701,7 @@ double EGIG_xinv(const double& lambda, const double& chi, const double& psi)
 }
 
 
-double rtgamma(const double& a, const double& b, const double& truncpoint, const bool& up)
+double RNG::rtgamma(const double& a, const double& b, const double& truncpoint, const bool& up)
 {
   double x = 0.;
   if (truncpoint < 0.) {
@@ -465,7 +734,7 @@ double rtgamma(const double& a, const double& b, const double& truncpoint, const
   return x;
 }
 
-arma::mat rwish(const double& v, const arma::mat& S) {
+arma::mat RNG::rwish(const double& v, const arma::mat& S) {
   int p = S.n_rows;
   arma::mat R = arma::chol(S);
   arma::mat A(p,p);
@@ -483,7 +752,7 @@ arma::mat rwish(const double& v, const arma::mat& S) {
   return R.t() * A * A.t() * R;
 }
 
-arma::mat riwish(const double& v, const arma::mat& S) {
+arma::mat RNG::riwish(const double& v, const arma::mat& S) {
   // int p = S.n_rows;
   // arma::mat R = arma::chol(S.i());
   // arma::mat A(p,p);
@@ -504,7 +773,7 @@ arma::mat riwish(const double& v, const arma::mat& S) {
   return arma::inv_sympd(out);
 }
 
-double tnormrnd(const double& mu, const double& sigma, const double& low, const double& up) {
+double RNG::tnormrnd(const double& mu, const double& sigma, const double& low, const double& up) {
     double u, pleft, pright, y;
 
     pleft=pnorm(low,mu,sigma,1,0);
@@ -520,7 +789,7 @@ double tnormrnd(const double& mu, const double& sigma, const double& low, const 
     return y;
 }
 
-double rtnormrnd(const double& mu, const double& sigma, const double& up)
+double RNG::rtnormrnd(const double& mu, const double& sigma, const double& up)
 {
     double u,pcut,x;
 
@@ -537,7 +806,7 @@ double rtnormrnd(const double& mu, const double& sigma, const double& up)
     return x;
 }
 
-double ltnormrnd(const double& mu, const double& sigma, const double& low)
+double RNG::ltnormrnd(const double& mu, const double& sigma, const double& low)
 {
     double u,pcut,x;
 

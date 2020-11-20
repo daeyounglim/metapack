@@ -231,8 +231,8 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 				mat qq1 = Omega0inv + (gamstar * gamstar.t());
 				gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 				mat qq2 = Omega0inv + (gamstar * gamstar.t());
-				mat ominv1 = rwish(shape_omega1, arma::inv(qq1));
-				mat ominv2 = rwish(shape_omega2, arma::inv(qq2));
+				mat ominv1 = RNG::rwish(shape_omega1, arma::inv(qq1));
+				mat ominv2 = RNG::rwish(shape_omega2, arma::inv(qq2));
 				mat om1 = arma::inv_sympd(ominv1);
 				mat om2 = arma::inv_sympd(ominv2);
 				Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
@@ -271,7 +271,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 					vec resid_i = arma::trans(resid.row(i_t)) - W * gam_k;
 					qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 				}
-				Siginv.col(t) = vech(rwish(s0 + nt_dot, arma::inv_sympd(qq)));
+				Siginv.col(t) = vech(RNG::rwish(s0 + nt_dot, arma::inv_sympd(qq)));
 			}
 
 			for (int i = 0; i < N; ++i) {
@@ -473,8 +473,8 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 					mat qq1 = Omega0inv + (gamstar * gamstar.t());
 					gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 					mat qq2 = Omega0inv + (gamstar * gamstar.t());
-					mat ominv1 = rwish(shape_omega1, arma::inv(qq1));
-					mat ominv2 = rwish(shape_omega2, arma::inv(qq2));
+					mat ominv1 = RNG::rwish(shape_omega1, arma::inv(qq1));
+					mat ominv2 = RNG::rwish(shape_omega2, arma::inv(qq2));
 					mat om1 = arma::inv_sympd(ominv1);
 					mat om2 = arma::inv_sympd(ominv2);
 					Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
@@ -513,7 +513,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 						vec resid_i = arma::trans(resid.row(i_t)) - W * gam_k;
 						qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 					}
-					Siginv.col(t) = vech(rwish(s0 + nt_dot, arma::inv_sympd(qq)));
+					Siginv.col(t) = vech(RNG::rwish(s0 + nt_dot, arma::inv_sympd(qq)));
 				}
 
 				for (int i = 0; i < N; ++i) {

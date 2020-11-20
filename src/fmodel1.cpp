@@ -178,7 +178,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 			for (int jj = 0; jj < J; ++jj) {
 				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 				mat qq = Omega0inv + (gamstar * gamstar.t());
-				mat ominv = rwish(shape_omega, arma::inv_sympd(qq));
+				mat ominv = RNG::rwish(shape_omega, arma::inv_sympd(qq));
 				mat om = arma::inv_sympd(ominv);
 				Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 				Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -311,7 +311,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 				for (int jj = 0; jj < J; ++jj) {
 					mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 					mat qq = Omega0inv + (gamstar * gamstar.t());
-					mat ominv = rwish(shape_omega, arma::inv_sympd(qq));
+					mat ominv = RNG::rwish(shape_omega, arma::inv_sympd(qq));
 					mat om = arma::inv_sympd(ominv);
 					Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 					Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;

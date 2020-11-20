@@ -104,7 +104,7 @@ Rcpp::List lpml_parcov(const arma::mat& Outcome,
 						if (fmodel == 1) {
 							Sig_i = diagmat(Sig_ikeep.row(i));
 						} else {
-							Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
+						Sig_i = vechinv(arma::trans(Sig_ikeep.row(i)), J);
 						}
 						mat Q = Sig_i / ntk + W * Omega_ikeep * W.t();
 						g(i,ikeep) -= mvnpdf(y_i, Xstar * theta_ikeep, Q, true);

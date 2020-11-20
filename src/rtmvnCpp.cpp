@@ -77,7 +77,7 @@ arma::mat rtmvn_gibbs(const int& n, const int& p, const arma::vec& Mean, const a
       double lower_j = std::max(lower_pos, lower_neg);
       double upper_j = std::min(upper_pos, upper_neg);
       
-      z(j) = tnormrnd(0., 1., lower_j, upper_j);
+      z(j) = RNG::tnormrnd(0., 1., lower_j, upper_j);
       
       // cout << "Z_j: " << z(j) << endl;
     }

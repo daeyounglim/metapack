@@ -7,11 +7,13 @@
 #include <iterator>
 #include <progress.hpp>
 #include <progress_bar.hpp>
+#include "random.h"
 #include "ListBuilder.h"
 #include "linearalgebra.h"
 #include "misc_nmr.h"
 #include "nelmin.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
+
 
 // [[Rcpp::export]]
 Rcpp::List BayesNMR(const arma::vec& y,
@@ -404,7 +406,9 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 				int n_k = idx.n_elem;
 				vec gtmp(n_k);
-				std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
+				for (int gg=0; gg < n_k; ++gg)
+					gtmp(gg) = ::norm_rand();
+				// std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
 				Rgam(idx) = muRgam + arma::solve(arma::trimatu(SigRgamiChol), gtmp);
 			}
 
@@ -475,34 +479,6 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 				// Update nu_b
 				nu_b = (df * nu_a + b5) / ::Rf_rgamma(a5 + nu_a, 1.0);
-				// auto fx_nub = [&](double nub_input[])->double {
-				// 	return -loglik_nub(nub_input[0], df, nu_a, a5, b5);
-				// };
-				// xi = std::log(nu_b);
-				// start[0] = xi;
-				// xmin[0] = 0.0;
-				// ynewlo = 0.0;
-				// reqmin = 1.0e-20;
-				// konvge = 5;
-				// kcount = 1000;
-				// step[0] = 0.2;
-				// icount = 0;
-				// numres = 0;
-				// ifault = 0;
-				// nelmin(fx_nub, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
-				// xmax = xmin[0];
-
-				// sigmaa = std::exp(0.5 * xmax) / std::sqrt(b5 + df * nu_a);
-
-				// xi_prop = ::norm_rand() * sigmaa + xmax;
-				// // log-likelihood difference
-				// ll_diff = loglik_nub(xi_prop, df, nu_a, a5, b5) -
-				// 			loglik_nub(xi, df, nu_a, a5, b5) -
-				// 				 0.5 * (std::pow(xi - xmax, 2.0) - std::pow(xi_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-				// if (std::log(::unif_rand()) < ll_diff) {
-				// 	nu_b = std::exp(xi_prop);
-				// 	++nub_rates;
-				// }
 			}
 			prog.increment();
 		}
@@ -564,7 +540,9 @@ Rcpp::List BayesNMR(const arma::vec& y,
 				
 				vec muBeta = arma::solve(arma::trimatu(SigBetainvChol), arma::solve(trimatl(SigBetainvChol.t()), muBetaTmp));
 				vec btmp(nx+nT);
-				std::generate(btmp.begin(), btmp.end(), ::norm_rand);
+				for (int bb = 0; bb < nx+nT; ++bb)
+					btmp(bb) = ::norm_rand();
+				// std::generate(btmp.begin(), btmp.end(), ::norm_rand);
 				beta = muBeta + arma::solve(arma::trimatu(SigBetainvChol), btmp);
 				for (int k=0; k < K; ++k) {
 					mat E_k = Eks(k);
@@ -810,7 +788,9 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 					int n_k = idx.n_elem;
 					vec gtmp(n_k);
-					std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
+					for (int gg = 0; gg < n_k; ++gg)
+						gtmp(gg) = ::norm_rand();
+					// std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
 					Rgam(idx) = muRgam + arma::solve(arma::trimatu(SigRgamiChol), gtmp);
 				}
 
@@ -881,34 +861,6 @@ Rcpp::List BayesNMR(const arma::vec& y,
 
 					// // Update nu_b
 					nu_b = (df * nu_a + b5) / ::Rf_rgamma(a5 + nu_a, 1.0);
-					// auto fx_nub = [&](double nub_input[])->double {
-					// 	return -loglik_nub(nub_input[0], df, nu_a, a5, b5);
-					// };
-					// xi = std::log(nu_b);
-					// start[0] = xi;
-					// xmin[0] = 0.0;
-					// ynewlo = 0.0;
-					// reqmin = 1.0e-20;
-					// konvge = 5;
-					// kcount = 1000;
-					// step[0] = 0.2;
-					// icount = 0;
-					// numres = 0;
-					// ifault = 0;
-					// nelmin(fx_nub, 1, start, xmin, &ynewlo, reqmin, step, konvge, kcount, &icount, &numres, &ifault);
-					// xmax = xmin[0];
-
-					// sigmaa = std::exp(0.5 * xmax) / std::sqrt(b5 + df * nu_a);
-
-					// xi_prop = ::norm_rand() * sigmaa + xmax;
-					// // log-likelihood difference
-					// ll_diff = loglik_nub(xi_prop, df, nu_a, a5, b5) -
-					// 			loglik_nub(xi, df, nu_a, a5, b5) -
-					// 				 0.5 * (std::pow(xi - xmax, 2.0) - std::pow(xi_prop - xmax, 2.0)) / std::pow(sigmaa, 2.0);
-					// if (std::log(::unif_rand()) < ll_diff) {
-					// 	nu_b = std::exp(xi_prop);
-					// 	++nub_rates;
-					// }
 				}
 			}
 			beta_save.col(ikeep) = beta;
