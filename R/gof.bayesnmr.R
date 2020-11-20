@@ -3,12 +3,11 @@
 #' @param type the type of goodness of fit to compute; DIC or LPML
 #' @param verbose FALSE by default; If TRUE, then progress bar will appear
 #' @param ncores the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores
-#' @param h the interval width for trapezoidal rule
 #' @importFrom parallel detectCores
 #' @method gof bayesnmr
 #' @export
 
-"gof.bayesnmr" <- function(object, type="lpml", verbose=FALSE, ncores=NULL, h = 0.5) {
+"gof.bayesnmr" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
 	y <- object$Outcome
 	npt <- object$Npt
 	x <- object$Covariate

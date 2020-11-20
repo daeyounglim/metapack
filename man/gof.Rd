@@ -4,7 +4,7 @@
 \alias{gof}
 \title{get goodness of fit: DIC or LPML}
 \usage{
-gof(object, type = "lpml", verbose = FALSE, ncores = NULL, h = 0.5)
+gof(object, type = "lpml", verbose = FALSE, ncores = NULL)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}
@@ -14,8 +14,6 @@ gof(object, type = "lpml", verbose = FALSE, ncores = NULL, h = 0.5)
 \item{verbose}{FALSE by default; If TRUE, then progress bar will appear}
 
 \item{ncores}{the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores}
-
-\item{h}{the interval width for trapezoidal rule}
 }
 \value{
 dataframe containing the goodness of fit measure

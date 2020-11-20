@@ -341,101 +341,105 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 			}
 
 			// Update Rho
-			mat qq(J, J, fill::zeros);
-			for (int i = 0; i < N; ++i) {
-				int k = Trial(i);
-				double ntk = Npt(i);
-				rowvec w_i = WCovariate.row(i);
-				rowvec wstar_i(nw, fill::zeros);
-				if (Second(i) == 0) {
-					wstar_i.head(nn) =  w_i;
-				} else {
-					wstar_i.tail(nn) =  w_i;
+			if (sample_Rho) {
+				mat qq(J, J, fill::zeros);
+				for (int i = 0; i < N; ++i) {
+					int k = Trial(i);
+					double ntk = Npt(i);
+					rowvec w_i = WCovariate.row(i);
+					rowvec wstar_i(nw, fill::zeros);
+					if (Second(i) == 0) {
+						wstar_i.head(nn) =  w_i;
+					} else {
+						wstar_i.tail(nn) =  w_i;
+					}
+					mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
+					pRR.diag().fill(1.0);
+					mat R = pRho_to_Rho(pRR);
+					vec gam_k = gamR.col(k);
+					mat V = arma::diagmat(SD.row(i));
+					mat W(J, nw*J, fill::zeros);
+					for (int j = 0; j < J; ++j) {
+						W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
+					}
+					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
+					mat dAd = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
+					mat siginvm = arma::diagmat(1.0 / delta.row(i));
+					qq += siginvm * dAd * siginvm;
 				}
-				mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
-				pRR.diag().fill(1.0);
-				mat R = pRho_to_Rho(pRR);
-				vec gam_k = gamR.col(k);
-				mat V = arma::diagmat(SD.row(i));
-				mat W(J, nw*J, fill::zeros);
-				for (int j = 0; j < J; ++j) {
-					W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
-				}
-				vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
-				mat dAd = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
-				mat siginvm = arma::diagmat(1.0 / delta.row(i));
-				qq += siginvm * dAd * siginvm;
-			}
-			vec U(J*(J-1)/2);
-			std::generate(U.begin(), U.end(), ::norm_rand);
-			vec vRhop = vRho + SS * U;
-
-			vec z = arma::tanh(vRhop);
-			mat pRRho = vecrinv(z, J);
-			pRRho.diag().fill(1.0);
-			mat Rhop = pRho_to_Rho(pRRho);
-			mat Rhopinv;
-			try {
-				Rhopinv = arma::inv(Rhop);
-			} catch (std::runtime_error & e) {
-				continue;
-			}
-
-			// log-likelihood difference
-			double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
-
-			if (std::log(::unif_rand()) < ll_diff) {
-				vRho = vRhop;
-				Rho = Rhop;
-				Rhoinv = Rhopinv;
-				++vRho_rates;
-			} else {
-				// delayed rejection
+				vec U(J*(J-1)/2);
 				std::generate(U.begin(), U.end(), ::norm_rand);
-				vec zzz = vRho + std::sqrt(0.5) * (SS * U);
+				vec vRhop = vRho + SS * U;
 
-				mat pRRhozzz = vecrinv(arma::tanh(zzz), J);
-				pRRhozzz.diag().fill(1.0);
-				mat Rhopzzz = pRho_to_Rho(pRRhozzz);
-				mat Rhopinvzzz;
+				vec z = arma::tanh(vRhop);
+				mat pRRho = vecrinv(z, J);
+				pRRho.diag().fill(1.0);
+				mat Rhop = pRho_to_Rho(pRRho);
+				mat Rhopinv;
+				bool rho_proceed = true;
 				try {
-					Rhopinvzzz = arma::inv(Rhopzzz);
+					Rhopinv = arma::inv(Rhop);
 				} catch (std::runtime_error & e) {
-					continue;
+					rho_proceed = false;
 				}
+				if (rho_proceed) {
+					// log-likelihood difference
+					double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
 
-				vec ystar = zzz - (vRhop - vRho);
-				mat pRRhoystar = vecrinv(arma::tanh(ystar), J);
-				pRRhoystar.diag().fill(1.0);
-				mat Rhopystar = pRho_to_Rho(pRRhoystar);
-				mat Rhopinvystar;
-				try {
-					Rhopinvystar = arma::inv(Rhopystar);
-				} catch (std::runtime_error & e) {
-					continue;
+					if (std::log(::unif_rand()) < ll_diff) {
+						vRho = vRhop;
+						Rho = Rhop;
+						Rhoinv = Rhopinv;
+						++vRho_rates;
+					} else {
+						// delayed rejection
+						std::generate(U.begin(), U.end(), ::norm_rand);
+						vec zzz = vRho + std::sqrt(0.5) * (SS * U);
+
+						mat pRRhozzz = vecrinv(arma::tanh(zzz), J);
+						pRRhozzz.diag().fill(1.0);
+						mat Rhopzzz = pRho_to_Rho(pRRhozzz);
+						mat Rhopinvzzz;
+						try {
+							Rhopinvzzz = arma::inv(Rhopzzz);
+						} catch (std::runtime_error & e) {
+							continue;
+						}
+
+						vec ystar = zzz - (vRhop - vRho);
+						mat pRRhoystar = vecrinv(arma::tanh(ystar), J);
+						pRRhoystar.diag().fill(1.0);
+						mat Rhopystar = pRho_to_Rho(pRRhoystar);
+						mat Rhopinvystar;
+						try {
+							Rhopinvystar = arma::inv(Rhopystar);
+						} catch (std::runtime_error & e) {
+							continue;
+						}
+						double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
+						double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
+						double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));
+						double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
+						ll_diff = ll_diff_zx + log1pzystar - log1pxy;
+						if (std::log(::unif_rand()) < ll_diff) {
+							vRho = zzz;
+							Rho = Rhopzzz;
+							Rhoinv = Rhopinvzzz;
+							++vRho_rates;
+						}
+					}
+					++icount;
+					double alpha_n = std::min(1.0, std::exp(ll_diff));
+					adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
+					// Update Sigmainvs
+					for (int i = 0; i < N; ++i) {
+						mat siginvm = arma::diagmat(1.0 / delta.row(i));
+						mat Siginv_new = siginvm * Rhoinv * siginvm;
+						mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
+						Sig_lt.row(i) = arma::trans(vech(Sig_new));
+						Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
+					}
 				}
-				double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
-				double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
-				double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));
-				double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
-				ll_diff = ll_diff_zx + log1pzystar - log1pxy;
-				if (std::log(::unif_rand()) < ll_diff) {
-					vRho = zzz;
-					Rho = Rhopzzz;
-					Rhoinv = Rhopinvzzz;
-					++vRho_rates;
-				}
-			}
-			++icount;
-			double alpha_n = std::min(1.0, std::exp(ll_diff));
-			adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
-			// Update Sigmainvs
-			for (int i = 0; i < N; ++i) {
-				mat siginvm = arma::diagmat(1.0 / delta.row(i));
-				mat Siginv_new = siginvm * Rhoinv * siginvm;
-				mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
-				Sig_lt.row(i) = arma::trans(vech(Sig_new));
-				Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 			}
 
 			// Update Rtk
@@ -731,94 +735,107 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 				}
 
 				// Update Rho
-				mat qq(J, J, fill::zeros);
-				for (int i = 0; i < N; ++i) {
-					int k = Trial(i);
-					double ntk = Npt(i);
-					rowvec w_i = WCovariate.row(i);
-					rowvec wstar_i(nw, fill::zeros);
-					if (Second(i) == 0) {
-						wstar_i.head(nn) =  w_i;
-					} else {
-						wstar_i.tail(nn) =  w_i;
+				if (sample_Rho) {
+
+					mat qq(J, J, fill::zeros);
+					for (int i = 0; i < N; ++i) {
+						int k = Trial(i);
+						double ntk = Npt(i);
+						rowvec w_i = WCovariate.row(i);
+						rowvec wstar_i(nw, fill::zeros);
+						if (Second(i) == 0) {
+							wstar_i.head(nn) =  w_i;
+						} else {
+							wstar_i.tail(nn) =  w_i;
+						}
+						mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
+						pRR.diag().fill(1.0);
+						mat R = pRho_to_Rho(pRR);
+						vec gam_k = gamR.col(k);
+						mat V = arma::diagmat(SD.row(i));
+						mat W(J, nw*J, fill::zeros);
+						for (int j = 0; j < J; ++j) {
+							W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
+						}
+						vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
+						mat dAd = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
+						mat siginvm = arma::diagmat(1.0 / delta.row(i));
+						qq += siginvm * dAd * siginvm;
 					}
-					mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
-					pRR.diag().fill(1.0);
-					mat R = pRho_to_Rho(pRR);
-					vec gam_k = gamR.col(k);
-					mat V = arma::diagmat(SD.row(i));
-					mat W(J, nw*J, fill::zeros);
-					for (int j = 0; j < J; ++j) {
-						W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
-					}
-					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
-					mat dAd = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
-					mat siginvm = arma::diagmat(1.0 / delta.row(i));
-					qq += siginvm * dAd * siginvm;
-				}
-				vec U(J*(J-1)/2);
-				std::generate(U.begin(), U.end(), ::norm_rand);
-				vec vRhop = vRho + SS * U;
-
-				vec z = arma::tanh(vRhop);
-				mat pRRho = vecrinv(z, J);
-				pRRho.diag().fill(1.0);
-				mat Rhop = pRho_to_Rho(pRRho);
-				mat Rhopinv;
-				try {
-					Rhopinv = arma::inv(Rhop);
-				} catch (std::runtime_error & e) {
-					continue;
-				}
-
-				// log-likelihood difference
-				double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
-
-				if (std::log(::unif_rand()) < ll_diff) {
-					vRho = vRhop;
-					Rho = Rhop;
-					Rhoinv = Rhopinv;
-					++vRho_rates;
-				} else {
-					// delayed rejection
+					vec U(J*(J-1)/2);
 					std::generate(U.begin(), U.end(), ::norm_rand);
-					vec zzz = vRho + std::sqrt(0.5) * (SS * U);
+					vec vRhop = vRho + SS * U;
 
-					mat pRRhozzz = vecrinv(arma::tanh(zzz), J);
-					pRRhozzz.diag().fill(1.0);
-					mat Rhopzzz = pRho_to_Rho(pRRhozzz);
-					mat Rhopinvzzz;
+					vec z = arma::tanh(vRhop);
+					mat pRRho = vecrinv(z, J);
+					pRRho.diag().fill(1.0);
+					mat Rhop = pRho_to_Rho(pRRho);
+					mat Rhopinv;
+					bool rho_proceed = true;
 					try {
-						Rhopinvzzz = arma::inv(Rhopzzz);
+						Rhopinv = arma::inv(Rhop);
 					} catch (std::runtime_error & e) {
-						continue;
+						rho_proceed = false;
 					}
+					if (rho_proceed) {
+						// log-likelihood difference
+						double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
 
-					vec ystar = zzz - (vRhop - vRho);
-					mat pRRhoystar = vecrinv(arma::tanh(ystar), J);
-					pRRhoystar.diag().fill(1.0);
-					mat Rhopystar = pRho_to_Rho(pRRhoystar);
-					mat Rhopinvystar;
-					try {
-						Rhopinvystar = arma::inv(Rhopystar);
-					} catch (std::runtime_error & e) {
-						continue;
-					}
-					double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
-					double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
-					double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));
-					double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
-					ll_diff = ll_diff_zx + log1pzystar - log1pxy;
-					if (std::log(::unif_rand()) < ll_diff) {
-						vRho = zzz;
-						Rho = Rhopzzz;
-						Rhoinv = Rhopinvzzz;
-						++vRho_rates;
+						if (std::log(::unif_rand()) < ll_diff) {
+							vRho = vRhop;
+							Rho = Rhop;
+							Rhoinv = Rhopinv;
+							++vRho_rates;
+						} else {
+							// delayed rejection
+							std::generate(U.begin(), U.end(), ::norm_rand);
+							vec zzz = vRho + std::sqrt(0.5) * (SS * U);
+
+							mat pRRhozzz = vecrinv(arma::tanh(zzz), J);
+							pRRhozzz.diag().fill(1.0);
+							mat Rhopzzz = pRho_to_Rho(pRRhozzz);
+							mat Rhopinvzzz;
+							try {
+								Rhopinvzzz = arma::inv(Rhopzzz);
+							} catch (std::runtime_error & e) {
+								continue;
+							}
+
+							vec ystar = zzz - (vRhop - vRho);
+							mat pRRhoystar = vecrinv(arma::tanh(ystar), J);
+							pRRhoystar.diag().fill(1.0);
+							mat Rhopystar = pRho_to_Rho(pRRhoystar);
+							mat Rhopinvystar;
+							try {
+								Rhopinvystar = arma::inv(Rhopystar);
+							} catch (std::runtime_error & e) {
+								continue;
+							}
+							double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
+							double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
+							double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));
+							double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
+							ll_diff = ll_diff_zx + log1pzystar - log1pxy;
+							if (std::log(::unif_rand()) < ll_diff) {
+								vRho = zzz;
+								Rho = Rhopzzz;
+								Rhoinv = Rhopinvzzz;
+								++vRho_rates;
+							}
+						}
+						++icount;
+						double alpha_n = std::min(1.0, std::exp(ll_diff));
+						adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
+						// Update Sigmainvs
+						for (int i = 0; i < N; ++i) {
+							mat siginvm = arma::diagmat(1.0 / delta.row(i));
+							mat Siginv_new = siginvm * Rhoinv * siginvm;
+							mat Sig_new = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));
+							Sig_lt.row(i) = arma::trans(vech(Sig_new));
+							Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
+						}
 					}
 				}
-				++icount;
-				double alpha_n = std::min(1.0, std::exp(ll_diff));
-				adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
 
 				// Update Rtk
 				for (int i = 0; i < N; ++i) {

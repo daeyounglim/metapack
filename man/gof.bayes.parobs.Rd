@@ -4,7 +4,7 @@
 \alias{gof.bayes.parobs}
 \title{get goodness of fit}
 \usage{
-\method{gof}{bayes.parobs}(object, type = "lpml", verbose = FALSE, ncores = NULL, h = 0.5)
+\method{gof}{bayes.parobs}(object, type = "lpml", verbose = FALSE, ncores = NULL)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}
@@ -14,8 +14,6 @@
 \item{verbose}{FALSE by default; If TRUE, then progress bar will appear}
 
 \item{ncores}{the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores}
-
-\item{h}{the interval width for trapezoidal rule (ignored for bayes.parobs)}
 }
 \description{
 get goodness of fit
