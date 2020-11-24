@@ -205,7 +205,7 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 	}
 
 
-	double Dev_bar = 0;
+	double Dev_bar = 0.0;
 	{
 		Progress prog(nkeep, verbose);
 		#ifdef _OPENMP

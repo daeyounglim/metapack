@@ -21,7 +21,7 @@
 		xcols <- ncol(object$Covariate)
 		tlength <- nrow(object$mcmc.draws$theta)
 		trlength <- tlength - xcols
-		tscale <- c(apply(object$Covariate, 2, sd), rep(1, trlength))
+		tscale <- c(apply(unname(attributes(object$Covariate)$`scaled:scale`), 2, sd), rep(1, trlength))
 	} else {
 		tlength <- nrow(object$mcmc.draws$theta)
 		tscale <- rep(1, tlength)

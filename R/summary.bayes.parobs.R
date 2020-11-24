@@ -16,7 +16,7 @@
 		xcols <- ncol(object$XCovariate)
 		tlength <- nrow(object$mcmc.draws$theta)
 		trlength <- tlength - xcols * J
-		tscale <- c(rep(apply(object$XCovariate, 2, sd), J), rep(1, trlength))
+		tscale <- c(rep(unname(attributes(object$XCovariate)$`scaled:scale`), J), rep(1, trlength))
 	} else {
 		tlength <- nrow(object$mcmc.draws$theta)
 		tscale <- rep(1, tlength)

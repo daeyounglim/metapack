@@ -19,7 +19,7 @@
 		xcols <- ncol(object$Covariate)
 		tlength <- nrow(param)
 		trlength <- tlength - xcols
-		tscale <- c(apply(object$Covariate, 2, sd), rep(1, trlength))
+		tscale <- c(unname(attributes(object$Covariate)$`scaled:scale`), rep(1, trlength))
 	} else {
 		tlength <- nrow(param)
 		tscale <- rep(1, tlength)
