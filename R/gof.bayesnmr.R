@@ -28,7 +28,6 @@
 		ncores <- parallel::detectCores()
 	}
 
-
 	if (type == "dic") {
 		gof <- .Call(`_metapack_calc_modelfit_dic`,
 					 as.double(y),
@@ -71,8 +70,21 @@
 					 as.logical(object$control$sample_df),
 					 as.logical(verbose),
 					 as.integer(ncores))
+		tt <- table(iarm)
+		idx <- which(tt == 1)
+		if (length(idx) > 0) {
+			nm <- names(tt)[idx]
+			l <- c()
+			for (i in 1:length(ids)) {
+				if (iarm[i] %in% nm) {
+					l <- c(l, ids[i])
+				}
+			}
+			l <- unique(l)
+			l <- l + 1
+		}
+		gof$lpml <- sum(gof$logcpo[-l])
 	}
-
 	class(gof) <- "gofnmr"
 	gof
 }
