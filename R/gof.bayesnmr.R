@@ -84,6 +84,24 @@
 			l <- l + 1
 		}
 		gof$lpml <- sum(gof$logcpo[-l])
+	} else if (type == "pearson") {
+		gof <- .Call('_metapack_calc_modelfit_pearson',
+					 as.double(y),
+					 as.matrix(x),
+					 as.matrix(z),
+					 as.integer(ids),
+					 as.integer(iarm),
+					 as.double(npt),
+					 as.matrix(object$mcmc.draws$theta),
+					 as.matrix(object$mcmc.draws$sig2),
+					 as.matrix(object$mcmc.draws$phi),
+					 as.matrix(object$mcmc.draws$lam),
+					 as.array(object$mcmc.draws$Rho),
+					 as.integer(K),
+					 as.integer(nT),
+					 as.integer(nkeep),
+					 as.logical(verbose),
+					 as.integer(ncores))
 	}
 	class(gof) <- "gofnmr"
 	gof

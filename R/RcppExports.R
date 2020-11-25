@@ -73,6 +73,10 @@ Rho_to_pRho <- function(Rho) {
     .Call(`_metapack_Rho_to_pRho`, Rho)
 }
 
+calc_modelfit_pearson <- function(y, x, z, ids, iarm, npt, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose, ncores) {
+    .Call(`_metapack_calc_modelfit_pearson`, y, x, z, ids, iarm, npt, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose, ncores)
+}
+
 calc_modelfit_lpml <- function(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores) {
     .Call(`_metapack_calc_modelfit_lpml`, y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores)
 }
