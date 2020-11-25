@@ -2,7 +2,7 @@
 #' @param x the output model from fitting a meta analysis/regression model
 #' @param ... additional parameters for plot
 #' @importFrom graphics par
-#' @importFrom stats density 
+#' @importFrom stats density ppoints
 #' @method plot bayesnmr
 #' @export
 #' 
@@ -25,30 +25,32 @@
 	}, FUN.VALUE = numeric(tlength))
 	wname <- rownames(param)	
 	if (p == 2) {
-		par(mfcol = c(2, 2))
+		old_pars <- par(mfcol = c(2, 2))
+		on.exit(par(old_pars))
 		for (i in 1:p) {
 			plot(1:nkeep, param[i, ], xlab = "Iteration", ylab = "", main = wname[i], type = "l")
 			plot(density(param[i, ]), main = "")
 		}
 	} else if (p == 3) {
-		par(mfcol = c(2, 3))
+		old_pars <- par(mfcol = c(2, 3))
+		on.exit(par(old_pars))
 		for (i in 1:p) {
 			plot(1:nkeep, param[i, ], xlab = "Iteration", ylab = "", main = wname[i], type = "l")
 			plot(density(param[i, ]), main = "")
 		}
 	} else if (p == 4) {
-		par(mfcol = c(2, 2))
+		old_pars <- par(mfcol = c(2, 2))
+		on.exit(par(old_pars))
 		for (i in 1:p) {
 			plot(1:nkeep, param[i, ], xlab = "Iteration", ylab = "", main = wname[i], type = "l")
 			plot(density(param[i, ]), main = "")
-			par(...)
 		}
 	} else {
-		par(mfcol = c(2, 3))
+		old_pars <- par(mfcol = c(2, 3))
+		on.exit(par(old_pars))
 		for (i in 1:p) {
 			plot(1:nkeep, param[i, ], xlab = "Iteration", ylab = "", main = wname[i], type = "l")
 			plot(density(param[i, ]), main = "")
-			par(...)
 		}
 	}
 }

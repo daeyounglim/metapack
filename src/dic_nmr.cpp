@@ -18,7 +18,6 @@
 using namespace arma;
 
 /**************************************************
-// #include <boost/math/quadrature/gauss_kronrod.hpp>
 Calculate the goodness of fit measures
 
 + Dev(theta) = -2 * log L(theta | D_oy)
@@ -289,8 +288,8 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 	double p_D = Dev_bar - Dev_thetabar;
 	double DIC = Dev_thetabar + 2.0 * p_D;
 	return Rcpp::List::create(Rcpp::Named("dic")=DIC,
-		Rcpp::Named("maxll_keep") = maxll_keep,
-		Rcpp::Named("maxll_est") = maxll_est);
+		Rcpp::Named("Dev") = Dev_thetabar,
+		Rcpp::Named("pD") = p_D);
 }
 
 
