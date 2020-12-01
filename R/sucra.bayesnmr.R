@@ -1,6 +1,6 @@
 #' get surface under the cumulative ranking curve (SUCRA)
 #' @param object the output model from fitting a network meta analysis/regression model
-#' @return a matrix containing SUCRA
+#' @return a list containing SUCRA and the discrete rank probability matrix of size T by T
 #' @method sucra bayesnmr
 #' @export
 "sucra.bayesnmr" <- function(object) {
@@ -28,7 +28,7 @@
 	for (i in 1:nT) {
 		SUCRA[i] <- sum(cumeffectiveness[i, 1:(nT-1)]) / (nT-1)
 	}
-	out <- list(SUCRA=SUCRA, rankProb=Rank.prob, names=object$TrtLabels)
+	out <- list(SUCRA=SUCRA, rankprob=Rank.prob, names=object$TrtLabels)
 	class(out) <- "sucra"
 	out
 } 

@@ -20,7 +20,7 @@ arma::mat veclinv(TN& v, const int& J) {
 		out(iC,iR) = v(kk);
 	}
 	return out;
-};
+}
 arma::vec vech(const arma::mat& X);
 arma::mat vechinv(const arma::vec& v, const int& n);
 arma::mat duplicate_matrix (const int& n);

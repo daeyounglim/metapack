@@ -9,13 +9,13 @@
 #' @export
 "plot.sucra" <- function(x, legend.position = "none", ...) {
 	nT <- length(x$SUCRA)
-	cumeffectiveness <- apply(x$rankProb, 2, cumsum)
+	cumeffectiveness <- apply(x$rankprob, 2, cumsum)
 	names <- x$names
 	oask <- devAskNewPage(TRUE)
 	gglist <- vector(mode = "list", nT)
 	for (TRT in 1:nT) {
 		Area=round(x$SUCRA[TRT], 3)
-		ddd <- data.frame(trt = names, cdf = cumeffectiveness[,TRT], pdf = x$rankProb[,TRT], stringAsFactors = FALSE)
+		ddd <- data.frame(trt = names, cdf = cumeffectiveness[,TRT], pdf = x$rankprob[,TRT], stringAsFactors = FALSE)
 		ddd$trt <- factor(ddd$trt, levels = ddd$trt)
 		bb <- ggplot(ddd, aes(x = trt, group = 1)) +
 			 geom_line(aes(y = cdf), color = "#eab159", size = 1) +
