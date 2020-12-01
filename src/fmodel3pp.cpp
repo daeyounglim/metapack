@@ -118,7 +118,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 	cube pRtk_save(N, J*(J-1)/2, nkeep, fill::zeros);
 	cube delta_save(N, J, nkeep, fill::zeros);
 	cube Rho_save(J, J, nkeep, fill::zeros);
-	int icount = 0;
+	int icount_mh = 0;
 	/*******************
 	Begin burn-in period
 	*******************/
@@ -428,9 +428,8 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 							++vRho_rates;
 						}
 					}
-					++icount;
 					double alpha_n = std::min(1.0, std::exp(ll_diff));
-					adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
+					adapt_S(SS, U, alpha_n, alpha_star, icount_mh, gam_exp);
 					// Update Sigmainvs
 					for (int i = 0; i < N; ++i) {
 						mat siginvm = arma::diagmat(1.0 / delta.row(i));
@@ -525,6 +524,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
 			for (int iskip = 0; iskip < nskip; ++iskip) {
+				++icount_mh;
 				// Update theta
 				mat Sig_theta(nt, nt, fill::zeros);
 				Sig_theta.diag().fill(1.0 / c0);
@@ -823,9 +823,8 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 								++vRho_rates;
 							}
 						}
-						++icount;
 						double alpha_n = std::min(1.0, std::exp(ll_diff));
-						adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
+						adapt_S(SS, U, alpha_n, alpha_star, icount_mh, gam_exp);
 						// Update Sigmainvs
 						for (int i = 0; i < N; ++i) {
 							mat siginvm = arma::diagmat(1.0 / delta.row(i));

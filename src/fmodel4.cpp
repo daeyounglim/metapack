@@ -111,7 +111,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 	/*******************
 	Begin burn-in period
 	*******************/
-	int icount = 0;
+	int icount_mh = 0;
 	if (verbose) {
 		Rcout << "Warming up" << endl;
 	}
@@ -121,6 +121,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 			if (Progress::check_abort()) {
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
+			++icount_mh;
 			// Update theta
 			mat Sig_theta(nt, nt, fill::zeros);
 			Sig_theta.diag().fill(1.0 / c0);
@@ -305,9 +306,8 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 					++vRho_rates;
 				}
 			}
-			++icount;
 			double alpha_n = std::min(1.0, std::exp(ll_diff));
-			adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
+			adapt_S(SS, U, alpha_n, alpha_star, icount_mh, gam_exp);
 
 			// Update Sigmainvs
 			for (int i = 0; i < N; ++i) {
@@ -413,7 +413,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
 			for (int iskip = 0; iskip < nskip; ++iskip) {
-
+				++icount_mh;
 				// Update theta
 				mat Sig_theta(nt, nt, fill::zeros);
 				Sig_theta.diag().fill(1.0 / c0);
@@ -597,9 +597,9 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 						++vRho_rates;
 					}
 				}
-				++icount;
+				
 				double alpha_n = std::min(1.0, std::exp(ll_diff));
-				adapt_S(SS, U, alpha_n, alpha_star, icount, gam_exp);
+				adapt_S(SS, U, alpha_n, alpha_star, icount_mh, gam_exp);
 
 				// Update Sigmainvs
 				for (int i = 0; i < N; ++i) {

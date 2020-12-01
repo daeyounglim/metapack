@@ -2,21 +2,21 @@
 % Please edit documentation in R/lambdaplot.bayesnmr.R
 \name{lambdaplot.bayesnmr}
 \alias{lambdaplot.bayesnmr}
-\title{plot the Gamma Quantile-Quantile for gamma(nu/2, nu/2) with NMA object}
+\title{plot the side-by-side box plot or gamma Quantile-Quantile for gamma(nu/2, nu/2) with NMA object}
 \usage{
 \method{lambdaplot}{bayesnmr}(x, xlab = NULL, ylab = NULL, type = "boxplot", ...)
 }
 \arguments{
 \item{x}{the output model from fitting a network meta analysis/regression model}
 
-\item{xlab}{plot labels}
+\item{xlab}{plot x label}
 
-\item{ylab}{plot labels}
+\item{ylab}{plot y label}
 
 \item{type}{type of plot; either boxplot or qqplot}
 
 \item{...}{additional arguments for plot}
 }
 \description{
-plot the Gamma Quantile-Quantile for gamma(nu/2, nu/2) with NMA object
+plot the side-by-side box plot or gamma Quantile-Quantile for gamma(nu/2, nu/2) with NMA object
 }
