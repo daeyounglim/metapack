@@ -16,10 +16,10 @@
 	Rho <- list()
 	param <- object$mcmc.draws$theta
 	if (object$scale_x) {
-		xcols <- ncol(object$Covariate)
+		xcols <- ncol(object$XCovariate)
 		tlength <- nrow(param)
 		trlength <- tlength - xcols
-		tscale <- c(unname(attributes(object$Covariate)$`scaled:scale`), rep(1, trlength))
+		tscale <- c(unname(attr(object$XCovariate, "scaled:scale")), rep(1, trlength))
 	} else {
 		tlength <- nrow(param)
 		tscale <- rep(1, tlength)
@@ -34,11 +34,11 @@
 	gam$mean <- rowMeans(object$mcmc.draws$gam)
 	gam$sd <- apply(object$mcmc.draws$gam, 1, sd)
 
-	conf.level <- 0.95
-	sig.level <- 1 - conf.level
+	level <- 0.95
+	sig.level <- 1 - level
 
 
-	theta.hpd <- coda::HPDinterval(mcmc(t(theta.post), end=object$mcmc$nkeep), prob=conf.level)
+	theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=level)
 	theta$lower <- theta.hpd[,1]
 	theta$upper <- theta.hpd[,2]
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)

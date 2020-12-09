@@ -31,7 +31,7 @@
 
 	sig.level <- 1 - 0.95
 
-	theta.hpd <- coda::HPDinterval(mcmc(t(theta.post), end=object$mcmc$nkeep), prob=0.95)
+	theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=0.95)
 	theta$lower <- theta.hpd[,1]
 	theta$upper <- theta.hpd[,2]
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)

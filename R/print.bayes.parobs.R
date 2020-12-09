@@ -1,7 +1,7 @@
 #' Print results
 #' 
 #' @param x the output model from fitting a meta analysis/regression model
-#' @param conf.level credible level for interval estimation; set to 0.95 by default
+#' @param level credible level for interval estimation; set to 0.95 by default
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
@@ -9,7 +9,7 @@
 #' @importFrom stats sd quantile
 #' @method print bayes.parobs
 #' @export
-"print.bayes.parobs" <- function(x, conf.level=0.95, HPD=TRUE, ...) {
+"print.bayes.parobs" <- function(x, level=0.95, HPD=TRUE, ...) {
 	cat("Bayesian Inference for Multivariate Meta-Regression\nWith a Partially Observed Within-Study Sample Covariance Matrix\n")
 	cat("\n")
 	cat("Model:\n")
@@ -17,62 +17,35 @@
 	cat("  (Sample Variance)\n    (n_kt - 1) S_tk ~ Wishart(n_kt - 1, Sigma_tk)\n")
 	cat("  (Random effects)\n    ")
 	cat("[gamma_k | Omega] ~ N(0, Omega)\n")
-
-	pl <- c(x$prior$c0, x$prior$dj0)
-	nl <- c("c0", "dj0")
+	digits <- max(3, getOption("digits") - 3)
 	cat("Priors:\n")
-	cat("   theta ~ MVN(0, c0 * I_p)\n")
-	cat("   Omega_j^{-1} ~ Wishart(dj0, Omega0)\n")
+	cat("   theta ~ MVN(0, ",x$prior$c0," * I_p)\n")
+	cat("   Omega_j^{-1} ~ Wishart(",x$prior$dj0,", Omega0)\n")
 	if (x$fmodel == 1) {
-		pl <- c(pl, x$prior$s0, x$prior$d0)
-		nl <- c(nl, "s0", "d0")
 		cat("   Sigma_tk = diag(sig_{tk,11}^2, ..., sig_{tk,JJ}^2)\n")
-		cat("   where sig_{tk,jj}^2 ~ IG(s0, d0)\n")
+		cat("   where sig_{tk,jj}^2 ~ IG(",x$prior$s0,", ",x$prior$d0,")\n")
 	} else if (x$fmodel == 2) {
-		pl <- c(pl, x$prior$s0)
-		nl <- c(nl, "s0")
-		cat("   Sigma_tk = Sigma, where Sigma ~ Wishart(s0, Sigma0)\n")
-		# cat("   s0=", x$prior$s0, "\n")
+		cat("   Sigma_tk = Sigma, where Sigma ~ Wishart(",x$prior$s0,", Sigma0)\n")
 	} else if (x$fmodel == 3) {
-		pl <- c(pl, x$prior$s0)
-		nl <- c(nl, "s0")
-		cat("   Sigma_tk = Sigma_t, where Sigma_t ~ Wishart(s0, Sigma0)\n")
+		cat("   Sigma_tk = Sigma_t, where Sigma_t ~ Wishart(",x$prior$s0,", Sigma0)\n")
 	} else if (x$fmodel == 4) {
-		pl <- c(pl, x$prior$s0, x$prior$d0)
-		nl <- c(nl, "s0", "d0")
 		cat("   Sigma_{tk} = sig_{tk} * Rho * sig_{tk},\n")
-		cat("   	where p(Rho) = 1, and sig_{tk,jj} ~ IG(s0, d0)\n")
+		cat("   	where p(Rho) = 1, and sig_{tk,jj} ~ IG(",x$prior$s0,", ",x$prior$d0,")\n")
 	} else if (x$fmodel == 5) {
-		pl <- c(pl, x$prior$nu0, x$prior$d0)
-		nl <- c(nl, "nu0", "d0")
-		cat("   Sigma_{tk}^{-1} ~ Wishart(nu0, (nu0-J-1)*Sigma),\n")
-		cat("   Sigma ~ Wishart(d0, Sigma0),\n")
-		# cat("   where nu0=", x$prior$nu0, ", d0=", x$prior$d0, "\n")
+		cat("   Sigma_{tk}^{-1} ~ Wishart(",x$prior$nu0," (nu0-J-1)*Sigma),\n")
+		cat("   Sigma ~ Wishart(",x$prior$d0,", Sigma0),\n")
 	}
-	cat("---\n")
-	cat("Hyperparameters:\n")
-	pl <- matrix(pl, 1, length(pl))
-	colnames(pl) <- nl
-	print(pl, justify = "left")
-
-	cat("---\n")
-
-	mm <- matrix(0, 2, 1)
-	# mm[1,1] <- "Number of trials"
-	mm[1,1] <- x$K
-	# mm[2,1] <- "Number of treatments"
-	mm[2,1] <- x$T
-	rownames(mm) <- c("Number of trials", "Number of treatments")
-
-
-	print(mm, justify = "left")
-	cat("---\n")
+	cat("---------------------------------------------------\n")
+	cat("Number of trials:     ", x$K, "\n")
+	cat("Number of arms:       ", nrow(x$Outcome), "\n")
+	cat("Number of treatments: ", x$T, "\n")
+	
 	if (x$scale_x) {
 		J <- ncol(x$Outcome)
 		xcols <- ncol(x$XCovariate)
 		tlength <- nrow(x$mcmc.draws$theta)
 		trlength <- tlength - xcols * J
-		tscale <- c(rep(apply(x$XCovariate, 2, sd), J), rep(1, trlength))
+		tscale <- c(rep(unname(attr(x$XCovariate, "scaled:scale")), J), rep(1, trlength))
 	} else {
 		tlength <- nrow(x$mcmc.draws$theta)
 		tscale <- rep(1, tlength)
@@ -85,10 +58,10 @@
 	theta$mean <- rowMeans(theta.post)
 	theta$sd <- apply(theta.post, 1, sd)
 
-	sig.level <- 1 - conf.level
+	sig.level <- 1 - level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(theta.post), end=x$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=x$mcmc$nkeep), prob=level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 	} else {
@@ -111,9 +84,13 @@
 		rownames(theta_print) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
 						 paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
 	}
-
-	print(theta_print, justify="left", digits=2)
-	cat("---\n")
-	cat("*Credible level: ", conf.level, "\n")
+	theta_print <- round(theta_print, digits=digits)
+	print.default(theta_print, print.gap = 2)
+	cat("---------------------------------------------------\n")
+	if (HPD) {
+		cat("*HPD level: ", level, "\n")
+	} else {
+		cat("*Credible level: ", level, "\n")
+	}
 	invisible()
 }

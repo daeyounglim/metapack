@@ -12,10 +12,10 @@
 	param <- x$mcmc.draws$theta
 	p <- nrow(param)
 	if (x$scale_x) {
-		xcols <- ncol(x$Covariate)
+		xcols <- ncol(x$XCovariate)
 		tlength <- nrow(param)
 		trlength <- tlength - xcols
-		tscale <- c(apply(x$Covariate, 2, sd), rep(1, trlength))
+		tscale <- c(apply(x$XCovariate, 2, sd), rep(1, trlength))
 	} else {
 		tlength <- nrow(param)
 		tscale <- rep(1, tlength)

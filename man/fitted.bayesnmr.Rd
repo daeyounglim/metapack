@@ -4,12 +4,12 @@
 \alias{fitted.bayesnmr}
 \title{get fitted values}
 \usage{
-\method{fitted}{bayesnmr}(object, conf.level = 0.95, HPD = TRUE, ...)
+\method{fitted}{bayesnmr}(object, level = 0.95, HPD = TRUE, ...)
 }
 \arguments{
 \item{object}{the output model from fitting a meta analysis/regression model}
 
-\item{conf.level}{credible level for interval estimation; set to 0.95 by default}
+\item{level}{credible level for interval estimation; set to 0.95 by default}
 
 \item{HPD}{a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed}
 

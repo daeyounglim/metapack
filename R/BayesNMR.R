@@ -4,20 +4,19 @@
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param Outcome aggregate mean of the responses for each arm of each study
 #' @param SD standard deviation of the responses for each arm of each study
-#' @param Covariate aggregate covariates for the mean component
+#' @param XCovariate aggregate covariates for the fixed effects
+#' @param ZCovariate covariates associated with the variance of the random effects
 #' @param Trial study/trial identifiers; will be coerced to consecutive integers
 #' @param Treat treatment identifiers for the corresponding trial arm; equivalent to the arm number of each study; will be coerced to consecutive integers
 #' @param Npt number of observations/participants per trial
-#' @param groupInfo list of grouping information; the control(baseline) group must start from 0; the aggregate covariates 'z' explaining the variance of the random effect of the t-th treatment will be construct based on this grouping information
 #' @param prior (Optional) list of hyperparameters when not given, algorithm will run in default setting.
 #' @param mcmc (Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
-#' @param add.z (Optional) additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'
 #' @param verbose (Optional) logical variable for printing progress bar. Default to FALSE.
 #' @param control (Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm
 #' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
 #' @param Trial_order (Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param scale_x (Optional) a logical variable whether `Covariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling
-#' @param init (Optional) initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.
+#' @param scale_x (Optional) a logical variable whether `XCovariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling
+#' @param init (Optional) initial values for theta (ns + nT dimensional) and phi_stepsize. Dimensions must be conformant.
 #' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
 #' @examples
 #' \dontrun{
@@ -39,7 +38,7 @@
 #' @importFrom stats model.matrix
 #' @importFrom methods is
 #' @export
-bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prior = list(), mcmc = list(), scale_x = FALSE, add.z = NULL, control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, verbose = FALSE) {
+bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, prior = list(), mcmc = list(), scale_x = FALSE, control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, verbose = FALSE) {
   if (!is(Outcome, "vector")) {
     tmp <- try(Outcome <- as.vector(Outcome))
     if (is(tmp, "try-error")) {
@@ -52,10 +51,20 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
       stop("SD must be a vector or able to be coerced to a vector")
     }
   }
-  if (!is(Covariate, "matrix")) {
-    tmp <- try(Covariate <- model.matrix(~ 0 + ., data = Covariate), silent = TRUE)
+  if (!is(XCovariate, "matrix")) {
+    tmp <- try(XCovariate <- model.matrix(~ 0 + ., data = XCovariate), silent = TRUE)
     if (is(tmp, "try-error")) {
-      stop("Covariate must be a matrix or able to be coerced to a matrix")
+      stop("XCovariate must be a matrix or able to be coerced to a matrix")
+    }
+  }
+  if (missing(ZCovariate)) {
+    ZCovariate <- rep(1, nrow(XCovariate))
+  } else {
+    if (!is(ZCovariate, "matrix")) {
+      tmp <- try(ZCovariate <- model.matrix(~ 0 + ., data = ZCovariate), silent = TRUE)
+      if (is(tmp, "try-error")) {
+        stop("ZCovariate must be a matrix or able to be coerced to a matrix")
+      }
     }
   }
   if (!is(Treat, "vector")) {
@@ -76,7 +85,7 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
       stop("Npt must be numeric or able to be coerced to numeric")
     }
   }
-  if (any(is.na(Outcome)) | any(is.na(Covariate)) | any(is.na(Treat)) | any(is.na(Trial)) | any(is.na(Npt))) {
+  if (any(is.na(Outcome)) | any(is.na(XCovariate)) | any(is.na(ZCovariate)) | any(is.na(Treat)) | any(is.na(Trial)) | any(is.na(Npt))) {
     stop("Missing data (NA) detected. Handle missing data (e.g., delete missings, delete variables, imputation) before passing it as an argument")
   }
 
@@ -84,13 +93,10 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
   mcvals[names(mcmc)] <- mcmc
   ndiscard <- mcvals$ndiscard
   nskip <- mcvals$nskip
+  if (nskip < 1) {
+    stop("The thinning cannot be smaller than 1.")
+  }
   nkeep <- mcvals$nkeep
-  if (length(groupInfo) == 0) {
-    stop("groupInfo is missing.")
-  }
-  if (min(c(unlist(groupInfo))) != 0) {
-    warning("Baseline treatment for groupInfo should start from 0.\nAssuming baseline is not ")
-  }
 
   priorvals <- list(df = 20, c01 = 1.0e05, c02 = 4, a4 = 1, b4 = 0.1, a5 = 0.1, b5 = 0.1)
   priorvals[names(prior)] <- prior
@@ -116,38 +122,25 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
   }
   Trial.n <- relabel.vec(Trial, Trial.order) - 1 # relabel the trial numbers
 
-  nx <- ncol(Covariate)
-  nz <- length(groupInfo)
+  nx <- ncol(XCovariate)
+  nz <- ncol(ZCovariate)
   ns <- length(Outcome)
   K <- length(unique(Trial))
   nT <- length(unique(Treat))
-  z <- matrix(0, ns, nz)
-  if (nz > 0) {
-    for (j in 1:nz) {
-      for (i in 1:ns) {
-        if (Treat.n[i] %in% groupInfo[[j]]) {
-          z[i, j] <- 1
-        }
-      }
-    }
-  }
-  xn <- if (!is.null(colnames(Covariate))) colnames(Covariate) else paste0("beta", 1:ncol(Covariate))
-  if (!is.null(add.z)) {
-    z <- cbind(z, add.z)
-  }
+  xn <- if (!is.null(colnames(XCovariate))) colnames(XCovariate) else paste0("beta", 1:ncol(XCovariate))
 
   if (scale_x) {
-    Covariate_ <- scale(Covariate, center = FALSE, scale = TRUE)
+    XCovariate_ <- scale(XCovariate, center = FALSE, scale = TRUE)
   } else {
-    Covariate_ <- Covariate
+    XCovariate_ <- XCovariate
   }
 
-  nt <- ncol(Covariate) + nT
+  nt <- nx + nT
   XSX <- matrix(0, nt, nt)
   XSy <- numeric(nt)
   for (k in 1:K) {
     idx <- which(Trial.n == k-1)
-    Xk <- Covariate_[idx,]
+    Xk <- XCovariate_[idx,]
     idx_l = length(idx)
     Ek <- matrix(0, nT, idx_l)
     iarm_k = Treat.n[idx]
@@ -161,9 +154,10 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
   }
   thetahat <- solve(XSX + 0.1 * diag(1, nrow=nt), XSy)
 
-  # zn <- if (!is.null(colnames(z))) colnames(z) else paste0("gam", 1:ncol(z))
   zn <- if (!is.null(Treat_order)) Treat_order else paste0("gam", 1:nT)
-  init_final <- list(theta = thetahat, phi = numeric(ncol(z)), sig2 = SD^2, Rho = diag(1, nrow = nT))
+  init_final <- list(theta = thetahat, phi = numeric(nz), sig2 = SD^2, Rho = diag(1, nrow = nT))
+  init_final$Rho[upper.tri(init_final$Rho)] <- 0.5
+  init_final$Rho[lower.tri(init_final$Rho)] <- 0.5
   init_final[names(init)] <- init
   Rho_init <- init_final$Rho
   if (any(eigen(Rho_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
@@ -194,8 +188,8 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
       `_metapack_BayesNMR`,
       as.double(Outcome),
       as.double(SD),
-      as.matrix(Covariate_),
-      as.matrix(z),
+      as.matrix(XCovariate_),
+      as.matrix(ZCovariate),
       as.integer(Trial.n),
       as.integer(Treat.n),
       as.double(Npt),
@@ -228,14 +222,14 @@ bayes.nmr <- function(Outcome, SD, Covariate, Trial, Treat, Npt, groupInfo, prio
     Outcome = Outcome,
     SD = SD,
     Npt = Npt,
-    Covariate = Covariate_,
-    z = z,
-    Trial = Trial.n,
+    XCovariate = XCovariate_,
+    ZCovariate = ZCovariate,
     Treat = Treat.n,
+    Trial = Trial.n,
     TrtLabels = Treat.order,
+    TrialLabels = Trial.order,
     K = K,
     nT = nT,
-    groupInfo = groupInfo,
     scale_x = scale_x,
     prior = priorvals,
     control = ctrl,

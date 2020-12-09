@@ -48,7 +48,7 @@ bayes.nmr(
 
 \item{control}{(Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm}
 
-\item{init}{(Optional) initial values for theta (ns + nT dimensional) and phi. Dimensions must be conformant.}
+\item{init}{(Optional) initial values for theta (ns + nT dimensional) and phi_stepsize. Dimensions must be conformant.}
 
 \item{Treat_order}{(Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
 

@@ -5,7 +5,7 @@
 #' @export
 "sucra.bayesnmr" <- function(object) {
 	nT <- object$nT
-	nx <- ncol(object$Covariate)
+	nx <- ncol(object$XCovariate)
 	theta.posterior <- object$mcmc.draws$theta[(nx+1):(nx+nT),] # treatment effects
 	nkeep <- object$mcmc$nkeep
 

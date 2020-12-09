@@ -1,27 +1,25 @@
 #' get fitted values
 #' 
 #' @param object the output model from fitting a meta analysis/regression model
-#' @param conf.level credible level for interval estimation; set to 0.95 by default
+#' @param level credible level for interval estimation; set to 0.95 by default
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for fitted
 #' @return a list of fitted values
 #' @importFrom coda mcmc HPDinterval
 #' @method fitted bayesnmr
 #' @export
-"fitted.bayesnmr" <- function(object, conf.level = 0.95, HPD = TRUE, ...) {
-	
+"fitted.bayesnmr" <- function(object, level = 0.95, HPD = TRUE, ...) {
 	out <- list()
-
 	theta <- list()
 	phi <- list()
 	gam <- list()
 	sig2 <- list()
 	Rho <- list()
 	if (object$scale_x) {
-		xcols <- ncol(object$Covariate)
+		xcols <- ncol(object$XCovariate)
 		tlength <- nrow(object$mcmc.draws$theta)
 		trlength <- tlength - xcols
-		tscale <- c(apply(unname(attributes(object$Covariate)$`scaled:scale`), 2, sd), rep(1, trlength))
+		tscale <- c(unname(attr(object$XCovariate, "scaled:scale")), rep(1, trlength))
 	} else {
 		tlength <- nrow(object$mcmc.draws$theta)
 		tscale <- rep(1, tlength)
@@ -45,31 +43,31 @@
 		df$sd <- sd(object$mcmc.draws$df)
 	}
 
-	sig.level <- 1 - conf.level
+	sig.level <- 1 - level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
-		phi.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$phi), end=object$mcmc$nkeep), prob=conf.level)
+		phi.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$phi), end=object$mcmc$nkeep), prob=level)
 		phi$lower <- phi.hpd[,1]
 		phi$upper <- phi.hpd[,2]
 
-		gam.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=conf.level)
+		gam.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=level)
 		gam$lower <- gam.hpd[,1]
 		gam$upper <- gam.hpd[,2]
 
-		sig2.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=conf.level)
+		sig2.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=level)
 		sig2$lower <- sig2.hpd[,1]
 		sig2$upper <- sig2.hpd[,2]
 
-		Rho.hpd <- coda::HPDinterval(coda::mcmc(t(apply(object$mcmc.draws$Rho, 3, function(xx) xx[lower.tri(xx)])), end=object$mcmc$nkeep), prob=conf.level)
+		Rho.hpd <- hpdarray(object$mcmc.draws$Rho, level = level)
 		Rho$lower <- Rho.hpd[,1]
 		Rho$upper <- Rho.hpd[,2]
 
 		if (object$control$sample_df) {
-			df.hpd <- coda::HPDinterval(coda::mcmc(object$mcmc.draws$df, end=object$mcmc$nkeep), prob=conf.level)
+			df.hpd <- coda::HPDinterval(coda::mcmc(object$mcmc.draws$df, end=object$mcmc$nkeep), prob=level)
 			df$lower <- df.hpd[,1]
 			df$upper <- df.hpd[,2]			
 		}
@@ -86,15 +84,18 @@
 		sig2$lower <- apply(object$mcmc.draws$sig2, 1, function(xx) quantile(xx, prob = sig.level/2))
 		sig2$upper <- apply(object$mcmc.draws$sig2, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
-		Rho$lower <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = sig.level/2))[lower.tri(object$mcmc.draws$Rho[,,1])]
-		Rho$upper <- apply(object$mcmc.draws$Rho, 3, function(xx) quantile(xx, prob = 1-sig.level/2))[lower.tri(object$mcmc.draws$Rho[,,1])]
+		Rho.ci <- ciarray(object$mcmc.draws$Rho, level = level)
+		Rho$lower <- Rho.ci[,,1]
+		Rho$upper <- Rho.ci[,,2]
 
-		df$lower <- quantile(object$mcmc.draws$df, prob = sig.level/2)
-		df$lower <- quantile(object$mcmc.draws$df, prob = 1-sig.level/2)
+		if (object$control$sample_df) {
+			df$lower <- quantile(object$mcmc.draws$df, prob = sig.level/2)
+			df$upper <- quantile(object$mcmc.draws$df, prob = 1-sig.level/2)
+		}
 	}
 
 	out <- object
-	out$conf.level <- conf.level
+	out$level <- level
 	out$hpd <- HPD
 	out$theta <- theta
 	out$phi <- phi

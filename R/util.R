@@ -35,15 +35,26 @@ relabel.vec <- function(x, order)
 }
 
 
-hpdarray <- function(A, conf.level = 0.95) {
+hpdarray <- function(A, level = 0.95) {
   nR <- nrow(A)
   nC <- ncol(A)
   out <- array(0, dim = c(nR, nC, 2))
   dimnames(out)[[3]] <- c("lower", "upper")
   for (iC in 1:nC) {
-    hpd_ic <- coda::HPDinterval(mcmc(t(A[,iC,]), end = dim(A)[3]), prob = conf.level)
+    hpd_ic <- coda::HPDinterval(coda::mcmc(t(A[,iC,]), end = dim(A)[3]), prob = level)
     out[,iC,1] <- hpd_ic[,1]
     out[,iC,2] <- hpd_ic[,2]
   }
+  out
+}
+
+ciarray <- function(A, level = 0.95) {
+  nR <- nrow(A)
+  nC <- ncol(A)
+  out <- array(0, dim = c(nR, nC, 2))
+  dimnames(out)[[3]] <- c("lower", "upper")
+  sig.level <- 1 - level
+  out[,,1] <- apply(A, c(1,2), function(xx) quantile(xx, prob = sig.level / 2))
+  out[,,2] <- apply(A, c(1,2), function(xx) quantile(xx, prob = 1 - sig.level / 2))
   out
 }

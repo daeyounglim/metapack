@@ -10,7 +10,7 @@
 \item{object}{the output model from fitting a network meta analysis/regression model}
 }
 \value{
-a matrix containing SUCRA
+a list containing SUCRA and the discrete rank probability matrix of size T by T
 }
 \description{
 get surface under the cumulative ranking curve (SUCRA)

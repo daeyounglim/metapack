@@ -6,12 +6,12 @@
 #' @importFrom graphics axis lines plot
 #' @method plot sucra
 #' @importFrom ggplot2 ggplot geom_line aes labs theme_gray theme ylab
+#' @importFrom gridExtra grid.arrange
 #' @export
 "plot.sucra" <- function(x, legend.position = "none", ...) {
 	nT <- length(x$SUCRA)
 	cumeffectiveness <- apply(x$rankprob, 2, cumsum)
 	names <- x$names
-	oask <- devAskNewPage(TRUE)
 	gglist <- vector(mode = "list", nT)
 	for (TRT in 1:nT) {
 		Area=round(x$SUCRA[TRT], 3)
@@ -21,10 +21,10 @@
 			 geom_line(aes(y = cdf), color = "#eab159", size = 1) +
 			 geom_line(aes(y = pdf), color = rgb(0, 157, 114, maxColorValue = 255), linetype = "twodash", size = 1) +
 			 theme_gray() + theme(legend.position = legend.position) +
-			 ylab("SUCRA") + labs(title = paste0("Trt (", names[TRT], "): ", Area))
+			 ylab("Probability") + labs(title = paste0("Trt (", names[TRT], "): ", Area))
 		gglist[[TRT]] <- bb
-		print(bb)
 	}
-	on.exit(devAskNewPage(oask))
+	# on.exit(devAskNewPage(oask))
+	do.call(grid.arrange, gglist)
 	invisible(gglist)
 }

@@ -1,0 +1,144 @@
+---
+title: "Introduction to metapack"
+author: Daeyoung Lim
+date: "`r Sys.Date()`"
+bibliography:
+- ../inst/bib/metapack.bib
+vignette: >
+  %\VignetteIndexEntry{Introduction to metapack}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+output: rmarkdown::html_vignette
+---
+
+```{r setup, echo = FALSE}
+knitr::opts_knit$set(global.par = TRUE)
+knitr::opts_chunk$set(fig.width = 7, fig.height = 4)
+```
+
+The **metapack** package contains two main functions interfacing C++ using **Rcpp** [@Rcpp2017] and **RcppArmadillo** [@RcppArmadillo2014]: `bayes.parobs` and `bayes.nmr`. `bayes.parobs` fits multivariate meta-regression models with a partially observed sample covariance matrix [@yao2015bayesian], and `bayes.nmr` fits the network meta-regression models. We refer the readers to [the Appendix](#appx) for the mathematical formulations of the models.
+
+To use either of our functions, `bayes.parobs` and `bayes.nmr`, the data set must be preprocessed into the following format, with the only exception that `bayes.nmr` has `ZCovariate` instead of `WCovariate` to be consistent with the mathematical notation in the original paper.
+
+<a name="table-1"></a>
+
+| Outcome | SD | XCovariate | WCovariate | Trial (`k`) | Treat (`t`) | Npt |
+|:-------:|:--:|:----------:|:----------:|:-----:|:-----:|:---:|
+| $\bar{y}_{\cdot 13}$ | $S_{13}$ | $\boldsymbol{x}_{13}^\prime$ | $\boldsymbol{w}_{13}^\prime$ | 1 | 3 | 1000 |
+| $\bar{y}_{\cdot 10}$ | $S_{10}$ | $\boldsymbol{x}_{10}^\prime$ | $\boldsymbol{w}_{20}^\prime$ | 1 | 0 | 1000 |
+| $\bar{y}_{\cdot 20}$  | $S_{20}$ | $\boldsymbol{x}_{20}^\prime$ | $\boldsymbol{w}_{20}^\prime$ | 2 | 0 | 1000 |
+| $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ |
+
+The functions requires the data to be formatted in a way that every row corresponds to a unique pair of $(t,k)$ which stands for $t$th treatment and $k$th trial. Therefore, $\bar{y}_{\cdot tk}$ and $S_{tk}$ are $J$-dimensional row vectors for `bayes.parobs`, and scalars for `bayes.nmr`.
+
+## Fitting multivariate meta-regression with `bayes.parobs`
+The variables included in the [Table](#table-1) are required for `bayes.parobs`. The key argument in `bayes.parobs` is `fmodel` which specifies the model for the error covariance matrix. The objects enclosed in parentheses at the end of every bullet point are the hyperparameters associated with each model.
+
+<a name="model-spec"></a>
+
++ `fmodel=1` - $\Sigma_{tk} = \mathrm{diag}(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)$ where $\sigma_{tk,jj}^2 \sim \mathcal{IG}(a_0,b_0)$ and $\mathcal{IG}(a,b)$ is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
++ `fmodel=2` - $\Sigma_{tk}=\Sigma$ for every combination of $(t,k)$ and $\Sigma^{-1}\sim\mathcal{W}_{s_0}(\Sigma_0)$. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
++ `fmodel=3` - $\Sigma_{tk}=\Sigma_t$ and $\Sigma_t^{-1}\sim \mathcal{W}_{s_0}(\Sigma_0)$. This is a relaxed version of `fmodel=2`, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
++ `fmodel=4` - $\Sigma_{tk}=\boldsymbol{\delta}_{tk}\boldsymbol{\rho}\boldsymbol{\delta}_{tk}$ where $\boldsymbol{\delta}_{tk}=\mathrm{diag}(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})$, and $\boldsymbol{\rho}$ is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
++ `fmodel=5` - The fifth model is hierarchical and thus may require more data than the others: $(\Sigma_{tk}^{-1}\mid \Sigma)\sim \mathcal{W}_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})$ and $\Sigma \sim \mathcal{W}_{d_0}(\Sigma_0)$. $\Sigma_{tk}$ encodes the within-treatment-arm variation while $\Sigma$ captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (`c0`, `dj0`, `d0`, `nu0`, `Sigma0`, `Omega0`)
+
+The remaining optional arguments are 
+
++ `mcmc` - a list for MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes.parobs` will save the posterior every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
++ `group` - a vector containing binary variables for $u_{tk}$. If not provided, `bayes.parobs` will assume that there is no grouping and set $u_{tk}=0$ for all $(t,k)$.
++ `prior` - a list for hyperparameters. Despite $\boldsymbol{\theta}$ in every model, each `fmodel`, along with the `group` argument, requires a different set of hyperparameters. Refer to [the itemized model specifications](#model-spec).
++ `init` - a list of initial values for the parameters to be sampled: `theta`, `gamR`, `Omega`, and `Rho`. The initial value for `Rho` will be effective only if `fmodel=4`.
++ `control` - a list of tuning parameters for [the Metropolis-Hastings algorithm](https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm). `Rho`, `R`, and `delta` are sampled through either localized Metropolis algorithm or delayed rejection robust adaptive Metropolis algorithm. `*_stepsize` with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. `sample_Rho` can be set to `FALSE` to suppress the sampling of `Rho` for `fmodel=4`. When `sample_Rho` is `FALSE`, $\boldsymbol{\rho}$ will be fixed using the value given by the `init` argument, which defaults to $\boldsymbol{\rho} = 0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime$ where $\boldsymbol{1}$ is the vector of ones.
++ `scale_x` - a Boolean indicating whether `XCovariate` should be scaled/standardized. The effect of setting this to `TRUE` is not limited to merely standardizing `XCovariate`. The following generic functions will scale the posterior sample of `theta` back to its original unit: `plot`, `fitted`, `summary`, and `print`. That is, $\theta_j \gets \theta_j/\mathrm{sd}(X_j^*)$ where $X_j^*$ indicates the $j$th column of $\boldsymbol{X}^*$. 
++ `Treat_order` - a vector of unique treatments to be used for renumbering the `Treat` vector. The first element will be assigned treatment zero, potentially indicating placebo. If not provided, the numbering will default to an alphabetical/numerical order.
++ `Trial_order` - a vector of unique trials. The first element will be assigned zero. If not provided, the numbering will default to an alphabetical/numerical order.
++ `group_order` - a vector of unique group labels. The first element will be assigned zero. If not provided, the numbering will default to an alphabetical/numerical order
++ `verbose` - a Boolean indicating whether to print the progress bar during the MCMC sampling.
+
+#### Values
+`bayes.parobs` returns 
+
++ `Outcome` - the aggregate response used in the function call.
++ `SD` - the standard deviation used in the function call.
++ `Npt` - the number of participants for `(t,k)` used in the function call.
++ `XCovariate` - the aggregate design matrix for fixed effects used in the function call. Depending on `scale_x`, this may differ from the matrix provided at function call.
++ `WCovariate` - the aggregate design matrix for random effects.
++ `Treat` - the *renumbered* treatment indicators. Depending on `Treat_order`, it may differ from the vector provided at function call.
++ `Trial` - the *renumbered* trial indicators. Depending on `Trial_order`, it may differ from the vector provided at function call.
++ `group` - the *renumbered* grouping indicators in the function call. Depending on `group_order`, it may differ from the vector provided at function call. If `group` was missing at function call, `bayes.parobs` will assign `NULL` for `group`.
++ `TrtLabels` - the vector of treatment labels corresponding to the renumbered `Treat`. This is equivalent to `Treat_order` if it was given at function call.
++ `TrialLabels` - the vector of trial labels corresponding to the renumbered `Trial`. This is equivalent to `Trial_order` if it was given at function call.
++ `GroupLabels` - the vector of group labels corresponding to the renumbered `group`. This is equivalent to `group_order` if it was given at function call. If `group` was missing at function call, `bayes.parobs` will assign `NULL` for `GroupLabels`.
++ `K` - the total number of trials.
++ `T` - the total number of treatments.
++ `fmodel` - the model number as described [here](#model-spec).
++ `scale_x` - a Boolean indicating whether `XCovariate` has been scaled/standardized.
++ `prior` - the list of hyperparameters used in the function call.
++ `control` - the list of tuning parameters used for MCMC in the function call.
++ `mcmctime` - the elapsed time for the MCMC algorithm in the function call. This does not include all the other preprocessing and post-processing outside of MCMC.
++ `mcmc` - the list of MCMC specification used in the function call.
++ `mcmc.draws` - the list containing the MCMC draws. The posterior sample will be accessible here.
+
+#### Example
+The following boilerplate code demonstrates how `bayes.parobs` can be used:
+```r
+Rho_init <- diag(1, nrow = J)
+Rho_init[upper.tri(Rho_init)] <- Rho_init[lower.tri(Rho_init)] <- 0.5
+bayes.parobs(Outcome, SD, XCovariate, WCovariate, Trial, Treat, Npt,
+          fmodel = 4, prior = list(c0 = 1e6),
+          mcmc = list(ndiscard = 1e4, nskip = 1, nkeep = 2e4),
+          control = list(Rho_stepsize=0.05, R_stepsize=0.05),
+          group = Group,
+          scale_x = TRUE, verbose = TRUE)
+```
+`fmodel` can be a different number from 1 to 5. 
+
+## Fitting network meta-regression with `bayes.nmr`
+Unlike `bayes.parobs`, the aggregate design matrix for random effects, `ZCovariate`, is optional. If missing, `bayes.nmr` will assign a vector of ones for `ZCovariate`, i.e., $\boldsymbol{Z}_k = \boldsymbol{1}$ for all $k$. This reduces the model to have $\mathrm{Var}(\bar{y}_{tk}) = \sigma_{tk}^2/n_{tk} + \exp(2\phi)$ for every $(t,k)$.
+
+The remaining optional arguments are
+
++ `mcmc` - a list for MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes.nmr` will save the posterior every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
++ `prior` - a list of hyperparameters. The hyperparameters include `df`, `c01`, `c02`, `a4`, `b4`, `a5`, and `b5`. `df` indicates the degrees of freedom whose default value is 20. The hyperparameters `a*` and `b*` will take effect only if `sample_df=TRUE`. See `control`.
++ `control` - a list of tuning parameters for [the Metropolis-Hastings algorithm](https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm). `lambda`, `phi`, and `Rho` are sampled through the localized Metropolis algorithm. `*_stepsize` with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. `sample_Rho` can be set to `FALSE` to suppress the sampling of `Rho`. When `sample_Rho` is `FALSE`, $\boldsymbol{\rho}$ will instantiated using the value given by the `init` argument, which defaults to $\boldsymbol{\rho} = 0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime$ where $\boldsymbol{1}$ is the vector of ones. When `sample_df` is `TRUE`, $\nu$ (`df`) will be sampled.
++ `scale_x` - a Boolean whether `XCovariate` should be scaled/standardized. The effect of setting this to `TRUE` is not limited to merely standardizing `XCovariate`. The following generic functions will scale the posterior sample of `theta` back to its original unit: `plot`, `fitted`, `summary`, and `print`. That is, $\theta_j \gets \theta_j/\mathrm{sd}(X_j^*)$ where $X_j^*$ indicates the $j$th column of $\boldsymbol{X}^*$.
++ `init` - a list of initial values for the parameters to be sampled: `theta`, `phi`, `sig2`, and `Rho`.
++ `Treat_order` - a vector of unique treatments to be used for renumbering the `Treat` vector. The first element will be assigned treatment zero, potentially indicating placebo. If not provided, the numbering will default to an alphabetical/numerical order.
++ `Trial_order` - a vector of unique trials. The first element will be assigned trial zero. If not provided, the numbering will default to an alphabetical/numerical order.
++ `verbose` - a Boolean indicating whether to print the progress bar during the MCMC sampling.
+
+#### Values
+`bayes.nmr` returns
+
++ `Outcome` - the aggregate response used in the function call.
++ `SD` - the standard deviation used in the function call.
++ `Npt` - the number of participants for `(t,k)` used in the function call.
++ `XCovariate` - the aggregate design matrix for fixed effects used in the function call. Depending on `scale_x`, this may differ from the matrix provided at function call.
++ `ZCovariate` - the aggregate design matrix for random effects. `bayes.nmr` will assign `rep(1, length(Outcome))` if it was not provided at function call.
++ `Trial` - the *renumbered* trial indicators. Depending on `Trial_order`, it may differ from the vector provided at function call.
++ `Treat` - the *renumbered* treatment indicators. Depending on `Treat_order`, it may differ from the vector provided at function call.
++ `TrtLabels` - the vector of treatment labels corresponding to the renumbered `Treat`. This is equivalent to `Treat_order` if it was given at function call.
++ `TrialLabels` - the vector of trial labels corresponding to the renumbered `Trial`. This is equivalent to `Trial_order` if it was given at function call.
++ `K` - the total number of trials.
++ `nT` - the total number of treatments.
++ `scale_x` - a Boolean indicating whether `XCovariate` has been scaled/standardized.
++ `prior` - the list of hyperparameters used in the function call.
++ `control` - the list of tuning parameters used for MCMC in the function call.
++ `mcmctime` - the elapsed time for the MCMC algorithm in the function call. This does not include all the other preprocessing and post-processing outside of MCMC.
++ `mcmc` - the list of MCMC specification used in the function call.
++ `mcmc.draws` - the list containing the MCMC draws. The posterior sample will be accessible here.
+
+#### Example
+The following boilerplate code demonstrates how `bayes.nmr` can be used:
+```r
+fit <- bayes.nmr(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt,
+        prior = list(c01 = 1.0e05, c02 = 4, df = 3),
+        mcmc = list(ndiscard = 2500, nskip = 1, nkeep = 10000),
+        Treat_order = c("PBO", "S", "A", "L", "R", "P",
+                        "E", "SE", "AE", "LE", "PE"),
+        scale_x = TRUE, verbose = TRUE)
+```
+
+## Appendix {#appx}
+
+## Reference

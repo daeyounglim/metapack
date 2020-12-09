@@ -263,7 +263,8 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 	Dev_bar /= static_cast<double>(nkeep);
 	double p_D = Dev_bar - Dev_thetabar;
 	double DIC = Dev_thetabar + 2.0 * p_D;
-	return Rcpp::List::create(Rcpp::Named("dic")=DIC);
+	return Rcpp::List::create(Rcpp::Named("dic") = DIC, Rcpp::Named("Dev") = Dev_thetabar,
+							  Rcpp::Named("pD") = p_D);
 }
 
 

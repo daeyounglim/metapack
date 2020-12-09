@@ -1,7 +1,7 @@
 #' Print results
 #' 
 #' @param x the output model from fitting a network meta analysis/regression model
-#' @param conf.level credible level for interval estimation; set to 0.95 by default
+#' @param level credible level for interval estimation; set to 0.95 by default
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
@@ -9,7 +9,7 @@
 #' @importFrom stats quantile sd
 #' @method print bayesnmr
 #' @export
-"print.bayesnmr" <- function(x, conf.level=0.95, HPD=TRUE, ...) {
+"print.bayesnmr" <- function(x, level=0.95, HPD=TRUE, ...) {
 	cat("Bayesian Network Meta-Regression Hierarchical Models\nUsing Heavy-Tailed Multivariate Random Effects\nwith Covariate-Dependent Variances\n")
 	cat("\n")
 	cat("Model:\n")
@@ -22,12 +22,11 @@
 	cat("  phi        ~ MVN(0, c02 * I_q), c02=", x$prior$c02, "\n")
 	cat("  p(sigma^2) ~ 1/sigma^2 * I(sigma^2 > 0)\n")
 	cat("  p(Rho)     ~ 1\n")
-
-	cat("-------------------------------------------------\n")
-
+	cat("---------------------------------------------------\n")
 	cat("Number of studies:    ", x$K, "\n")
-	cat("Number of arms:       ", length(x$y), "\n")
+	cat("Number of arms:       ", length(x$Outcome), "\n")
 	cat("Number of treatments: ", x$nT, "\n")
+	digits <- max(3, getOption("digits") - 3)
 	theta <- list()
 	phi <- list()
 	gam <- list()
@@ -35,10 +34,10 @@
 	Rho <- list()
 	param <- x$mcmc.draws$theta
 	if (x$scale_x) {
-		xcols <- ncol(x$Covariate)
+		xcols <- ncol(x$XCovariate)
 		tlength <- nrow(param)
 		trlength <- tlength - xcols
-		tscale <- c(apply(x$Covariate, 2, sd), rep(1, trlength))
+		tscale <- c(unname(attr(x$XCovariate, "scaled:scale")), rep(1, trlength))
 	} else {
 		tlength <- nrow(param)
 		tscale <- rep(1, tlength)
@@ -53,18 +52,18 @@
 	gam$mean <- rowMeans(x$mcmc.draws$gam)
 	gam$sd <- apply(x$mcmc.draws$gam, 1, sd)
 
-	sig.level <- 1 - conf.level
+	sig.level <- 1 - level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(mcmc(t(param), end=x$mcmc$nkeep), prob=conf.level)
+		theta.hpd <- coda::HPDinterval(coda::mcmc(t(param), end=x$mcmc$nkeep), prob=level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
-		phi.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$phi), end=x$mcmc$nkeep), prob=conf.level)
+		phi.hpd <- coda::HPDinterval(coda::mcmc(t(x$mcmc.draws$phi), end=x$mcmc$nkeep), prob=level)
 		phi$lower <- phi.hpd[,1]
 		phi$upper <- phi.hpd[,2]
 
-		gam.hpd <- coda::HPDinterval(mcmc(t(x$mcmc.draws$gam), end=x$mcmc$nkeep), prob=conf.level)
+		gam.hpd <- coda::HPDinterval(coda::mcmc(t(x$mcmc.draws$gam), end=x$mcmc$nkeep), prob=level)
 		gam$lower <- gam.hpd[,1]
 		gam$upper <- gam.hpd[,2]
 	} else {
@@ -89,8 +88,13 @@
 	rownames(p_print) <- c(paste0("theta", 1:length(theta$mean)),
 						   paste0("phi", 1:length(phi$mean)),
 						   paste0("gam", 1:length(gam$mean)))
-	print(p_print, justify="left", digits=2)
-	cat("-----------------------------\n")
-	cat("*Credible level: ", conf.level, "\n")
+	p_print <- round(p_print, digits=digits)
+	print.default(p_print, print.gap = 2)
+	cat("---------------------------------------------------\n")
+	if (HPD) {
+		cat("*HPD level: ", level, "\n")
+	} else {
+		cat("*Credible level: ", level, "\n")
+	}
 	invisible()
 }

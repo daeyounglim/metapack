@@ -23,5 +23,7 @@ Imports: Rcpp, RcppArmadillo, RcppProgress, BH,
 	coda, ggplot2, methods
 Depends: R (>= 3.4)
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, BH
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
 URL: http://merlot.stat.uconn.edu/packages/metapack/
 BugReports: https://github.com/daeyounglim/metapack/issues

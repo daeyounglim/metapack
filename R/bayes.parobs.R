@@ -115,6 +115,9 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
       group.order <- group_order
     }
     group.n <- relabel.vec(group, group.order) - 1
+  } else {
+    group.n <- NULL
+    group.order <- NULL
   }
 
 
@@ -122,6 +125,9 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   mcvals[names(mcmc)] <- mcmc
   ndiscard <- mcvals$ndiscard
   nskip <- mcvals$nskip
+  if (nskip < 1) {
+    stop("The thinning cannot be smaller than 1.")
+  }
   nkeep <- mcvals$nkeep
 
   ctrl <- list(R_stepsize = 0.02, Rho_stepsize = 0.02, delta_stepsize = 0.2, sample_Rho = TRUE)
@@ -170,6 +176,8 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     gamR = matrix(0, nw * nr * J, K), Omega = diag(1, nrow = nw*nr*J),
     Rho = diag(1, nrow = J)
   )
+  init_final$Rho[upper.tri(init_final$Rho)] <- 0.5
+  init_final$Rho[lower.tri(init_final$Rho)] <- 0.5
   init_final[names(init)] <- init
   theta_init <- init_final$theta
   gamR_init <- init_final$gamR
@@ -479,14 +487,21 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   })
   xcc <- if (!is.null(colnames(XCovariate))) colnames(XCovariate) else paste0("beta", 1:ncol(XCovariate))
   wcc <- if (!is.null(colnames(WCovariate))) colnames(WCovariate) else paste0("gam", 1:ncol(WCovariate))
-  if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
-    if (!is.null(group)) {
-      rownames(fout$theta) <- c(rep(colnames(XCovariate), J), paste0(rep(colnames(WCovariate), J),"*(1-2nd)"), paste0(rep(colnames(WCovariate), J),"*2nd"))
-    } else {
-      rownames(fout$theta) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
-             paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
-    }
-  }
+  if (is.null(group)) {
+		rownames(fout$theta) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))), paste0(rep(wcc, J), "_", rep(1:J, each=length(wcc))))
+	} else {
+		rownames(fout$theta) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
+						 paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
+	}
+
+  # if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
+  #   if (!is.null(group)) {
+  #     rownames(fout$theta) <- c(rep(colnames(XCovariate), J), paste0(rep(colnames(WCovariate), J),"*(1-2nd)"), paste0(rep(colnames(WCovariate), J),"*2nd"))
+  #   } else {
+  #     rownames(fout$theta) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
+  #            paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
+  #   }
+  # }
   out <- list(
     Outcome = Outcome,
     SD = SD,
@@ -495,7 +510,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     WCovariate = WCovariate,
     Treat = Treat.n,
     Trial = Trial.n,
-    group = group,
+    group = group.n,
     TrtLabels = Treat.order,
     TrialLabels = Trial.order,
     GroupLabels = group.order,
@@ -504,6 +519,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     fmodel = fmodel,
     scale_x = scale_x,
     prior = priorvals,
+    control = ctrl,
     mcmctime = mcmctime,
     mcmc = mcvals,
     mcmc.draws = fout
