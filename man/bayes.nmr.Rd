@@ -7,15 +7,14 @@
 bayes.nmr(
   Outcome,
   SD,
-  Covariate,
+  XCovariate,
+  ZCovariate,
   Trial,
   Treat,
   Npt,
-  groupInfo,
   prior = list(),
   mcmc = list(),
   scale_x = FALSE,
-  add.z = NULL,
   control = list(),
   init = list(),
   Treat_order = NULL,
@@ -28,7 +27,9 @@ bayes.nmr(
 
 \item{SD}{standard deviation of the responses for each arm of each study}
 
-\item{Covariate}{aggregate covariates for the mean component}
+\item{XCovariate}{aggregate covariates for the fixed effects}
+
+\item{ZCovariate}{covariates associated with the variance of the random effects}
 
 \item{Trial}{study/trial identifiers; will be coerced to consecutive integers}
 
@@ -36,15 +37,11 @@ bayes.nmr(
 
 \item{Npt}{number of observations/participants per trial}
 
-\item{groupInfo}{list of grouping information; the control(baseline) group must start from 0; the aggregate covariates 'z' explaining the variance of the random effect of the t-th treatment will be construct based on this grouping information}
-
 \item{prior}{(Optional) list of hyperparameters when not given, algorithm will run in default setting.}
 
 \item{mcmc}{(Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
 
-\item{scale_x}{(Optional) a logical variable whether `Covariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling}
-
-\item{add.z}{(Optional) additional covariates other than the grouping vectors that should be column-concatenated to 'Z'. This should have the same number of rows as 'Outcome', and 'Covariate'}
+\item{scale_x}{(Optional) a logical variable whether `XCovariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling}
 
 \item{control}{(Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm}
 

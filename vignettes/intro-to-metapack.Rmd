@@ -7,8 +7,11 @@ bibliography:
 vignette: >
   %\VignetteIndexEntry{Introduction to metapack}
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
   \usepackage[utf8]{inputenc}
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    keep_md: true
 ---
 
 ```{r setup, echo = FALSE}
