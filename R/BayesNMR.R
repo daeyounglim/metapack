@@ -1,23 +1,48 @@
 #' Fit Bayesian Network Meta-Regression Hierarchical Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances
 #'
-#' This is a function for running the Markov chain Monte Carlo algorithm for the BNMHHtMRe Model. The first seven arguments are required.
+#' This is a function the fits the model introduced in *Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances (submitted)*. The first seven arguments are required except `ZCovariate`. If not provided, `ZCovariate` will be assigned a vector of ones, `rep(1, length(Outcome))`. `ZCovariate` is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution. 
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
-#' @param Outcome aggregate mean of the responses for each arm of each study
-#' @param SD standard deviation of the responses for each arm of each study
-#' @param XCovariate aggregate covariates for the fixed effects
-#' @param ZCovariate covariates associated with the variance of the random effects
-#' @param Trial study/trial identifiers; will be coerced to consecutive integers
-#' @param Treat treatment identifiers for the corresponding trial arm; equivalent to the arm number of each study; will be coerced to consecutive integers
-#' @param Npt number of observations/participants per trial
-#' @param prior (Optional) list of hyperparameters when not given, algorithm will run in default setting.
-#' @param mcmc (Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)
-#' @param verbose (Optional) logical variable for printing progress bar. Default to FALSE.
-#' @param control (Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm
-#' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param Trial_order (Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order
-#' @param scale_x (Optional) a logical variable whether `XCovariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling
-#' @param init (Optional) initial values for theta (ns + nT dimensional) and phi_stepsize. Dimensions must be conformant.
-#' @return a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
+#' @param Outcome the aggregate mean of the responses for each arm of every study.
+#' @param SD the standard deviation of the responses for each arm of every study.
+#' @param XCovariate the aggregate covariates for the fixed effects.
+#' @param ZCovariate the aggregate covariates associated with the variance of the random effects.
+#' @param Trial the study/trial identifiers. The elements within will be coerced to consecutive integers.
+#' @param Treat the treatment identifiers for trial arm. This is equivalent to the arm labels in each study. The elements within will be coerced to consecutive integers
+#' @param Npt the number of observations/participants for a unique `(t,k)`, or each arm of every trial.
+#' @param prior (Optional) a list of hyperparameters. The hyperparameters include `df`, `c01`, `c02`, `a4`, `b4`, `a5`, and `b5`. `df` indicates the degrees of freedom whose value is 20. The hyperparameters `a*` and `b*` will take effect only if `sample_df=TRUE`. See `control`.
+#' @param mcmc (Optional) a list of MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes.nmr` will save the posterior sample every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
+#' @param control (Optional) a list of parameters for [the Metropolis-Hastings algorithm](https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm). `lambda`, `phi`, and `Rho` are sampled through the localized Metropolis algorithm. `*_stepsize` with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. `sample_Rho` can be set to `FALSE` to suppress the sampling of `Rho`. When `sample_Rho` is `FALSE`, `Rho` will be fixed using the value given by the `init` argument, which defaults to an equicorrelation matrix of \eqn{0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime}{0.5*I + 0.5*11'} where \eqn{\boldsymbol{1}}{1} is the vector of ones. When `sample_df` is `TRUE`, `df` will be sampled.
+#' @param scale_x (Optional) a logical variable indicating whether `XCovariate` should be scaled/standardized. The effect of setting this to `TRUE` is not limited to merely standardizing `XCovariate`. The following generic functions will scale the posterior sample of `theta` back to its original unit: `plot`, `fitted`, `summary`, and `print`. That is `theta[j] <- theta[j] / sd(XCovariate[,j])`. 
+#' @param init (Optional) a list of initial values for the parameters to be sampled: `theta`, `phi`, `sig2`, and `Rho`.
+#' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the `Treat` vector. The first element will be assigned treatment zero, potentially indicating placebo. If not provided, the numbering will default to an alphabetical/numerical order.
+#' @param Trial_order (Optional) a vector unique trials. The first element will be assigned trial zero. If not provided, the numbering will default to an alphabetical/numerical order.
+#' @param verbose (Optional) a logical value indicating whether to print the progress bar during the MCMC sampling.
+#' @return `bayes.nmr` returns an object of class `"bayesnmr"`. The functions `summary` or `print` are used to obtain and print a summary of the results. The generic accessor function `fitted` extracts the posterior mean, posterior standard deviation, and the interval estimates of the value returned by `bayes.nmr`.
+#' 
+#' An object of class `bayes.nmr` is a list containing the following components:
+#' 
+#' + `Outcome` - the aggregate response used in the function call.
+#' + `SD` - the standard deviation used in the function call.
+#' + `Npt` - the number of participants for `(t,k)` used in the function call.
+#' + `XCovariate` - the aggregate design matrix for fixed effects used in the function call. Depending on `scale_x`, this may differ from the matrix provided at function call.
+#' + `ZCovariate` - the aggregate design matrix for random effects. `bayes.nmr` will assign `rep(1, length(Outcome)#' )` if it was not provided at function call.
+#' + `Trial` - the *renumbered* trial indicators. Depending on `Trial_order`, it may differ from the vector provided at function call.
+#' + `Treat` - the *renumbered* treatment indicators. Depending on `Treat_order`, it may differ from the vector provided at function call.
+#' + `TrtLabels` - the vector of treatment labels corresponding to the renumbered `Treat`. This is equivalent to `Treat_order` if it was given at function call.
+#' + `TrialLabels` - the vector of trial labels corresponding to the renumbered `Trial`. This is equivalent to `Trial_order` if it was given at function call.
+#' + `K` - the total number of trials.
+#' + `nT` - the total number of treatments.
+#' + `scale_x` - a Boolean indicating whether `XCovariate` has been scaled/standardized.
+#' + `prior` - the list of hyperparameters used in the function call.
+#' + `control` - the list of tuning parameters used for MCMC in the function call.
+#' + `mcmctime` - the elapsed time for the MCMC algorithm in the function call. This does not include all the other preprocessing and post-processing outside of MCMC.
+#' + `mcmc` - the list of MCMC specification used in the function call.
+#' + `mcmc.draws` - the list containing the MCMC draws. The posterior sample will be accessible here.
+#' 
+#' @references 
+#' Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. *Biostatistics*, **20(3)**, 499-516.
+
+#' 
 #' @examples
 #' \dontrun{
 #' data(TNM)
@@ -37,6 +62,7 @@
 #' }
 #' @importFrom stats model.matrix
 #' @importFrom methods is
+#' @md
 #' @export
 bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, prior = list(), mcmc = list(), scale_x = FALSE, control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, verbose = FALSE) {
   if (!is(Outcome, "vector")) {

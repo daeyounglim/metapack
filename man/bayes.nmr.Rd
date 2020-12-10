@@ -23,41 +23,62 @@ bayes.nmr(
 )
 }
 \arguments{
-\item{Outcome}{aggregate mean of the responses for each arm of each study}
+\item{Outcome}{the aggregate mean of the responses for each arm of every study.}
 
-\item{SD}{standard deviation of the responses for each arm of each study}
+\item{SD}{the standard deviation of the responses for each arm of every study.}
 
-\item{XCovariate}{aggregate covariates for the fixed effects}
+\item{XCovariate}{the aggregate covariates for the fixed effects.}
 
-\item{ZCovariate}{covariates associated with the variance of the random effects}
+\item{ZCovariate}{the aggregate covariates associated with the variance of the random effects.}
 
-\item{Trial}{study/trial identifiers; will be coerced to consecutive integers}
+\item{Trial}{the study/trial identifiers. The elements within will be coerced to consecutive integers.}
 
-\item{Treat}{treatment identifiers for the corresponding trial arm; equivalent to the arm number of each study; will be coerced to consecutive integers}
+\item{Treat}{the treatment identifiers for trial arm. This is equivalent to the arm labels in each study. The elements within will be coerced to consecutive integers}
 
-\item{Npt}{number of observations/participants per trial}
+\item{Npt}{the number of observations/participants for a unique \verb{(t,k)}, or each arm of every trial.}
 
-\item{prior}{(Optional) list of hyperparameters when not given, algorithm will run in default setting.}
+\item{prior}{(Optional) a list of hyperparameters. The hyperparameters include \code{df}, \code{c01}, \code{c02}, \code{a4}, \code{b4}, \code{a5}, and \code{b5}. \code{df} indicates the degrees of freedom whose value is 20. The hyperparameters \verb{a*} and \verb{b*} will take effect only if \code{sample_df=TRUE}. See \code{control}.}
 
-\item{mcmc}{(Optional) list of MCMC-related parameters: number of burn-ins (ndiscard), number of thinning(nskip), and posterior sample size (nkeep)}
+\item{mcmc}{(Optional) a list of MCMC specification. \code{ndiscard} is the number of burn-in iterations. \code{nskip} configures the thinning of the MCMC. For instance, if \code{nskip=5}, \code{bayes.nmr} will save the posterior sample every 5 iterations. \code{nkeep} is the size of the posterior sample. The total number of iterations will be \code{ndiscard + nskip * nkeep}.}
 
-\item{scale_x}{(Optional) a logical variable whether `XCovariate` should be scaled; if `TRUE`, `theta` will be scaled back to its original scale after posterior sampling}
+\item{scale_x}{(Optional) a logical variable indicating whether \code{XCovariate} should be scaled/standardized. The effect of setting this to \code{TRUE} is not limited to merely standardizing \code{XCovariate}. The following generic functions will scale the posterior sample of \code{theta} back to its original unit: \code{plot}, \code{fitted}, \code{summary}, and \code{print}. That is \code{theta[j] <- theta[j] / sd(XCovariate[,j])}.}
 
-\item{control}{(Optional) list of parameters for localized Metropolis algorithm: the step sizes for lambda, phi, and Rho (lambda_stepsize, phi_stepsize, Rho_stepsize); All default to 0.5 except Rho_stepsize if not set; Rho_stepsize defaults to 0.2; sample_Rho is a logical value, by default TRUE; if sample_Rho=FALSE, MCMC sampling of Rho is suppressed; if sample_df is set to TRUE, the degrees of freedom for the t random effects will be treated as unknown and sampled in the MCMC algorithm}
+\item{control}{(Optional) a list of parameters for \href{https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm}{the Metropolis-Hastings algorithm}. \code{lambda}, \code{phi}, and \code{Rho} are sampled through the localized Metropolis algorithm. \verb{*_stepsize} with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. \code{sample_Rho} can be set to \code{FALSE} to suppress the sampling of \code{Rho}. When \code{sample_Rho} is \code{FALSE}, \code{Rho} will be fixed using the value given by the \code{init} argument, which defaults to an equicorrelation matrix of \eqn{0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime}{0.5*I + 0.5*11'} where \eqn{\boldsymbol{1}}{1} is the vector of ones. When \code{sample_df} is \code{TRUE}, \code{df} will be sampled.}
 
-\item{init}{(Optional) initial values for theta (ns + nT dimensional) and phi_stepsize. Dimensions must be conformant.}
+\item{init}{(Optional) a list of initial values for the parameters to be sampled: \code{theta}, \code{phi}, \code{sig2}, and \code{Rho}.}
 
-\item{Treat_order}{(Optional) a vector of unique treatments to be used for renumbering the 'Treat' vector; the first element will be assigned treatment zero, potentially indicating placebo; if not provided, the numbering will default to an alphabetical/numerical order}
+\item{Treat_order}{(Optional) a vector of unique treatments to be used for renumbering the \code{Treat} vector. The first element will be assigned treatment zero, potentially indicating placebo. If not provided, the numbering will default to an alphabetical/numerical order.}
 
-\item{Trial_order}{(Optional) a vector of unique trials; the first element will be assigned trial zero; if not provided, the numbering will default to an alphabetical/numerical order}
+\item{Trial_order}{(Optional) a vector unique trials. The first element will be assigned trial zero. If not provided, the numbering will default to an alphabetical/numerical order.}
 
-\item{verbose}{(Optional) logical variable for printing progress bar. Default to FALSE.}
+\item{verbose}{(Optional) a logical value indicating whether to print the progress bar during the MCMC sampling.}
 }
 \value{
-a dataframe with input arguments, posterior samples, Metropolis algorithm acceptance rates, etc
+\code{bayes.nmr} returns an object of class \code{"bayesnmr"}. The functions \code{summary} or \code{print} are used to obtain and print a summary of the results. The generic accessor function \code{fitted} extracts the posterior mean, posterior standard deviation, and the interval estimates of the value returned by \code{bayes.nmr}.
+
+An object of class \code{bayes.nmr} is a list containing the following components:
+\itemize{
+\item \code{Outcome} - the aggregate response used in the function call.
+\item \code{SD} - the standard deviation used in the function call.
+\item \code{Npt} - the number of participants for \verb{(t,k)} used in the function call.
+\item \code{XCovariate} - the aggregate design matrix for fixed effects used in the function call. Depending on \code{scale_x}, this may differ from the matrix provided at function call.
+\item \code{ZCovariate} - the aggregate design matrix for random effects. \code{bayes.nmr} will assign \verb{rep(1, length(Outcome)#' )} if it was not provided at function call.
+\item \code{Trial} - the \emph{renumbered} trial indicators. Depending on \code{Trial_order}, it may differ from the vector provided at function call.
+\item \code{Treat} - the \emph{renumbered} treatment indicators. Depending on \code{Treat_order}, it may differ from the vector provided at function call.
+\item \code{TrtLabels} - the vector of treatment labels corresponding to the renumbered \code{Treat}. This is equivalent to \code{Treat_order} if it was given at function call.
+\item \code{TrialLabels} - the vector of trial labels corresponding to the renumbered \code{Trial}. This is equivalent to \code{Trial_order} if it was given at function call.
+\item \code{K} - the total number of trials.
+\item \code{nT} - the total number of treatments.
+\item \code{scale_x} - a Boolean indicating whether \code{XCovariate} has been scaled/standardized.
+\item \code{prior} - the list of hyperparameters used in the function call.
+\item \code{control} - the list of tuning parameters used for MCMC in the function call.
+\item \code{mcmctime} - the elapsed time for the MCMC algorithm in the function call. This does not include all the other preprocessing and post-processing outside of MCMC.
+\item \code{mcmc} - the list of MCMC specification used in the function call.
+\item \code{mcmc.draws} - the list containing the MCMC draws. The posterior sample will be accessible here.
+}
 }
 \description{
-This is a function for running the Markov chain Monte Carlo algorithm for the BNMHHtMRe Model. The first seven arguments are required.
+This is a function the fits the model introduced in \emph{Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances (submitted)}. The first seven arguments are required except \code{ZCovariate}. If not provided, \code{ZCovariate} will be assigned a vector of ones, \code{rep(1, length(Outcome))}. \code{ZCovariate} is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution.
 }
 \examples{
 \dontrun{
@@ -76,6 +97,9 @@ fit <- bayes.nmr(TNM$ptg, TNM$sdtg, x, TNM$Trial, TNM$Treat, TNM$Npt, groupInfo,
   Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE", "AE", "LE", "PE"),
   verbose = TRUE)
 }
+}
+\references{
+Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. \emph{Biostatistics}, \strong{20(3)}, 499-516.
 }
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}

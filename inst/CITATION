@@ -1,0 +1,15 @@
+citHeader("To cite metapack in publications, use:")
+
+bibentry(
+    key = "metapack-package",
+    bibtype = "Manual",
+    title = "{metapack}: {R} package for Bayesian Meta-Analysis and Network Meta-Analysis",
+    author = c(
+        as.person("Daeyoung Lim"),
+        as.person("Ming-Hui Chen"),
+        as.person("Sungduk Kim"),
+        as.person("Joseph G. Ibrahim")
+    ),
+    year = "2020",
+    url = "http://merlot.stat.uconn.edu/packages/metapack/"
+)
