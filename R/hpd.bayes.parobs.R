@@ -3,7 +3,6 @@
 #' @param parm a specification of which parameters are to be given confidence intervals, either a vector of numbers or a vector of names. If missing, all parameters are considered.
 #' @param level the probability which the HPD interval will cover
 #' @param HPD a logical value indicating whether HPD or equal-tailed credible interval should be computed; by default, TRUE
-#' @importFrom coda mcmc HPDinterval
 #' @return dataframe containing HPD intervals for the parameters
 #' @method hpd bayes.parobs
 #' @export
@@ -26,7 +25,7 @@
 		out <- list()
 		if (HPD) {
 			out$ypred <- hpdarray(object$mcmc.draws$ypred, level = level)
-			out$theta <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob = level)
+			out$theta <- mhpd(theta.post, level)
 			out$Omega <- hpdarray(object$mcmc.draws$Omega, level = level)
 			out$Sigma <- hpdarray(object$mcmc.draws$Sigma, level = level)
 			if (object$fmodel >= 2) {
@@ -35,7 +34,7 @@
 					out$delta <- hpdarray(object$mcmc.draws$delta, level = level)
 					out$Rho <- hpdarray(object$mcmc.draws$Rho, level = level)
 				} else if (object$fmodel == 5) {
-					out$delta <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=level)
+					out$delta <- mhpd(object$mcmc.draws$delta, level)
 					out$Rho <- hpdarray(object$mcmc.draws$Rho, level = level)
 					out$Sigma0 <- hpdarray(object$mcmc.draws$Sigma0, level = level)
 				}
@@ -64,7 +63,7 @@
 		cl <- list()
 		if (HPD) {
 			cl$ypred <- quote(hpdarray(object$mcmc.draws$ypred, level=level))
-			cl$theta <- quote(coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=level))
+			cl$theta <- quote(mhpd(theta.post, level))
 			cl$Omega <- quote(hpdarray(object$mcmc.draws$Omega, level = level))
 			cl$Sigma <- quote(hpdarray(object$mcmc.draws$Sigma, level = level))
 			if (object$fmodel >= 2) {
@@ -73,7 +72,7 @@
 					cl$delta <- quote(hpdarray(object$mcmc.draws$delta, level = level))
 					cl$Rho <- quote(hpdarray(object$mcmc.draws$Rho, level = level))
 				} else if (object$fmodel == 5) {
-					cl$delta <- quote(coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=level))
+					cl$delta <- quote(mhpd(object$mcmc.draws$delta, level))
 					cl$Rho <- quote(hpdarray(object$mcmc.draws$Rho, level = level))
 					cl$Sigma0 <- quote(hpdarray(object$mcmc.draws$Sigma0, level = level))
 				}
@@ -99,3 +98,4 @@
 		return(eval(cl[[parm]]))
 	}
 }
+

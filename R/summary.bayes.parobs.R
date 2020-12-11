@@ -1,7 +1,6 @@
 #' `summary` method for class "`bayes.parobs`"
 #' @param object the output model from fitting a meta analysis/regression model
 #' @param ... additional arguments for summary
-#' @importFrom coda mcmc HPDinterval
 #' @return print summary for the model fit
 #' @method summary bayes.parobs
 #' @md
@@ -31,7 +30,7 @@
 
 	sig.level <- 1 - 0.95
 
-	theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=0.95)
+	theta.hpd <- mhpd(theta.post, 0.95)
 	theta$lower <- theta.hpd[,1]
 	theta$upper <- theta.hpd[,2]
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)

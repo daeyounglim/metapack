@@ -5,7 +5,6 @@
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for fitted
 #' @return a list of fitted values
-#' @importFrom coda mcmc HPDinterval
 #' @method fitted bayesnmr
 #' @export
 "fitted.bayesnmr" <- function(object, level = 0.95, HPD = TRUE, ...) {
@@ -46,19 +45,19 @@
 	sig.level <- 1 - level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=level)
+		theta.hpd <- mhpd(theta.post, level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
-		phi.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$phi), end=object$mcmc$nkeep), prob=level)
+		phi.hpd <- mhpd(object$mcmc.draws$phi, level)
 		phi$lower <- phi.hpd[,1]
 		phi$upper <- phi.hpd[,2]
 
-		gam.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=level)
+		gam.hpd <- mhpd(object$mcmc.draws$gam, level)
 		gam$lower <- gam.hpd[,1]
 		gam$upper <- gam.hpd[,2]
 
-		sig2.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=level)
+		sig2.hpd <- mhpd(object$mcmc.draws$sig2, level)
 		sig2$lower <- sig2.hpd[,1]
 		sig2$upper <- sig2.hpd[,2]
 
@@ -67,7 +66,7 @@
 		Rho$upper <- Rho.hpd[,2]
 
 		if (object$control$sample_df) {
-			df.hpd <- coda::HPDinterval(coda::mcmc(object$mcmc.draws$df, end=object$mcmc$nkeep), prob=level)
+			df.hpd <- vhpd(object$mcmc.draws$df, level)
 			df$lower <- df.hpd[,1]
 			df$upper <- df.hpd[,2]			
 		}

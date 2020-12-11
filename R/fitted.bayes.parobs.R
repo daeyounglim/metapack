@@ -5,7 +5,6 @@
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for fitted
 #' @return a list of fitted values
-#' @importFrom coda mcmc HPDinterval
 #' @method fitted bayes.parobs
 #' @export
 "fitted.bayes.parobs" <- function(object, level = 0.95, HPD = TRUE, ...) {
@@ -121,7 +120,7 @@
 	sig.level <- 1 - level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=level)
+		theta.hpd <- mhpd(theta.post, level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
@@ -146,7 +145,7 @@
 				Rho$lower <- Rho.hpd[,,1]
 				Rho$upper <- Rho.hpd[,,2]
 			} else if (fmodel == 5) {
-				Delta.hpd <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$delta), end=object$mcmc$nkeep), prob=level)
+				Delta.hpd <- mhpd(object$mcmc.draws$delta, level)
 				Delta$lower <- Delta.hpd[,1]
 				Delta$upper <- Delta.hpd[,2]
 
@@ -217,5 +216,5 @@
 	}
 
 	class(out) <- "fitted.bayes.parobs"
-	out
+	return(out)
 }

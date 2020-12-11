@@ -463,6 +463,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// vhpd
+arma::vec vhpd(const arma::vec& x, const double& alpha);
+RcppExport SEXP _metapack_vhpd(SEXP xSEXP, SEXP alphaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double& >::type alpha(alphaSEXP);
+    rcpp_result_gen = Rcpp::wrap(vhpd(x, alpha));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mhpd
+arma::mat mhpd(const arma::mat& x, const double& alpha);
+RcppExport SEXP _metapack_mhpd(SEXP xSEXP, SEXP alphaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double& >::type alpha(alphaSEXP);
+    rcpp_result_gen = Rcpp::wrap(mhpd(x, alpha));
+    return rcpp_result_gen;
+END_RCPP
+}
 // vecr
 arma::mat vecr(const arma::mat& X);
 RcppExport SEXP _metapack_vecr(SEXP XSEXP) {
@@ -579,6 +603,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_metapack_fmodel4p", (DL_FUNC) &_metapack_fmodel4p, 26},
     {"_metapack_lpml_parcov", (DL_FUNC) &_metapack_lpml_parcov, 16},
     {"_metapack_dic_parcov", (DL_FUNC) &_metapack_dic_parcov, 16},
+    {"_metapack_vhpd", (DL_FUNC) &_metapack_vhpd, 2},
+    {"_metapack_mhpd", (DL_FUNC) &_metapack_mhpd, 2},
     {"_metapack_vecr", (DL_FUNC) &_metapack_vecr, 1},
     {"_metapack_vecrinv", (DL_FUNC) &_metapack_vecrinv, 2},
     {"_metapack_pRho_to_Rho", (DL_FUNC) &_metapack_pRho_to_Rho, 1},

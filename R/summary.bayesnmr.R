@@ -3,7 +3,6 @@
 #' @param object the output model from fitting a network meta analysis/regression model
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
-#' @importFrom coda mcmc HPDinterval
 #' @importFrom stats quantile sd
 #' @method summary bayesnmr
 #' @export
@@ -38,7 +37,7 @@
 	sig.level <- 1 - level
 
 
-	theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=level)
+	theta.hpd <- mhpd(theta.post, level)
 	theta$lower <- theta.hpd[,1]
 	theta$upper <- theta.hpd[,2]
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)

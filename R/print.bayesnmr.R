@@ -5,7 +5,6 @@
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
-#' @importFrom coda mcmc HPDinterval
 #' @importFrom stats quantile sd
 #' @method print bayesnmr
 #' @export
@@ -45,8 +44,8 @@
 	theta.post <- vapply(1:x$mcmc$nkeep, function(ikeep) {
 		param[,ikeep] / tscale
 	}, FUN.VALUE = numeric(tlength))
-	theta$mean <- rowMeans(param)
-	theta$sd <- apply(param, 1, sd)
+	theta$mean <- rowMeans(theta.post)
+	theta$sd <- apply(theta.post, 1, sd)
 	phi$mean <- rowMeans(x$mcmc.draws$phi)
 	phi$sd <- apply(x$mcmc.draws$phi, 1, sd)
 	gam$mean <- rowMeans(x$mcmc.draws$gam)
@@ -55,20 +54,20 @@
 	sig.level <- 1 - level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(coda::mcmc(t(param), end=x$mcmc$nkeep), prob=level)
+		theta.hpd <- mhpd(theta.post, level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 
-		phi.hpd <- coda::HPDinterval(coda::mcmc(t(x$mcmc.draws$phi), end=x$mcmc$nkeep), prob=level)
+		phi.hpd <- mhpd(x$mcmc.draws$phi, level)
 		phi$lower <- phi.hpd[,1]
 		phi$upper <- phi.hpd[,2]
 
-		gam.hpd <- coda::HPDinterval(coda::mcmc(t(x$mcmc.draws$gam), end=x$mcmc$nkeep), prob=level)
+		gam.hpd <- mhpd(x$mcmc.draws$gam, level)
 		gam$lower <- gam.hpd[,1]
 		gam$upper <- gam.hpd[,2]
 	} else {
-		theta$lower <- apply(param, 1, function(xx) quantile(xx, prob = sig.level/2))
-		theta$upper <- apply(param, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+		theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(theta.post, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 		phi$lower <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = sig.level/2))
 		phi$upper <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = 1-sig.level/2))

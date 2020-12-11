@@ -21,3 +21,6 @@ dataframe containing HPD intervals for the parameters
 \description{
 get the highest posterior density (HPD) interval
 }
+\references{
+Chen, M. H., & Shao, Q. M. (1999). Monte Carlo estimation of Bayesian credible and HPD intervals. \emph{Journal of Computational and Graphical Statistics}, \strong{8(1)}, 69-92.
+}

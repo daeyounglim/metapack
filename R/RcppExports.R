@@ -57,6 +57,14 @@ dic_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta
     .Call(`_metapack_dic_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, grouped, Second, ncores)
 }
 
+vhpd <- function(x, alpha) {
+    .Call(`_metapack_vhpd`, x, alpha)
+}
+
+mhpd <- function(x, alpha) {
+    .Call(`_metapack_mhpd`, x, alpha)
+}
+
 vecr <- function(X) {
     .Call(`_metapack_vecr`, X)
 }

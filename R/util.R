@@ -31,21 +31,45 @@ relabel.vec <- function(x, order)
   old.x <- x
   x <- rep(NA, length(old.x))
   for (i in seq(length(order))) x[old.x == order[i]] <- i #relabel studies in numerical order starting with one
-  x
+  return(x)
 }
 
+vhpd <- function(x, level = 0.95) {
+    n <- length(x)
+    gap <- max(1, min(n - 1, round(n * level))) / n
+    if (level > gap) stop(cat("(Error) The desired level cannot be reached with the provided posterior sample size.\nThe level should be smaller than ", gap,"\n"))
+    alpha <- 1 - level
+    out <- .Call(`_metapack_vhpd`, as.vector(x), as.double(alpha))
+    attr(out, "Empirical level") <- gap
+    return(out)
+}
+
+mhpd <- function(x, level = 0.95) {
+    n <- ncol(x)
+    gap <- max(1, min(n - 1, round(n * level))) / n
+    if (level > gap) stop(cat("(Error) The desired level cannot be reached with the provided posterior sample size.\nThe level should be smaller than ", gap,"\n"))
+    alpha <- 1 - level
+    out <- .Call(`_metapack_mhpd`, as.matrix(x), as.double(alpha))
+    attr(out, "Empirical level") <- gap
+    return(out)
+}
 
 hpdarray <- function(A, level = 0.95) {
-  nR <- nrow(A)
-  nC <- ncol(A)
+    nR <- nrow(A)
+    nC <- ncol(A)
+    n <- dim(A)[3]
+    gap <- max(1, min(n - 1, round(n * level))) / n
+    if (level > gap) stop(cat("(Error) The desired level cannot be reached with the provided posterior sample size.\nThe level should be smaller than ", gap,"\n"))
+  alpha = 1 - level
   out <- array(0, dim = c(nR, nC, 2))
   dimnames(out)[[3]] <- c("lower", "upper")
   for (iC in 1:nC) {
-    hpd_ic <- coda::HPDinterval(coda::mcmc(t(A[,iC,]), end = dim(A)[3]), prob = level)
+        hpd_ic <- .Call(`_metapack_mhpd`, as.matrix(A[,iC,]), as.double(alpha))
     out[,iC,1] <- hpd_ic[,1]
     out[,iC,2] <- hpd_ic[,2]
   }
-  out
+  attr(out, "Empirical level") <- gap 
+  return(out)
 }
 
 ciarray <- function(A, level = 0.95) {
@@ -56,5 +80,5 @@ ciarray <- function(A, level = 0.95) {
   sig.level <- 1 - level
   out[,,1] <- apply(A, c(1,2), function(xx) quantile(xx, prob = sig.level / 2))
   out[,,2] <- apply(A, c(1,2), function(xx) quantile(xx, prob = 1 - sig.level / 2))
-  out
+  return(out)
 }

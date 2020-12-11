@@ -3,7 +3,6 @@
 #' @param parm a specification of which parameters are to be given confidence intervals, either a vector of numbers or a vector of names. If missing, all parameters are considered.
 #' @param level the probability which the HPD interval will cover
 #' @param HPD a logical value indicating whether HPD or equal-tailed credible interval should be computed; by default, TRUE
-#' @importFrom coda mcmc HPDinterval
 #' @return dataframe containing HPD intervals for the parameters
 #' @method hpd bayesnmr
 #' @export
@@ -24,13 +23,13 @@
 	if (missing(parm)) {
 		out <- list()
 		if (HPD) {
-			out$theta <- coda::HPDinterval(coda::mcmc(t(theta.post), end=object$mcmc$nkeep), prob=level)
-			out$phi <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$phi), end=object$mcmc$nkeep), prob=level)
-			out$gam <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=level)
-			out$sig2 <- coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=level)
+            out$theta <- mhpd(theta.post, level)
+			out$phi <- mhpd(object$mcmc.draws$phi, level)
+			out$gam <- mhpd(object.mcmc.draws$gam, level)
+			out$sig2 <- mhpd(object$mcmc.draws$sig2, level)
 			out$Rho <- hpdarray(object$mcmc.draws$Rho, level = level)
 			if (object$control$sample_df) {
-				out$df <- coda::HPDinterval(coda::mcmc(object$mcmc.draws$df, end=object$mcmc$nkeep), prob=level)
+				out$df <- vhpd(object$mcmc.draws$df, level)
 			}
 			attr(out, "type") <- "HPD"
 		} else {
@@ -50,13 +49,13 @@
 	} else {
 		cl <- list()
 		if (HPD) {
-			cl$theta <-quote(coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$theta), end=object$mcmc$nkeep), prob=level))
-			cl$phi <- quote(coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$phi), end=object$mcmc$nkeep), prob=level))
-			cl$gam <- quote(coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$gam), end=object$mcmc$nkeep), prob=level))
-			cl$sig2 <- quote(coda::HPDinterval(coda::mcmc(t(object$mcmc.draws$sig2), end=object$mcmc$nkeep), prob=level))
+			cl$theta <-quote(mhpd(theta.post, level))
+			cl$phi <- quote(mhpd(object$mcmc.draws$phi, level))
+			cl$gam <- quote(mhpd(object$mcmc.draws$gam))
+			cl$sig2 <- quote(mhpd(object$mcmc.draws$sig2))
 			cl$Rho <- quote(hpdarray(object$mcmc.draws$Rho, level = level))
 			if (object$control$sample_df) {
-				cl$df <- coda::HPDinterval(coda::mcmc(object$mcmc.draws$df, end=object$mcmc$nkeep), prob=level)
+				cl$df <- quote(vhpd(object$mcmc.draws$df, level))
 			}
 		} else {
 			sig.level <- 1 - level

@@ -5,7 +5,6 @@
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
-#' @importFrom coda mcmc HPDinterval
 #' @importFrom stats sd quantile
 #' @method print bayes.parobs
 #' @export
@@ -61,7 +60,7 @@
 	sig.level <- 1 - level
 
 	if (HPD) {
-		theta.hpd <- coda::HPDinterval(coda::mcmc(t(theta.post), end=x$mcmc$nkeep), prob=level)
+		theta.hpd <- mhpd(theta.post, level)
 		theta$lower <- theta.hpd[,1]
 		theta$upper <- theta.hpd[,2]
 	} else {

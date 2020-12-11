@@ -205,7 +205,7 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, pr
   sample_df <- ctrl$sample_df
 
   if (is.infinite(df) && sample_df) {
-    stop("Cannot sample degrees of freedom for a normal random effects model")
+    stop("The degrees of freedom cannot be sampled for a normal random-effects model")
   }
 
 
@@ -264,5 +264,5 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, pr
     mcmc.draws = fout
   )
   class(out) <- "bayesnmr"
-  out
+  return(out)
 }

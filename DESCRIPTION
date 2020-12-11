@@ -19,7 +19,7 @@ LazyLoad: yes
 LazyData: true
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Imports: Rcpp, coda, ggplot2, methods, gridExtra
+Imports: Rcpp, ggplot2, methods, gridExtra
 Depends: R (>= 3.4)
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, BH
 Suggests: knitr, rmarkdown
