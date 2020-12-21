@@ -3,7 +3,7 @@
 \docType{data}
 \name{cholesterol}
 \alias{cholesterol}
-\title{26 Merck-sponsored double-blind, randomized, active, or placebo-controlled clinical trials on patients with primary hypercholesterolemia}
+\title{26 double-blind, randomized, active, or placebo-controlled clinical trials on patients with primary hypercholesterolemia sponsored by Merck & Co., Inc., Kenilworth, NJ, USA.}
 \format{
 A data frame with 52 rows and 19 variables
 \describe{

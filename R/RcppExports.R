@@ -57,6 +57,10 @@ dic_parcov <- function(Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta
     .Call(`_metapack_dic_parcov`, Outcome, XCovariate, WCovariate, Npt, Sigma, Omega, theta, thetahat, Sigmahat, Omegahat, fmodel, nkeep, verbose, grouped, Second, ncores)
 }
 
+pearson_parcov <- function(resid, Npt, Sigma, fmodel, nkeep, verbose) {
+    .Call(`_metapack_pearson_parcov`, resid, Npt, Sigma, fmodel, nkeep, verbose)
+}
+
 vhpd <- function(x, alpha) {
     .Call(`_metapack_vhpd`, x, alpha)
 }
@@ -81,8 +85,8 @@ Rho_to_pRho <- function(Rho) {
     .Call(`_metapack_Rho_to_pRho`, Rho)
 }
 
-calc_modelfit_pearson <- function(y, x, z, ids, iarm, npt, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose, ncores) {
-    .Call(`_metapack_calc_modelfit_pearson`, y, x, z, ids, iarm, npt, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose, ncores)
+calc_modelfit_pearson <- function(resid, npt, sig2s, nkeep, verbose) {
+    .Call(`_metapack_calc_modelfit_pearson`, resid, npt, sig2s, nkeep, verbose)
 }
 
 calc_modelfit_lpml <- function(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores) {

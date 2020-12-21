@@ -18,75 +18,29 @@
 using namespace arma;
 
 // [[Rcpp::export]]
-arma::mat calc_modelfit_pearson(const arma::vec& y,
-								const arma::mat& x,
-								const arma::mat& z,
-								const arma::uvec& ids,
-								const arma::uvec& iarm,
+arma::vec calc_modelfit_pearson(const arma::mat& resid,
 								const arma::vec& npt,
-								const arma::mat& betas,
 								const arma::mat& sig2s,
-								const arma::mat& phis,
-								const arma::mat& lams,
-								const arma::cube& Rhos,
-								const int& K,
-								const int& nT,
 								const int& nkeep,
-								const bool& verbose,
-								const int& ncores) {
+								const bool& verbose) {
 	using namespace arma;
 	/* make a list of y_k, X_k, z_k*/
-	const int N = y.n_elem;
-	arma::field<arma::mat> Xks(K);
-	arma::field<arma::mat> Eks(K);
-	arma::field<arma::uvec> idxks(K);
-	for (int k = 0; k < K; ++k) {
-		uvec idx = find(ids == k);
-		idxks(k) = idx;
-		Xks(k) = x.rows(idx);
-		int idx_l = idx.n_elem;
-		mat Ek(nT, idx_l, fill::zeros);
-		
-		uvec iarm_k = iarm(idx);
-		for (int j = 0; j < idx_l; ++j) {
-			Ek(iarm_k(j),j) = 1.0;
-		}
-		Eks(k) = Ek;
-	}
-	mat out(N, nkeep, fill::zeros);
+	const int ns = resid.n_rows;
+	vec sig2hat = arma::mean(sig2s, 1) / npt;
+	vec Er = arma::mean(resid, 1);
+	vec Varr(ns, fill::zeros);
 	{
 		Progress prog(nkeep, verbose);
-		#ifdef _OPENMP
-		#pragma omp parallel for schedule(static) num_threads(ncores)
-		#endif
 		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
 			if (!Progress::check_abort()) {
-				vec beta_ikeep = betas.col(ikeep);
-				vec sig2_ikeep = sig2s.col(ikeep);
-				vec phi_ikeep = phis.col(ikeep);
-				vec lam_ikeep = lams.col(ikeep);
-				mat Rho_ikeep = Rhos.slice(ikeep);
-				vec Z_ikeep = arma::exp(z * phi_ikeep);
-				vec out_ikeep(N, fill::zeros);
-				for (int k=0; k < K; ++k) {
-					uvec idx = idxks(k);
-					vec y_k = y(idx);
-					mat E_k = Eks(k);
-					mat X_k = arma::join_horiz(Xks(k), E_k.t());
-					vec resid_k = y_k - X_k * beta_ikeep;
-					vec Z_k = Z_ikeep(idx);
-					double lam_k = lam_ikeep(k);
-					mat ERE_k = diagmat(Z_k) * E_k.t() * Rho_ikeep * E_k * diagmat(Z_k);
-					vec sig2_k = sig2_ikeep(idx) / npt(idx);
-					vec dv = diagvec(ERE_k) / lam_k + sig2_k;
-					out_ikeep(idx) = resid_k / sqrt(dv);
-				}
-				out.col(ikeep) = out_ikeep;
+				vec resid_ikeep = resid.col(ikeep);
+				Varr += arma::square(resid_ikeep - Er);
 				prog.increment();
 			}
 		}
 	}
-	return out;
+	Varr /= static_cast<double>(nkeep);
+	return Er / arma::sqrt(Varr + sig2hat);
 }
 
 
@@ -256,8 +210,6 @@ Rcpp::List calc_modelfit_lpml(const arma::vec& y,
 	}
 	return Rcpp::List::create(Rcpp::Named("lpml")=alpml, Rcpp::Named("logcpo")=alogcpo);
 }
-
-
 
 
 

@@ -3,7 +3,6 @@
 #' @param ... additional parameters for plot
 #' @importFrom graphics par
 #' @importFrom stats density 
-#' @method plot bayes.parobs
 #' @export
 #' 
 #' 

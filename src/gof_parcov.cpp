@@ -267,5 +267,57 @@ Rcpp::List dic_parcov(const arma::mat& Outcome,
 							  Rcpp::Named("pD") = p_D);
 }
 
-
-
+// [[Rcpp::export]]
+arma::mat pearson_parcov(const arma::cube& resid,
+			  		  const arma::vec& Npt,
+			  		  const arma::cube& Sigma,
+			  		  const int& fmodel,
+			  		  const int& nkeep,
+			  		  const bool& verbose) {
+	using namespace arma;
+	const int N = resid.n_rows;
+	const int J = resid.n_cols;
+	cube Sig(N, J, nkeep, fill::zeros);
+	mat Er = arma::mean(resid, 2);
+	mat Varr(N, J, fill::zeros);
+	if (fmodel != 1) {
+		Progress prog(nkeep, verbose);
+		for (int ikeep = 0; ikeep < nkeep; ++ikeep) {
+			if (!Progress::check_abort()) {
+				Varr += arma::square(resid.slice(ikeep) - Er);
+				mat Sig_ikeep(N, J, fill::zeros);
+				mat Sigma_ikeep = Sigma.slice(ikeep);
+				for (int i = 0; i < N; ++i)
+				{
+					if (fmodel == 2) {
+						// when fmodel == 2
+						Sig_ikeep.row(i) = arma::trans(arma::diagvec(Sig_ikeep)) / Npt(i);
+					} else {
+						mat tmp = vechinv(arma::trans(Sigma_ikeep.row(i)), J);
+						Sig_ikeep.row(i) = arma::trans(arma::diagvec(tmp)) / Npt(i);
+					}
+				}
+				Sig.slice(ikeep) = Sig_ikeep;
+				prog.increment();
+			}
+		}
+	} else {
+		Progress prog(nkeep, verbose);
+		for (int ikeep = 0; ikeep < nkeep; ++ikeep)
+		{
+			if (!Progress::check_abort())
+			{
+				mat Sigma_ikeep = Sigma.slice(ikeep);
+				for (int i = 0; i < N; ++i)
+				{
+					Sigma_ikeep.row(i) /= Npt(i);
+				}
+				Sig.slice(ikeep) = Sigma_ikeep;
+				prog.increment();
+			}
+		}
+	}
+	Varr /= static_cast<double>(nkeep);
+	mat Sighat = arma::mean(Sig, 2);
+	return Er / arma::sqrt(Varr + Sighat);
+}

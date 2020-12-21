@@ -463,6 +463,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// pearson_parcov
+arma::mat pearson_parcov(const arma::cube& resid, const arma::vec& Npt, const arma::cube& Sigma, const int& fmodel, const int& nkeep, const bool& verbose);
+RcppExport SEXP _metapack_pearson_parcov(SEXP residSEXP, SEXP NptSEXP, SEXP SigmaSEXP, SEXP fmodelSEXP, SEXP nkeepSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type resid(residSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Npt(NptSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type Sigma(SigmaSEXP);
+    Rcpp::traits::input_parameter< const int& >::type fmodel(fmodelSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(pearson_parcov(resid, Npt, Sigma, fmodel, nkeep, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // vhpd
 arma::vec vhpd(const arma::vec& x, const double& alpha);
 RcppExport SEXP _metapack_vhpd(SEXP xSEXP, SEXP alphaSEXP) {
@@ -533,28 +549,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // calc_modelfit_pearson
-arma::mat calc_modelfit_pearson(const arma::vec& y, const arma::mat& x, const arma::mat& z, const arma::uvec& ids, const arma::uvec& iarm, const arma::vec& npt, const arma::mat& betas, const arma::mat& sig2s, const arma::mat& phis, const arma::mat& lams, const arma::cube& Rhos, const int& K, const int& nT, const int& nkeep, const bool& verbose, const int& ncores);
-RcppExport SEXP _metapack_calc_modelfit_pearson(SEXP ySEXP, SEXP xSEXP, SEXP zSEXP, SEXP idsSEXP, SEXP iarmSEXP, SEXP nptSEXP, SEXP betasSEXP, SEXP sig2sSEXP, SEXP phisSEXP, SEXP lamsSEXP, SEXP RhosSEXP, SEXP KSEXP, SEXP nTSEXP, SEXP nkeepSEXP, SEXP verboseSEXP, SEXP ncoresSEXP) {
+arma::vec calc_modelfit_pearson(const arma::mat& resid, const arma::vec& npt, const arma::mat& sig2s, const int& nkeep, const bool& verbose);
+RcppExport SEXP _metapack_calc_modelfit_pearson(SEXP residSEXP, SEXP nptSEXP, SEXP sig2sSEXP, SEXP nkeepSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type ids(idsSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type iarm(iarmSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type resid(residSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type npt(nptSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type betas(betasSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sig2s(sig2sSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type phis(phisSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type lams(lamsSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type Rhos(RhosSEXP);
-    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nT(nTSEXP);
     Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
     Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
-    Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_modelfit_pearson(y, x, z, ids, iarm, npt, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, verbose, ncores));
+    rcpp_result_gen = Rcpp::wrap(calc_modelfit_pearson(resid, npt, sig2s, nkeep, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -603,13 +608,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_metapack_fmodel4p", (DL_FUNC) &_metapack_fmodel4p, 26},
     {"_metapack_lpml_parcov", (DL_FUNC) &_metapack_lpml_parcov, 16},
     {"_metapack_dic_parcov", (DL_FUNC) &_metapack_dic_parcov, 16},
+    {"_metapack_pearson_parcov", (DL_FUNC) &_metapack_pearson_parcov, 6},
     {"_metapack_vhpd", (DL_FUNC) &_metapack_vhpd, 2},
     {"_metapack_mhpd", (DL_FUNC) &_metapack_mhpd, 2},
     {"_metapack_vecr", (DL_FUNC) &_metapack_vecr, 1},
     {"_metapack_vecrinv", (DL_FUNC) &_metapack_vecrinv, 2},
     {"_metapack_pRho_to_Rho", (DL_FUNC) &_metapack_pRho_to_Rho, 1},
     {"_metapack_Rho_to_pRho", (DL_FUNC) &_metapack_Rho_to_pRho, 1},
-    {"_metapack_calc_modelfit_pearson", (DL_FUNC) &_metapack_calc_modelfit_pearson, 16},
+    {"_metapack_calc_modelfit_pearson", (DL_FUNC) &_metapack_calc_modelfit_pearson, 5},
     {"_metapack_calc_modelfit_lpml", (DL_FUNC) &_metapack_calc_modelfit_lpml, 19},
     {NULL, NULL, 0}
 };

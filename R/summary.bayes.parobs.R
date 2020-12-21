@@ -2,7 +2,6 @@
 #' @param object the output model from fitting a meta analysis/regression model
 #' @param ... additional arguments for summary
 #' @return print summary for the model fit
-#' @method summary bayes.parobs
 #' @md
 #' @export
 "summary.bayes.parobs" <- function(object, ...) {

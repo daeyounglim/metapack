@@ -3,7 +3,6 @@
 #' @param type the type of model comparison measures; DIC or LPML
 #' @param verbose FALSE by default; If TRUE, then progress bar will appear
 #' @param ncores the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores
-#' @method model.comp bayes.parobs
 #' @importFrom parallel detectCores
 #' @export
 "model.comp.bayes.parobs" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
@@ -33,8 +32,8 @@
 			  		  as.matrix(object$XCovariate),
 			  		  as.matrix(object$WCovariate),
 			  		  as.vector(object$Npt),
-			  		  object$mcmc.draws$Sigma,
-			  		  object$mcmc.draws$Omega,
+			  		  as.array(object$mcmc.draws$Sigma),
+			  		  as.array(object$mcmc.draws$Omega),
 			  		  as.matrix(object$mcmc.draws$theta),
 			  		  as.double(thetahat),
 			  		  as.matrix(Sigmahat),
@@ -51,8 +50,8 @@
 			  		  as.matrix(object$XCovariate),
 			  		  as.matrix(object$WCovariate),
 			  		  as.vector(object$Npt),
-			  		  object$mcmc.draws$Sigma,
-			  		  object$mcmc.draws$Omega,
+			  		  as.array(object$mcmc.draws$Sigma),
+			  		  as.array(object$mcmc.draws$Omega),
 			  		  as.matrix(object$mcmc.draws$theta),
 			  		  as.double(thetahat),
 			  		  as.matrix(Sigmahat),
@@ -63,6 +62,14 @@
 			  		  as.logical(!is.null(object$group)),
 			  		  as.integer(second),
 			  		  as.integer(ncores))
+	} else if (type == "pearson") {
+		gof <- .Call(`_metapack_pearson_parcov`,
+					  as.array(object$mcmc.draws$resid),
+			  		  as.vector(object$Npt),
+			  		  as.array(object$mcmc.draws$Sigma),
+			  		  as.integer(object$fmodel),
+			  		  as.integer(nkeep),
+			  		  as.logical(verbose))
 	}
 
 	class(gof) <- "gofparobs"

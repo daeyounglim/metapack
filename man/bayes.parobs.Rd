@@ -40,20 +40,20 @@ bayes.parobs(
 
 \item{Npt}{the number of observations/participants for a unique \verb{(t,k)}, or each arm of every trial.}
 
-\item{fmodel}{the model number. The possible values for \code{fmodel} are 1 to 5, each indicating a different prior specification for \eqn{\Sigma_{tk}}{Sig.tk}. It will default to M1, \code{fmodel=1} if not specified at function call. See the following model descriptions. The objects enclosed in parentheses at the end of every bullet point are the hyperparameters associated with each model.
+\item{fmodel}{the model number. The possible values for \code{fmodel} are 1 to 5, each indicating a different prior specification for \eqn{\Sigma_tk}. It will default to M1, \code{fmodel=1} if not specified at function call. See the following model descriptions. The objects enclosed in parentheses at the end of every bullet point are the hyperparameters associated with each model.
 \itemize{
-\item \code{fmodel=1} - \eqn{\Sigma_{tk} = \mathrm{diag}(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)}{Sig.tk = diag(sig2_{tk,11}, ..., sig2_{tk,JJ})} where \eqn{\sigma_{tk,jj}^2 \sim \mathcal{IG}(a_0,b_0)}{sig2_{tk,jj} ~ IG(a0, b0)} and \eqn{\mathcal{IG}(a,b)}{IG(a,b)} is \href{https://en.wikipedia.org/wiki/Inverse-gamma_distribution}{the inverse-gamma distribution}. This specification is useful if the user does not care about the correlation recovery. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
-\item \code{fmodel=2} - \eqn{\Sigma_{tk}=\Sigma}{Sig.tk = Sig} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim\mathcal{W}_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
-\item \code{fmodel=3} - \eqn{\Sigma_{tk}=\Sigma_t}{Sig.tk = Sig.t} and \eqn{\Sigma_t^{-1}\sim \mathcal{W}_{s_0}(\Sigma_0)}{Sig.t^{-1} ~ Wish(s0, Sigma0)}. This is a relaxed version of \code{fmodel=2}, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
-\item \code{fmodel=4} - \eqn{\Sigma_{tk}=\boldsymbol{\delta}_{tk}\boldsymbol{\rho}\boldsymbol{\delta}_{tk}}{Sig.tk = delta.tk * Rho * delta.tk} where \eqn{\boldsymbol{\delta}_{tk}=\mathrm{diag}(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})}{delta.tk = diag(sig_{tk,11}, ..., sig_{tk, JJ})}, and \eqn{\boldsymbol{\rho}}{Rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
-\item \code{fmodel=5} - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{tk}^{-1}\mid \Sigma)\sim \mathcal{W}_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})}{(Sig.tk^{-1}|Sigma) ~ Wish(nu0, Sigma^{-1}/(nu0-J-1))} and \eqn{\Sigma \sim \mathcal{W}_{d_0}(\Sigma_0)}{Sigma ~ Wish(d0, Sigma0)}. \eqn{\Sigma_{tk}}{Sig.tk} encodes the within-treatment-arm variation while \eqn{\Sigma}{Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (\code{c0}, \code{dj0}, \code{d0}, \code{nu0}, \code{Sigma0}, \code{Omega0})
+\item \code{fmodel=1} - \eqn{\Sigma_tk = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is \href{https://en.wikipedia.org/wiki/Inverse-gamma_distribution}{the inverse-gamma distribution}. This specification is useful if the user does not care about the correlation recovery. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
+\item \code{fmodel=2} - \eqn{\Sigma_tk=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
+\item \code{fmodel=3} - \eqn{\Sigma_tk=\Sigma_t} and \eqn{\Sigma_t^{-1}\sim  Wish_{s_0}(\Sigma_0)}. This is a relaxed version of \code{fmodel=2}, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
+\item \code{fmodel=4} - \eqn{\Sigma_tk=\delta_tk \rho \delta_tk} where \eqn{\delta_tk=diag(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})}, and \eqn{\rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
+\item \code{fmodel=5} - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_tk^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_tk} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (\code{c0}, \code{dj0}, \code{d0}, \code{nu0}, \code{Sigma0}, \code{Omega0})
 }}
 
 \item{prior}{(Optional) a list of hyperparameters. Despite \code{theta} in every model, each \code{fmodel}, along with the \code{group} argument, requires a different set of hyperparameters. See \code{fmodel} for the model specifications.}
 
 \item{mcmc}{(Optional) a list for MCMC specification. \code{ndiscard} is the number of burn-in iterations. \code{nskip} configures the thinning of the MCMC. For instance, if \code{nskip=5}, \code{bayes.parobs} will save the posterior sample every 5 iterations. \code{nkeep} is the size of the posterior sample. The total number of iterations will be \code{ndiscard + nskip * nkeep}.}
 
-\item{control}{(Optional) a list of tuning parameters for \href{https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm}{the Metropolis-Hastings algorithm}. \code{Rho}, \code{R}, and \code{delta} are sampled through either localized Metropolis algorithm or delayed rejection robust adaptive Metropolis algorithm. \verb{*_stepsize} with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. \code{sample_Rho} can be set to \code{FALSE} to suppress the sampling of \code{Rho} for \code{fmodel=4}. When \code{sample_Rho} is \code{FALSE}, \eqn{\boldsymbol{\rho}}{Rho} will be fixed using the value given by the \code{init} argument, which defaults to \eqn{0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime}{0.5*I + 0.5*11'} where \eqn{\boldsymbol{1}}{1} is the vector of ones.}
+\item{control}{(Optional) a list of tuning parameters for \href{https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm}{the Metropolis-Hastings algorithm}. \code{Rho}, \code{R}, and \code{delta} are sampled through either localized Metropolis algorithm or delayed rejection robust adaptive Metropolis algorithm. \verb{*_stepsize} with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. \code{sample_Rho} can be set to \code{FALSE} to suppress the sampling of \code{Rho} for \code{fmodel=4}. When \code{sample_Rho} is \code{FALSE}, \eqn{\rho} will be fixed using the value given by the \code{init} argument, which defaults to \eqn{0.5 I+0.511'} where \eqn{1} is the vector of ones.}
 
 \item{init}{(Optional) a list of initial values for the parameters to be sampled: \code{theta}, \code{gamR}, \code{Omega}, and \code{Rho}. The initial value for \code{Rho} will be effective only if \code{fmodel=4}.}
 
@@ -61,7 +61,7 @@ bayes.parobs(
 
 \item{Trial_order}{(Optional) a vector of unique trials. The first element will be assigned zero. If not provided, the numbering will default to an alphabetical/numerical order.}
 
-\item{group}{(Optional) a vector containing binary variables for \eqn{u_{tk}}{u_tk}. If not provided, \code{bayes.parobs} will assume that there is no grouping and set \eqn{u_{tk}=0}{u_tk=0} for all \verb{(t,k)}.}
+\item{group}{(Optional) a vector containing binary variables for \eqn{u_tk}. If not provided, \code{bayes.parobs} will assume that there is no grouping and set \eqn{u_tk=0} for all \verb{(t,k)}.}
 
 \item{group_order}{(Optional) a vector of unique group labels. The first element will be assigned zero. If not provided, the numbering will default to an alphabetical/numerical order. \code{group_order} will take effect only if \code{group} is provided by the user.}
 
@@ -81,29 +81,29 @@ An object of class \code{bayes.nmr} is a list containing the following component
 \item \code{WCovariate} - the aggregate design matrix for random effects.
 \item \code{Treat} - the \emph{renumbered} treatment indicators. Depending on \code{Treat_order}, it may differ from the vector provided at function call.
 \item \code{Trial} - the \emph{renumbered} trial indicators. Depending on \code{Trial_order}, it may differ from the vector provided at function call.
-\item \code{group} - the \emph{renumbered} grouping indicators in the function call. Depending on \code{group_order}, it may differ from the vector provided #' at function call. If \code{group} was missing at function call, \code{bayes.parobs} will assign \code{NULL} for \code{group}.
-\item \code{TrtLabels} - the vector of treatment labels corresponding to the renumbered \code{Treat}. This is equivalent to \code{Treat_order} if it was #' given at function call.
-\item \code{TrialLabels} - the vector of trial labels corresponding to the renumbered \code{Trial}. This is equivalent to \code{Trial_order} if it was given #' at function call.
-\item \code{GroupLabels} - the vector of group labels corresponding to the renumbered \code{group}. This is equivalent to \code{group_order} if it was given #' at function call. If \code{group} was missing at function call, \code{bayes.parobs} will assign \code{NULL} for \code{GroupLabels}.
+\item \code{group} - the \emph{renumbered} grouping indicators in the function call. Depending on \code{group_order}, it may differ from the vector provided at function call. If \code{group} was missing at function call, \code{bayes.parobs} will assign \code{NULL} for \code{group}.
+\item \code{TrtLabels} - the vector of treatment labels corresponding to the renumbered \code{Treat}. This is equivalent to \code{Treat_order} if it was given at function call.
+\item \code{TrialLabels} - the vector of trial labels corresponding to the renumbered \code{Trial}. This is equivalent to \code{Trial_order} if it was given at function call.
+\item \code{GroupLabels} - the vector of group labels corresponding to the renumbered \code{group}. This is equivalent to \code{group_order} if it was given at function call. If \code{group} was missing at function call, \code{bayes.parobs} will assign \code{NULL} for \code{GroupLabels}.
 \item \code{K} - the total number of trials.
 \item \code{T} - the total number of treatments.
 \item \code{fmodel} - the model number as described \href{#model-spec}{here}.
 \item \code{scale_x} - a Boolean indicating whether \code{XCovariate} has been scaled/standardized.
 \item \code{prior} - the list of hyperparameters used in the function call.
 \item \code{control} - the list of tuning parameters used for MCMC in the function call.
-\item \code{mcmctime} - the elapsed time for the MCMC algorithm in the function call. This does not include all the other preprocessing and #' post-processing outside of MCMC.
+\item \code{mcmctime} - the elapsed time for the MCMC algorithm in the function call. This does not include all the other preprocessing and post-processing outside of MCMC.
 \item \code{mcmc} - the list of MCMC specification used in the function call.
 \item \code{mcmc.draws} - the list containing the MCMC draws. The posterior sample will be accessible here.
 }
 }
 \description{
 This is a function for running the Markov chain Monte Carlo algorithm for the \emph{Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix} model. The first six arguments are required.
-fmodel can be one of 5 numbers: 1, 2, 3, 4, and 5. The first model, fmodel = 1 denoted by M1, indicates that the \eqn{\Sigma_{tk}}{Sig.tk}
-are diagonal matrices with zero covariances. M2 indicates that \eqn{\Sigma_{tk}}{Sig.tk} are all equivalent but allowed to be full symmetric
-positive definite. M3 is where \eqn{\Sigma_{tk}}{Sig.tk} are allowed to differ across treatments, i.e., \eqn{\Sigma_{tk}=\Sigma_t}{Sig.tk=Sig.t}.
-M4 assumes thata the correlation matrix, \eqn{\rho}{Rho}, is identical for all trials/treatments, but the variances are allowed to vary.
-Finally, M5 assumes a hierarchical model where \eqn{(\Sigma_{tk}\mid \Sigma)}{(Sig.tk|Sig)} follows an inverse-Wishart distribution with fixed
-degrees of freedom and scale matrix \eqn{\Sigma}{Sig}. \eqn{\Sigma}{Sig} then follows another inverse-Wishart distribution with fixed parameters.
+fmodel can be one of 5 numbers: 1, 2, 3, 4, and 5. The first model, fmodel = 1 denoted by M1, indicates that the \eqn{\Sigma_tk}
+are diagonal matrices with zero covariances. M2 indicates that \eqn{\Sigma_tk} are all equivalent but allowed to be full symmetric
+positive definite. M3 is where \eqn{\Sigma_tk} are allowed to differ across treatments, i.e., \eqn{\Sigma_tk=\Sigma_t}.
+M4 assumes thata the correlation matrix, \eqn{\rho}, is identical for all trials/treatments, but the variances are allowed to vary.
+Finally, M5 assumes a hierarchical model where \eqn{(\Sigma_tk | \Sigma)} follows an inverse-Wishart distribution with fixed
+degrees of freedom and scale matrix \eqn{\Sigma}. \eqn{\Sigma} then follows another inverse-Wishart distribution with fixed parameters.
 }
 \examples{
 \dontrun{

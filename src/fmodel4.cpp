@@ -95,7 +95,6 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 	vec delta_rates(J, fill::zeros);
 	double vRho_rates = 0.0;
 	mat vR_rates(N, (J*(J-1))/2, fill::zeros);
-	mat ypred(arma::size(Outcome), fill::zeros);
 	/*********
 	Containers
 	*********/
@@ -104,7 +103,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 	cube Sig_save(N, (J*(J+1))/2, nkeep, fill::zeros);
 	cube Sig0_save(J, J, nkeep, fill::zeros);
 	cube Rtk_save(N, J * (J - 1) / 2, nkeep, fill::zeros);
-	cube ypred_save(N, J, nkeep, fill::zeros);
+	cube resid_save(N, J, nkeep, fill::zeros);
 	cube pRtk_save(N, J*(J-1)/2, nkeep, fill::zeros);
 	mat delta_save(J, nkeep, fill::zeros);
 	cube Rho_save(J, J, nkeep, fill::zeros);
@@ -176,8 +175,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 					W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
 				}
 				mat Xstar = arma::join_horiz(X,W);
-				vec ypred_i = Xstar * theta;
-				resid.row(i) = arma::trans(y_i.t() - ypred_i);
+				resid.row(i) = arma::trans(y_i.t() - Xstar * theta);
 			}
 
 			// Update gamR
@@ -412,6 +410,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 			if (Progress::check_abort()) {
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
+			mat resid_ikeep(N, J, fill::zeros);
 			for (int iskip = 0; iskip < nskip; ++iskip) {
 				++icount_mh;
 				// Update theta
@@ -468,8 +467,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
 					}
 					mat Xstar = arma::join_horiz(X,W);
-					vec ypred_i = Xstar * theta;
-					resid.row(i) = arma::trans(y_i.t() - ypred_i);
+					resid.row(i) = arma::trans(y_i.t() - Xstar * theta);
 				}
 
 				// Update gamR
@@ -617,6 +615,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 					}
 					double ntk = Npt(i);
 					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
+					resid_ikeep.row(i) = resid_i;
 					mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * (arma::diagmat(delta) * Rho * arma::diagmat(delta));
 					mat Siginv_new = RNG::rwish(ntk+nu0, qq.i());
 					Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
@@ -693,7 +692,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 			}
 			theta_save.col(ikeep) = theta;
 			Omega_save.slice(ikeep) = Omega;
-			ypred_save.slice(ikeep) = ypred;
+			resid_save.slice(ikeep) = resid_ikeep;
 			delta_save.col(ikeep) = delta;
 			Rho_save.slice(ikeep) = Rho;
 			Sig_save.slice(ikeep) = Sig_lt;
@@ -715,7 +714,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 
 
 	return ListBuilder()
-		.add("ypred", ypred_save)
+		.add("resid", resid_save)
 		.add("theta", theta_save)
 		.add("Omega", Omega_save)
 		.add("Sigma", Sig_save)

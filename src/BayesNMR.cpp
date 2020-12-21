@@ -496,6 +496,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 	vec df_save(nkeep, arma::fill::zeros);
 	vec nua_save(nkeep, arma::fill::zeros);
 	vec nub_save(nkeep, arma::fill::zeros);
+	mat resid_save(ns, nkeep, arma::fill::zeros);
 
 	if (verbose) {
 		Rcout << "Sampling" << endl;
@@ -875,7 +876,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 			df_save(ikeep) = df;
 			nua_save(ikeep) = nu_a;
 			nub_save(ikeep) = nu_b;
-
+			resid_save.col(ikeep) = resid - Z % Rgam;
 			prog.increment();
 		}
 	}
@@ -890,6 +891,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 	}
 
 	return ListBuilder()
+	.add("resid", resid_save)
 	.add("theta", beta_save)
 	.add("phi", phi_save)
 	.add("lam", lam_save)

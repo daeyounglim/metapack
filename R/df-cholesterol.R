@@ -1,4 +1,4 @@
-#' 26 Merck-sponsored double-blind, randomized, active, or placebo-controlled clinical trials on patients with primary hypercholesterolemia
+#' 26 double-blind, randomized, active, or placebo-controlled clinical trials on patients with primary hypercholesterolemia sponsored by Merck & Co., Inc., Kenilworth, NJ, USA.
 #' 
 #' A data set containing clinical trial on hypercholesterolemia including 26 trials and 2 treatment arms each, and other attributes of the participants
 #' 

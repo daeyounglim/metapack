@@ -67,7 +67,6 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 	const mat Omega0inv = arma::inv_sympd(Omega0);
 	const double shape_omega = static_cast<double>(K) + dj0;
 	mat resid = Outcome;
-	mat ypred(arma::size(Outcome), fill::zeros);
 
 	/*********
 	Containers
@@ -76,7 +75,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 	cube Omega_save(nw*J, nw*J, nkeep, fill::zeros);
 	cube Sigma_save(N, J, nkeep, fill::zeros);
 	cube Rtk_save(N, J * (J - 1) / 2, nkeep, fill::zeros);
-	cube ypred_save(N, J, nkeep, fill::zeros);
+	cube resid_save(N, J, nkeep, fill::zeros);
 	/*******************
 	Begin burn-in period
 	*******************/
@@ -220,6 +219,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 			if (Progress::check_abort()) {
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
+			mat resid_ikeep(N, J, fill::zeros);
 			for (int iskip = 0; iskip < nskip; ++iskip) {
 				// Update theta
 				mat Sig_theta(nt, nt, fill::zeros);
@@ -275,9 +275,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
 					}
 					mat Xstar = arma::join_horiz(X,W);
-					vec ypred_i = Xstar * theta;
-					ypred.row(i) = ypred_i.t();
-					resid.row(i) = arma::trans(y_i.t() - ypred_i);
+					resid.row(i) = arma::trans(y_i.t() - Xstar * theta);
 				}
 
 				// Update gamR
@@ -329,7 +327,9 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 					for (int j = 0; j < J; ++j) {
 						W(j, span(j*nw, (j+1)*nw-1)) = w_i;
 					}
-					vec resid_i2 = arma::square(arma::trans(resid.row(i)) - W * gam_k);
+					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
+					resid_ikeep.row(i) = resid_i.t();
+					vec resid_i2 = arma::square(resid_i);
 					vec sig2inv(J);
 					for (int j = 0; j < J; ++j) {
 						double rate = b0 + ntk * 0.5 * resid_i2(j) + (ntk - 1.0) * 0.5 * sd2_i(j);
@@ -342,12 +342,12 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 			theta_save.col(ikeep) = theta;
 			Sigma_save.slice(ikeep) = Sig_diag;
 			Omega_save.slice(ikeep) = Omega;
-			ypred_save.slice(ikeep) = ypred;
+			resid_save.slice(ikeep) = resid_ikeep;
 			prog.increment();
 		}
 	}
 	return ListBuilder()
-		.add("ypred", ypred_save)
+		.add("resid", resid_save)
 		.add("theta", theta_save)
 		.add("Sigma", Sigma_save)
 		.add("Omega", Omega_save);

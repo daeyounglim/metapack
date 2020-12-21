@@ -4,7 +4,6 @@
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
 #' @importFrom stats quantile sd
-#' @method summary bayesnmr
 #' @export
 "summary.bayesnmr" <- function(object, ...) {
 	digits <- max(3, getOption("digits") - 3)

@@ -5,7 +5,6 @@
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for fitted
 #' @return a list of fitted values
-#' @method fitted bayesnmr
 #' @export
 "fitted.bayesnmr" <- function(object, level = 0.95, HPD = TRUE, ...) {
 	out <- list()
@@ -62,16 +61,16 @@
 		sig2$upper <- sig2.hpd[,2]
 
 		Rho.hpd <- hpdarray(object$mcmc.draws$Rho, level = level)
-		Rho$lower <- Rho.hpd[,1]
-		Rho$upper <- Rho.hpd[,2]
+		Rho$lower <- Rho.hpd[,,1]
+		Rho$upper <- Rho.hpd[,,2]
 
 		if (object$control$sample_df) {
 			df.hpd <- vhpd(object$mcmc.draws$df, level)
 			df$lower <- df.hpd[,1]
 			df$upper <- df.hpd[,2]			
 		}
-	} else {
-		theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
+    } else {
+        theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
 		theta$upper <- apply(theta.post, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 		phi$lower <- apply(object$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = sig.level/2))
@@ -93,7 +92,7 @@
 		}
 	}
 
-	out <- object
+	out <- list()
 	out$level <- level
 	out$hpd <- HPD
 	out$theta <- theta

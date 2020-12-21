@@ -91,7 +91,6 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 	const double shape_omega2 = K2 + dj0;
 	mat resid = Outcome;
 	mat vR_rates(N, (J*(J-1))/2, fill::zeros);
-	mat ypred(arma::size(Outcome), fill::zeros);
 
 	/*********
 	Containers
@@ -100,7 +99,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 	cube Omega_save(nw*J, nw*J, nkeep, fill::zeros);
 	cube Sigma_save(N, (J*(J+1))/2, nkeep, fill::zeros);
 	cube Rtk_save(N, J * (J - 1) / 2, nkeep, fill::zeros);
-	cube ypred_save(N, J, nkeep, fill::zeros);
+	cube resid_save(N, J, nkeep, fill::zeros);
 	cube pRtk_save(N, J*(J-1)/2, nkeep, fill::zeros);
 	/*******************
 	Begin burn-in period
@@ -356,6 +355,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 			if (Progress::check_abort()) {
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
+			mat resid_ikeep(N, J, fill::zeros);
 			for (int iskip = 0; iskip < nskip; ++iskip) {
 				// Update theta
 				mat Sig_theta(nt, nt, fill::zeros);
@@ -511,6 +511,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 							W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 						}
 						vec resid_i = arma::trans(resid.row(i_t)) - W * gam_k;
+						resid_ikeep.row(i_t) = resid_i.t();
 						qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 					}
 					Siginv.col(t) = vech(RNG::rwish(s0 + nt_dot, arma::inv_sympd(qq)));
@@ -591,7 +592,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 			}
 			Sigma_save.slice(ikeep) = Sig_post;
 			Omega_save.slice(ikeep) = Omega;
-			ypred_save.slice(ikeep) = ypred;
+			resid_save.slice(ikeep) = resid_ikeep;
 			mat Rtk(arma::size(vRtk), fill::zeros);
 			for (int i = 0; i < N; ++i) {
 				mat RR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
@@ -608,7 +609,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 
 
 	return ListBuilder()
-		.add("ypred", ypred_save)
+		.add("resid", resid_save)
 		.add("theta", theta_save)
 		.add("Sigma", Sigma_save)
 		.add("Omega", Omega_save)

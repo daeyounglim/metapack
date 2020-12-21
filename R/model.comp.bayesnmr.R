@@ -4,7 +4,6 @@
 #' @param verbose FALSE by default; If TRUE, then progress bar will appear
 #' @param ncores the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores
 #' @importFrom parallel detectCores
-#' @method model.comp bayesnmr
 #' @export
 
 "model.comp.bayesnmr" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
@@ -85,23 +84,16 @@
 		}
 		gof$lpml <- sum(gof$logcpo[-l])
 	} else if (type == "pearson") {
+		if (object$control$sample_df || (!object$control$sample_df && nu < 2)) {
+			stop("The Pearson's residuals are not available if the degrees of freedom are smaller than 2 or random\nsince the variance is not finite.")
+		}
+
 		gof <- .Call('_metapack_calc_modelfit_pearson',
-					 as.double(y),
-					 as.matrix(x),
-					 as.matrix(z),
-					 as.integer(ids),
-					 as.integer(iarm),
+					 as.matrix(object$mcmc.draws$resid),
 					 as.double(npt),
-					 as.matrix(object$mcmc.draws$theta),
 					 as.matrix(object$mcmc.draws$sig2),
-					 as.matrix(object$mcmc.draws$phi),
-					 as.matrix(object$mcmc.draws$lam),
-					 as.array(object$mcmc.draws$Rho),
-					 as.integer(K),
-					 as.integer(nT),
 					 as.integer(nkeep),
-					 as.logical(verbose),
-					 as.integer(ncores))
+					 as.logical(verbose))
 	}
 	class(gof) <- "gofnmr"
 	gof

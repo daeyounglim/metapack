@@ -74,7 +74,6 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 	const double shape_omega = static_cast<double>(K) + dj0;
 	mat resid = Outcome;
 	mat vR_rates(N, (J*(J-1))/2, fill::zeros);
-	mat ypred(arma::size(Outcome), fill::zeros);
 
 	/*********
 	Containers
@@ -83,7 +82,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 	cube Omega_save(nw*J, nw*J, nkeep, fill::zeros);
 	cube Sigma_save(J, J, nkeep, fill::zeros);
 	cube Rtk_save(N, J * (J - 1) / 2, nkeep, fill::zeros);
-	cube ypred_save(N, J, nkeep, fill::zeros);
+	cube resid_save(N, J, nkeep, fill::zeros);
 	cube pRtk_save(N, J*(J-1)/2, nkeep, fill::zeros);
 	/*******************
 	Begin burn-in period
@@ -290,6 +289,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 			if (Progress::check_abort()) {
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
+			mat resid_ikeep(N, J, fill::zeros);
 			for (int iskip = 0; iskip < nskip; ++iskip) {
 
 				// Update theta
@@ -345,9 +345,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
 					}
 					mat Xstar = arma::join_horiz(X,W);
-					vec ypred_i = Xstar * theta;
-					ypred.row(i) = arma::trans(ypred_i);
-					resid.row(i) = arma::trans(y_i.t() - ypred_i);
+					resid.row(i) = arma::trans(y_i.t() - Xstar * theta);
 				}
 
 				// Update gamR
@@ -402,6 +400,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 						W(j, arma::span(j*nw, (j+1)*nw-1)) = w_i;
 					}
 					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
+					resid_ikeep.row(i) = resid_i.t();
 					qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 				}
 				Siginv = RNG::rwish(df, arma::inv_sympd(qq));
@@ -475,7 +474,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 			theta_save.col(ikeep) = theta;
 			Sigma_save.slice(ikeep) = Sig;
 			Omega_save.slice(ikeep) = Omega;
-			ypred_save.slice(ikeep) = ypred;
+			resid_save.slice(ikeep) = resid_ikeep;
 			mat Rtk(arma::size(vRtk), fill::zeros);
 			for (int i = 0; i < N; ++i) {
 				mat RR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
@@ -492,7 +491,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 
 
 	return ListBuilder()
-		.add("ypred", ypred_save)
+		.add("resid", resid_save)
 		.add("theta", theta_save)
 		.add("Sigma", Sigma_save)
 		.add("Omega", Omega_save)

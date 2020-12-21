@@ -8,3 +8,4 @@ src/*.dll
 src/*.tmp
 doc
 Meta
+.vscode

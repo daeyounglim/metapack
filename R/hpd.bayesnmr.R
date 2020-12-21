@@ -4,9 +4,8 @@
 #' @param level the probability which the HPD interval will cover
 #' @param HPD a logical value indicating whether HPD or equal-tailed credible interval should be computed; by default, TRUE
 #' @return dataframe containing HPD intervals for the parameters
-#' @method hpd bayesnmr
 #' @export
-
+# @method hpd bayesnmr
 "hpd.bayesnmr" <- function(object, parm, level = 0.95, HPD = TRUE) {
 	if (object$scale_x) {
 		xcols <- ncol(object$XCovariate)
@@ -25,7 +24,7 @@
 		if (HPD) {
             out$theta <- mhpd(theta.post, level)
 			out$phi <- mhpd(object$mcmc.draws$phi, level)
-			out$gam <- mhpd(object.mcmc.draws$gam, level)
+			out$gam <- mhpd(object$mcmc.draws$gam, level)
 			out$sig2 <- mhpd(object$mcmc.draws$sig2, level)
 			out$Rho <- hpdarray(object$mcmc.draws$Rho, level = level)
 			if (object$control$sample_df) {

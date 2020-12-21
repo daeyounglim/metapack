@@ -102,7 +102,6 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 	mat delta_rates(arma::size(delta), fill::zeros);
 	double vRho_rates = 0.0;
 	mat vR_rates(N, (J*(J-1))/2, fill::zeros);
-	mat ypred(arma::size(Outcome), fill::zeros);
 
 	const double alpha_star = 0.234;
 	const double gam_exp = 2.0 / 3.0;
@@ -114,7 +113,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 	cube Omega_save(nw*J, nw*J, nkeep, fill::zeros);
 	cube Sig_save(N, (J*(J+1))/2, nkeep, fill::zeros);
 	cube Rtk_save(N, J * (J - 1) / 2, nkeep, fill::zeros);
-	cube ypred_save(N, J, nkeep, fill::zeros);
+	cube resid_save(N, J, nkeep, fill::zeros);
 	cube pRtk_save(N, J*(J-1)/2, nkeep, fill::zeros);
 	cube delta_save(N, J, nkeep, fill::zeros);
 	cube Rho_save(J, J, nkeep, fill::zeros);
@@ -197,8 +196,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 					W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 				}
 				mat Xstar = arma::join_horiz(X,W);
-				vec ypred_i = Xstar * theta;
-				resid.row(i) = arma::trans(y_i.t() - ypred_i);
+				resid.row(i) = arma::trans(y_i.t() - Xstar * theta);
 			}
 
 			// Update gamR
@@ -403,7 +401,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 						try {
 							Rhopinvzzz = arma::inv(Rhopzzz);
 						} catch (std::runtime_error & e) {
-							continue;
+							goto finished_warmup;
 						}
 
 						vec ystar = zzz - (vRhop - vRho);
@@ -414,7 +412,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 						try {
 							Rhopinvystar = arma::inv(Rhopystar);
 						} catch (std::runtime_error & e) {
-							continue;
+							goto finished_warmup;
 						}
 						double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
 						double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
@@ -440,7 +438,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 					}
 				}
 			}
-
+			finished_warmup:
 			// Update Rtk
 			for (int i = 0; i < N; ++i) {
 				rowvec y_i = Outcome.row(i);
@@ -523,6 +521,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 			if (Progress::check_abort()) {
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
+			mat resid_ikeep(N, J, fill::zeros);
 			for (int iskip = 0; iskip < nskip; ++iskip) {
 				++icount_mh;
 				// Update theta
@@ -591,8 +590,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 						W(j, arma::span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					mat Xstar = arma::join_horiz(X,W);
-					vec ypred_i = Xstar * theta;
-					resid.row(i) = arma::trans(y_i.t() - ypred_i);
+					resid.row(i) = arma::trans(y_i.t() - Xstar * theta);
 				}
 
 				// Update gamR
@@ -672,6 +670,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 						W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
 					}
 					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
+					resid_ikeep.row(i) = resid_i.t();
 					mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 					rowvec delta_i = delta.row(i);
 
@@ -736,7 +735,6 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 
 				// Update Rho
 				if (sample_Rho) {
-
 					mat qq(J, J, fill::zeros);
 					for (int i = 0; i < N; ++i) {
 						int k = Trial(i);
@@ -798,7 +796,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 							try {
 								Rhopinvzzz = arma::inv(Rhopzzz);
 							} catch (std::runtime_error & e) {
-								continue;
+								goto finished_sampling;
 							}
 
 							vec ystar = zzz - (vRhop - vRho);
@@ -809,7 +807,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 							try {
 								Rhopinvystar = arma::inv(Rhopystar);
 							} catch (std::runtime_error & e) {
-								continue;
+								goto finished_sampling;
 							}
 							double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
 							double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
@@ -835,7 +833,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 						}
 					}
 				}
-
+				finished_sampling:
 				// Update Rtk
 				for (int i = 0; i < N; ++i) {
 					rowvec y_i = Outcome.row(i);
@@ -905,7 +903,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 			}
 			theta_save.col(ikeep) = theta;
 			Omega_save.slice(ikeep) = Omega;
-			ypred_save.slice(ikeep) = ypred;
+			resid_save.slice(ikeep) = resid_ikeep;
 			delta_save.slice(ikeep) = delta;
 			Rho_save.slice(ikeep) = Rho;
 			Sig_save.slice(ikeep) = Sig_lt;
@@ -926,7 +924,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 
 
 	return ListBuilder()
-		.add("ypred", ypred_save)
+		.add("resid", resid_save)
 		.add("theta", theta_save)
 		.add("Omega", Omega_save)
 		.add("Sigma", Sig_save)

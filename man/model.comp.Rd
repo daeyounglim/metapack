@@ -2,7 +2,7 @@
 % Please edit documentation in R/model.comp.R
 \name{model.comp}
 \alias{model.comp}
-\title{compute the model comparison measures: DIC or LPML}
+\title{compute the model comparison measures: DIC, LPML, or Pearson's residuals}
 \usage{
 model.comp(object, type = "lpml", verbose = FALSE, ncores = NULL)
 }
@@ -19,5 +19,5 @@ model.comp(object, type = "lpml", verbose = FALSE, ncores = NULL)
 dataframe containing the compute the model comparison measures
 }
 \description{
-compute the model comparison measures: DIC or LPML
+\code{model.comp} is a generic function that computes the model comparison measures (DIC and LPML) or the Pearson's residuals. Note that the Pearson's residuals are not available for \code{bayes.nmr} when \code{df} is either random or fixed but smaller than 2 since the variance of the random effects is not finite.
 }

@@ -5,7 +5,6 @@
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for fitted
 #' @return a list of fitted values
-#' @method fitted bayes.parobs
 #' @export
 "fitted.bayes.parobs" <- function(object, level = 0.95, HPD = TRUE, ...) {
 	out <- list()
@@ -196,7 +195,7 @@
 		}
 	}
 
-	out <- object
+	out <- list()
 	out$level <- level
 	out$hpd <- HPD
 	out$ypred <- ypred

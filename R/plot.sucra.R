@@ -4,7 +4,6 @@
 #' @param ... additional arguments for plot
 #' @importFrom grDevices devAskNewPage rgb
 #' @importFrom graphics axis lines plot
-#' @method plot sucra
 #' @importFrom ggplot2 ggplot geom_line aes labs theme_gray theme ylab
 #' @importFrom gridExtra grid.arrange
 #' @export

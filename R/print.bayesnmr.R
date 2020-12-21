@@ -6,7 +6,6 @@
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
 #' @importFrom stats quantile sd
-#' @method print bayesnmr
 #' @export
 "print.bayesnmr" <- function(x, level=0.95, HPD=TRUE, ...) {
 	cat("Bayesian Network Meta-Regression Hierarchical Models\nUsing Heavy-Tailed Multivariate Random Effects\nwith Covariate-Dependent Variances\n")

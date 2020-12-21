@@ -6,7 +6,6 @@
 #' @param ... additional arguments for print
 #' @return does not return anything; print a summary of the output
 #' @importFrom stats sd quantile
-#' @method print bayes.parobs
 #' @export
 "print.bayes.parobs" <- function(x, level=0.95, HPD=TRUE, ...) {
 	cat("Bayesian Inference for Multivariate Meta-Regression\nWith a Partially Observed Within-Study Sample Covariance Matrix\n")
