@@ -9,3 +9,4 @@ src/*.tmp
 doc
 Meta
 .vscode
+misc.md
