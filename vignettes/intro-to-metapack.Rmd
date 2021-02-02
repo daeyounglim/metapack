@@ -9,16 +9,8 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
   \usepackage[utf8]{inputenc}
-output:
-  rmarkdown::html_vignette:
-    keep_md: true
+output: rmarkdown::html_vignette
 ---
-
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  TeX: { equationNumbers: { autoNumber: "AMS" } }
-});
-</script>
 
 ```{r setup, echo = FALSE}
 knitr::opts_knit$set(global.par = TRUE)
