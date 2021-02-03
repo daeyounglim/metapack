@@ -1,6 +1,6 @@
 #' Fit Bayesian Network Meta-Regression Hierarchical Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances
 #'
-#' This is a function the fits the model introduced in *Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances (submitted)*. The first seven arguments are required except `ZCovariate`. If not provided, `ZCovariate` will be assigned a vector of ones, `rep(1, length(Outcome))`. `ZCovariate` is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution. 
+#' This is a function the fits the model introduced in *Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances (under revision)*. The first seven arguments are required except `ZCovariate`. If not provided, `ZCovariate` will be assigned a vector of ones, `rep(1, length(Outcome))`. `ZCovariate` is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution. 
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param Outcome the aggregate mean of the responses for each arm of every study.
 #' @param SD the standard deviation of the responses for each arm of every study.
@@ -41,7 +41,8 @@
 #' 
 #' @references 
 #' Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. *Biostatistics*, **20(3)**, 499-516.
-
+#' 
+#' Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J. (2019). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. Submitted.
 #' 
 #' @examples
 #' \dontrun{

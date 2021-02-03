@@ -7,3 +7,4 @@
 ^\.vscode$
 cran-comments.md
 misc.md
+^\.github$

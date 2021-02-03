@@ -1,7 +1,7 @@
 Package: metapack
 Type: Package
 Title: Bayesian Meta-Analysis and Network Meta-Analysis
-Version: 0.1
+Version: 0.1.0
 Date: 2020-08-23
 Authors@R: c(
 	person("Daeyoung", "Lim", email = "daeyoung.lim@uconn.edu",
@@ -12,7 +12,7 @@ Authors@R: c(
 	role = "ctb"),
 	person("Joseph", "Ibrahim", email = "ibrahim@bios.unc.edu",
 	role = "ctb"))
-Description: This package contains algorithms for Bayesian meta analysis and regression under various models.
+Description: Contains functions performing Bayesian inference for meta-analytic and network meta-analytic models through Markov chain Monte Carlo algorithm. Currently, the package includes multivariate meta-regression models with a partially observed within-study sample covariance matrix and network meta-regression models using heavy-tailed multivariate random effects with covariate-dependent variances. For maximal computational efficiency, the individual Markov chain Monte Carlo sampling for every model is fine-tuned, written in C++.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyLoad: yes

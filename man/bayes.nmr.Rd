@@ -78,7 +78,7 @@ An object of class \code{bayes.nmr} is a list containing the following component
 }
 }
 \description{
-This is a function the fits the model introduced in \emph{Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances (submitted)}. The first seven arguments are required except \code{ZCovariate}. If not provided, \code{ZCovariate} will be assigned a vector of ones, \code{rep(1, length(Outcome))}. \code{ZCovariate} is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution.
+This is a function the fits the model introduced in \emph{Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances (under revision)}. The first seven arguments are required except \code{ZCovariate}. If not provided, \code{ZCovariate} will be assigned a vector of ones, \code{rep(1, length(Outcome))}. \code{ZCovariate} is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution.
 }
 \examples{
 \dontrun{
@@ -100,6 +100,8 @@ fit <- bayes.nmr(TNM$ptg, TNM$sdtg, x, TNM$Trial, TNM$Treat, TNM$Npt, groupInfo,
 }
 \references{
 Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. \emph{Biostatistics}, \strong{20(3)}, 499-516.
+
+Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J. (2019). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. Submitted.
 }
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
