@@ -12,7 +12,7 @@ Authors@R: c(
 	role = "ctb"),
 	person("Joseph", "Ibrahim", email = "ibrahim@bios.unc.edu",
 	role = "ctb"))
-Description: Contains functions performing Bayesian inference for meta-analytic and network meta-analytic models through Markov chain Monte Carlo algorithm. Currently, the package includes multivariate meta-regression models with a partially observed within-study sample covariance matrix and network meta-regression models using heavy-tailed multivariate random effects with covariate-dependent variances. For maximal computational efficiency, the individual Markov chain Monte Carlo sampling for every model is fine-tuned, written in C++.
+Description: Contains functions performing Bayesian inference for meta-analytic and network meta-analytic models through Markov chain Monte Carlo algorithm. Currently, the package includes multivariate meta-regression models with a partially observed within-study sample covariance matrix and network meta-regression models using heavy-tailed multivariate random effects with covariate-dependent variances. For maximal computational efficiency, the individual Markov chain Monte Carlo sampling for every model is fine-tuned, written in C++. This software has been developed under the auspices of the National Institutes of Health and Merck & Co., Inc., Kenilworth, NJ, USA.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyLoad: yes
