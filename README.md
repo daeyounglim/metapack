@@ -8,6 +8,15 @@
 
 To see the model specification, please refer to the corresponding papers or the long-form vignette of this package.
 
+## Installation
+```r
+# Currently, the package is available through GitHub
+devtools::install_github("daeyounglim/metapack")
+```
+
+## Getting help
+If you encounter a clear bug, please file an issue with a minimal reproducible example on [GitHub](https://github.com/daeyounglim/metapack/issues). For questions and other discussion, please email the [maintainer](mailto:daeyoung.lim@uconn.edu).
+
 ## Authors
 + Daeyoung Lim <daeyoung.lim@uconn.edu>
 + Ming-Hui Chen <ming-hui.chen@uconn.edu>
