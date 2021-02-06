@@ -43,7 +43,7 @@ bayes.nmr(
 
 \item{scale_x}{(Optional) a logical variable indicating whether \code{XCovariate} should be scaled/standardized. The effect of setting this to \code{TRUE} is not limited to merely standardizing \code{XCovariate}. The following generic functions will scale the posterior sample of \code{theta} back to its original unit: \code{plot}, \code{fitted}, \code{summary}, and \code{print}. That is \code{theta[j] <- theta[j] / sd(XCovariate[,j])}.}
 
-\item{control}{(Optional) a list of parameters for \href{https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm}{the Metropolis-Hastings algorithm}. \code{lambda}, \code{phi}, and \code{Rho} are sampled through the localized Metropolis algorithm. \verb{*_stepsize} with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. \code{sample_Rho} can be set to \code{FALSE} to suppress the sampling of \code{Rho}. When \code{sample_Rho} is \code{FALSE}, \code{Rho} will be fixed using the value given by the \code{init} argument, which defaults to an equicorrelation matrix of \eqn{0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime}{0.5*I + 0.5*11'} where \eqn{\boldsymbol{1}}{1} is the vector of ones. When \code{sample_df} is \code{TRUE}, \code{df} will be sampled.}
+\item{control}{(Optional) a list of parameters for \href{https://en.wikipedia.org/wiki/Metropolis-Hastings_algorithm}{the Metropolis-Hastings algorithm}. \code{lambda}, \code{phi}, and \code{Rho} are sampled through the localized Metropolis algorithm. \verb{*_stepsize} with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. \code{sample_Rho} can be set to \code{FALSE} to suppress the sampling of \code{Rho}. When \code{sample_Rho} is \code{FALSE}, \code{Rho} will be fixed using the value given by the \code{init} argument, which defaults to an equicorrelation matrix of \eqn{0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime}{0.5*I + 0.5*11'} where \eqn{\boldsymbol{1}}{1} is the vector of ones. When \code{sample_df} is \code{TRUE}, \code{df} will be sampled.}
 
 \item{init}{(Optional) a list of initial values for the parameters to be sampled: \code{theta}, \code{phi}, \code{sig2}, and \code{Rho}.}
 
@@ -101,7 +101,7 @@ fit <- bayes.nmr(TNM$ptg, TNM$sdtg, x, TNM$Trial, TNM$Treat, TNM$Npt, groupInfo,
 \references{
 Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. \emph{Biostatistics}, \strong{20(3)}, 499-516.
 
-Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J. (2019). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. Submitted.
+Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J. (2021). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. Submitted.
 }
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
