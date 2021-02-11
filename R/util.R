@@ -36,9 +36,13 @@ relabel.vec <- function(x, order)
 
 vhpd <- function(x, level = 0.95) {
     n <- length(x)
+    cl <- level
     gap <- max(1, min(n - 1, round(n * level))) / n
-    if (level > gap) stop(cat("(Error) The desired level cannot be reached with the provided posterior sample size.\nThe level should be smaller than ", gap,"\n"))
-    alpha <- 1 - level
+    if (level > gap) {
+      warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
+      cl <- gap-1.0e-4
+    }
+    alpha <- 1 - cl
     out <- .Call(`_metapack_vhpd`, as.vector(x), as.double(alpha))
     attr(out, "Empirical level") <- gap
     return(out)
@@ -47,8 +51,12 @@ vhpd <- function(x, level = 0.95) {
 mhpd <- function(x, level = 0.95) {
     n <- ncol(x)
     gap <- max(1, min(n - 1, round(n * level))) / n
-    if (level > gap) stop(cat("(Error) The desired level cannot be reached with the provided posterior sample size.\nThe level should be smaller than ", gap,"\n"))
-    alpha <- 1 - level
+    cl <- level
+    if (level > gap) {
+      warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
+      cl <- gap-1.0e-4
+    }
+    alpha <- 1 - cl
     out <- .Call(`_metapack_mhpd`, as.matrix(x), as.double(alpha))
     attr(out, "Empirical level") <- gap
     return(out)
@@ -59,8 +67,12 @@ hpdarray <- function(A, level = 0.95) {
     nC <- ncol(A)
     n <- dim(A)[3]
     gap <- max(1, min(n - 1, round(n * level))) / n
-    if (level > gap) stop(cat("(Error) The desired level cannot be reached with the provided posterior sample size.\nThe level should be smaller than ", gap,"\n"))
-  alpha = 1 - level
+    cl <- level
+    if (level > gap) {
+      warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
+      cl <- gap-1.0e-4
+    }
+    alpha <- 1 - cl
   out <- array(0, dim = c(nR, nC, 2))
   dimnames(out)[[3]] <- c("lower", "upper")
   for (iC in 1:nC) {
