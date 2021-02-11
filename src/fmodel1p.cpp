@@ -69,7 +69,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 	mat Sig_diag(N, J, fill::ones);
 	mat Siginv_diag(N, J, fill::ones);
 
-	const mat Omega0inv = arma::inv_sympd(Omega0);
+	const mat Omega0inv = arma::inv(Omega0);
 	const int K2 = arma::accu(onstat);
 	const int K1 = static_cast<double>(K) - K2;
 	const double shape_omega1 = static_cast<double>(K1) + dj0;
@@ -136,7 +136,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 					WSX += WS * Xstar;
 					WSy += WS * y_i.t();
 				}
-				mat Sig_gamk_inv = arma::inv_sympd(Sig_gamk);
+				mat Sig_gamk_inv = arma::inv(Sig_gamk);
 				Sig_theta += XSX - WSX.t() * Sig_gamk_inv * WSX;
 				mu_theta += XSy - WSX.t() * Sig_gamk_inv * WSy;
 			}
@@ -213,8 +213,8 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 				mat qq2 = Omega0inv + (gamstar * gamstar.t());
 				mat ominv1 = RNG::rwish(shape_omega1, arma::inv(qq1));
 				mat ominv2 = RNG::rwish(shape_omega2, arma::inv(qq2));
-				mat om1 = arma::inv_sympd(ominv1);
-				mat om2 = arma::inv_sympd(ominv2);
+				mat om1 = arma::inv(ominv1);
+				mat om2 = arma::inv(ominv2);
 				Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
 				Omegainv(arma::span(nw*jj+nn, nw*(jj+1)-1), arma::span(nw*jj+nn, nw*(jj+1)-1)) = ominv2;
 				Omega(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = om1;
@@ -304,7 +304,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 						WSX += WS * Xstar;
 						WSy += WS * y_i.t();
 					}
-					mat Sig_gamk_inv = arma::inv_sympd(Sig_gamk);
+					mat Sig_gamk_inv = arma::inv(Sig_gamk);
 					Sig_theta += XSX - WSX.t() * Sig_gamk_inv * WSX;
 					mu_theta += XSy - WSX.t() * Sig_gamk_inv * WSy;
 				}
@@ -381,8 +381,8 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 					mat qq2 = Omega0inv + (gamstar * gamstar.t());
 					mat ominv1 = RNG::rwish(shape_omega1, arma::inv(qq1));
 					mat ominv2 = RNG::rwish(shape_omega2, arma::inv(qq2));
-					mat om1 = arma::inv_sympd(ominv1);
-					mat om2 = arma::inv_sympd(ominv2);
+					mat om1 = arma::inv(ominv1);
+					mat om2 = arma::inv(ominv2);
 					Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
 					Omegainv(arma::span(nw*jj+nn, nw*(jj+1)-1), arma::span(nw*jj+nn, nw*(jj+1)-1)) = ominv2;
 					Omega(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = om1;

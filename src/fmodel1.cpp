@@ -64,7 +64,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 	mat Sig_diag(N, J, fill::ones);
 	mat Siginv_diag(N, J, fill::ones);
 
-	const mat Omega0inv = arma::inv_sympd(Omega0);
+	const mat Omega0inv = arma::inv(Omega0);
 	const double shape_omega = static_cast<double>(K) + dj0;
 	mat resid = Outcome;
 
@@ -122,7 +122,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 					WSX += WS * Xstar;
 					WSy += WS * y_i.t();
 				}
-				mat Sig_gamk_inv = arma::inv_sympd(Sig_gamk);
+				mat Sig_gamk_inv = arma::inv(Sig_gamk);
 				Sig_theta += XSX - WSX.t() * Sig_gamk_inv * WSX;
 				mu_theta += XSy - WSX.t() * Sig_gamk_inv * WSy;
 			}
@@ -177,8 +177,8 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 			for (int jj = 0; jj < J; ++jj) {
 				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 				mat qq = Omega0inv + (gamstar * gamstar.t());
-				mat ominv = RNG::rwish(shape_omega, arma::inv_sympd(qq));
-				mat om = arma::inv_sympd(ominv);
+				mat ominv = RNG::rwish(shape_omega, arma::inv(qq));
+				mat om = arma::inv(ominv);
 				Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 				Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
 			}
@@ -254,7 +254,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 						WSX += WS * Xstar;
 						WSy += WS * y_i.t();
 					}
-					mat Sig_gamk_inv = arma::inv_sympd(Sig_gamk);
+					mat Sig_gamk_inv = arma::inv(Sig_gamk);
 					Sig_theta += XSX - WSX.t() * Sig_gamk_inv * WSX;
 					mu_theta += XSy - WSX.t() * Sig_gamk_inv * WSy;
 				}
@@ -309,8 +309,8 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 				for (int jj = 0; jj < J; ++jj) {
 					mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 					mat qq = Omega0inv + (gamstar * gamstar.t());
-					mat ominv = RNG::rwish(shape_omega, arma::inv_sympd(qq));
-					mat om = arma::inv_sympd(ominv);
+					mat ominv = RNG::rwish(shape_omega, arma::inv(qq));
+					mat om = arma::inv(ominv);
 					Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 					Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
 				}
