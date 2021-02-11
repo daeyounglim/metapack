@@ -2,7 +2,7 @@
 #' @param object the output model from fitting a meta analysis/regression model
 #' @param type the type of model comparison measures; DIC or LPML
 #' @param verbose FALSE by default; If TRUE, then progress bar will appear
-#' @param ncores the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores
+#' @param ncores the number of CPU cores to use for parallel processing. It must not exceed the number of existing cores. If unspecified, it will default to 2 cores or the number of existing cores, whichever is smaller.
 #' @importFrom parallel detectCores
 #' @export
 "model.comp.bayes.parobs" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
@@ -18,7 +18,7 @@
 			stop(paste0("The number of cores must not exceed ", ncores_))
 		}
 	} else {
-		ncores <- parallel::detectCores()
+		ncores <- min(2, parallel::detectCores())
 	}
 	if (is.null(object$group)) {
 		second <- numeric(1)

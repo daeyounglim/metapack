@@ -93,7 +93,7 @@ Rho_init <- diag(1, nrow = J)
 Rho_init[upper.tri(Rho_init)] <- Rho_init[lower.tri(Rho_init)] <- 0.5
 bayes.parobs(Outcome, SD, XCovariate, WCovariate, Trial, Treat, Npt,
           fmodel = 4, prior = list(c0 = 1e6),
-          mcmc = list(ndiscard = 1e4, nskip = 1, nkeep = 2e4),
+          mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
           control = list(Rho_stepsize=0.05, R_stepsize=0.05),
           group = Group,
           scale_x = TRUE, verbose = TRUE)
@@ -140,7 +140,7 @@ The following boilerplate code demonstrates how `bayes.nmr` can be used:
 ```r
 fit <- bayes.nmr(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt,
         prior = list(c01 = 1.0e05, c02 = 4, df = 3),
-        mcmc = list(ndiscard = 2500, nskip = 1, nkeep = 10000),
+        mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
         Treat_order = c("PBO", "S", "A", "L", "R", "P",
                         "E", "SE", "AE", "LE", "PE"),
         scale_x = TRUE, verbose = TRUE)

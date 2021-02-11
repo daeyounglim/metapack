@@ -9,3 +9,5 @@ cran-comments.md
 misc.md
 ^\.github$
 ^CRAN-RELEASE$
+^LICENSE\.md$
+^LICENSE

@@ -106,27 +106,22 @@ Finally, M5 assumes a hierarchical model where \eqn{(\Sigma_tk | \Sigma)} follow
 degrees of freedom and scale matrix \eqn{\Sigma}. \eqn{\Sigma} then follows another inverse-Wishart distribution with fixed parameters.
 }
 \examples{
-\dontrun{
+library(metapack)
 data("cholesterol")
-Outcome <- cbind(cholesterol$pldlc, cholesterol$phdlc, cholesterol$ptg)
-SD <- cbind(cholesterol$sdldl, cholesterol$sdhdl, cholesterol$sdtg)
+Outcome <- model.matrix(~ pldlc + phdlc + ptg, data = cholesterol)
+SD <- model.matrix(~ sdldl + sdhdl + sdtg, data = cholesterol)
 Trial <- cholesterol$Trial
 Treat <- cholesterol$trt
 Npt <- cholesterol$Npt
-XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc,
-		cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white,
-		cholesterol$male, cholesterol$dm)
-WCovariate <- cbind(1, cholesterol$trt)
+XCovariate <- model.matrix(~ 0 + bldlc + bhdlc + btg + age + durat +
+ white + male + dm, data = cholesterol)
+WCovariate <- model.matrix(~ trt, data = cholesterol)
 
-fmodel <- 3
-fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale = TRUE, center = TRUE),
-			WCovariate, Treat, Trial, Npt, fmodel,
-  		mcmc = list(ndiscard = 100000, nskip = 1, nkeep = 20000),
-			control = list(delta_stepsize = 0.1,
-			rho_stepsize = 0.05, R_stepsize = 0.05),
-     group = cholesterol$onstat,
-     verbose = TRUE)
-}
+fmodel <- 1
+set.seed(2797542)
+fit <- bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial,
+   Npt, fmodel, mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
+   scale_x = TRUE, group = cholesterol$onstat, verbose = FALSE)
 }
 \references{
 Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. \emph{Journal of the American Statistical Association}, \strong{110(510)}, 528-544.

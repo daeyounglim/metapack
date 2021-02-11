@@ -81,22 +81,36 @@ An object of class \code{bayes.nmr} is a list containing the following component
 This is a function the fits the model introduced in \emph{Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances (under revision)}. The first seven arguments are required except \code{ZCovariate}. If not provided, \code{ZCovariate} will be assigned a vector of ones, \code{rep(1, length(Outcome))}. \code{ZCovariate} is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution.
 }
 \examples{
-\dontrun{
+library(metapack)
 data(TNM)
-groupInfo <- list(c(0, 1), c(2, 3), c(4)) # define the variance structure
-x <- TNM[, 6:15]
-x <- scale(x, center = TRUE, scale = TRUE)
-theta_init <- c(0.05113, -1.38866, 1.09817, -0.85855, -1.12056, -1.14133, -0.22435, 3.63453,
-             -2.09322, 1.07858, 0.80566, -40.76753, -45.07127, -28.27232, -44.14054,
-             -28.13203, -19.19989, -47.21824, -51.31234, -48.46266, -47.71443)
-fit <- bayes.nmr(TNM$ptg, TNM$sdtg, x, TNM$Trial, TNM$Treat, TNM$Npt, groupInfo,
-  add.z = cbind(TNM$bldlc, TNM$btg),
-  prior = list(c01 = 1.0e05, c02 = 4, df = 3),
-  mcmc = list(ndiscard = 2500, nskip = 1, nkeep = 10000),
-  init = list(theta = theta_init), scale_x=TRUE,
-  Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE", "AE", "LE", "PE"),
-  verbose = TRUE)
+groupInfo <- list(c("PBO"), c("R"))
+nz <- length(groupInfo)
+ns <- nrow(TNM)
+XCovariate <- model.matrix(~ 0 + bldlc + bhdlc + btg + age +
+ white + male + bmi + potencymed + potencyhigh + durat, data = TNM)
+XCovariate <- scale(XCovariate, center = TRUE, scale = FALSE)
+ZCovariate <- matrix(0, ns, nz)
+for (j in 1:length(groupInfo)) {
+    for (i in 1:ns) {
+        if (TNM$Treat[i] \%in\% groupInfo[[j]]) {
+            ZCovariate[i, j] <- 1
+        }
+    }
 }
+addz <- scale(cbind(TNM$bldlc, TNM$btg), center=TRUE, scale=TRUE)
+ZCovariate <- cbind(1, ZCovariate, addz)
+theta_init <- c(0.05113, -1.38866, 1.09817, -0.85855, -1.12056, -1.14133,
+             -0.22435, 3.63453, -2.09322, 1.07858, 0.80566, -40.76753,
+             -45.07127, -28.27232, -44.14054, -28.13203, -19.19989,
+             -47.21824, -51.31234, -48.46266, -47.71443)
+set.seed(2797542)
+fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$Trial,
+    TNM$Treat, TNM$Npt, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
+    mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
+    init = list(theta = theta_init),
+    Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE",
+         "AE", "LE", "PE"),
+    scale_x = TRUE, verbose = FALSE)
 }
 \references{
 Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. \emph{Biostatistics}, \strong{20(3)}, 499-516.

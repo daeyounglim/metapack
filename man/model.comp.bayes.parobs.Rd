@@ -13,7 +13,7 @@
 
 \item{verbose}{FALSE by default; If TRUE, then progress bar will appear}
 
-\item{ncores}{the number of CPU cores to use for parallel processing; it must not exceed the number of existing cores}
+\item{ncores}{the number of CPU cores to use for parallel processing. It must not exceed the number of existing cores. If unspecified, it will default to 2 cores or the number of existing cores, whichever is smaller.}
 }
 \description{
 compute the model comparison measures

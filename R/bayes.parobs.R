@@ -62,27 +62,22 @@
 #' + `mcmc.draws` - the list containing the MCMC draws. The posterior sample will be accessible here.
 
 #' @examples
-#' \dontrun{
+#' library(metapack)
 #' data("cholesterol")
-#' Outcome <- cbind(cholesterol$pldlc, cholesterol$phdlc, cholesterol$ptg)
-#' SD <- cbind(cholesterol$sdldl, cholesterol$sdhdl, cholesterol$sdtg)
+#' Outcome <- model.matrix(~ pldlc + phdlc + ptg, data = cholesterol)
+#' SD <- model.matrix(~ sdldl + sdhdl + sdtg, data = cholesterol)
 #' Trial <- cholesterol$Trial
 #' Treat <- cholesterol$trt
 #' Npt <- cholesterol$Npt
-#' XCovariate <- cbind(cholesterol$bldlc, cholesterol$bhdlc,
-#' 		cholesterol$btg, cholesterol$age, cholesterol$durat, cholesterol$white,
-#' 		cholesterol$male, cholesterol$dm)
-#' WCovariate <- cbind(1, cholesterol$trt)
+#' XCovariate <- model.matrix(~ 0 + bldlc + bhdlc + btg + age + durat +
+#'  white + male + dm, data = cholesterol)
+#' WCovariate <- model.matrix(~ trt, data = cholesterol)
 #' 
-#' fmodel <- 3
-#' fit <- bayes.parobs(Outcome, SD, scale(XCovariate, scale = TRUE, center = TRUE),
-#' 			WCovariate, Treat, Trial, Npt, fmodel,
-#'   		mcmc = list(ndiscard = 100000, nskip = 1, nkeep = 20000),
-#' 			control = list(delta_stepsize = 0.1,
-#' 			rho_stepsize = 0.05, R_stepsize = 0.05),
-#'      group = cholesterol$onstat,
-#'      verbose = TRUE)
-#' }
+#' fmodel <- 1
+#' set.seed(2797542)
+#' fit <- bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial,
+#'    Npt, fmodel, mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
+#'    scale_x = TRUE, group = cholesterol$onstat, verbose = FALSE)
 #' @importFrom stats model.matrix optim
 #' @importFrom methods is
 #' @md

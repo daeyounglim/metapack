@@ -1,8 +1,12 @@
 [![Build Status](https://travis-ci.org/daeyounglim/metapack.svg?branch=master)](https://travis-ci.org/daeyounglim/metapack)
 [![R build status](https://github.com/daeyounglim/metapack/workflows/R-CMD-check/badge.svg)](https://github.com/daeyounglim/metapack/actions)
+[![](https://img.shields.io/github/last-commit/daeyounglim/metapack.svg)](https://github.com/daeyounglim/metapack/commits/master)
+[![](https://img.shields.io/github/languages/code-size/daeyounglim/metapack.svg)](https://github.com/daeyounglim/metapack)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 
 # metapack
-**metapack** provides (version 0.1.0) provides functions to perform Bayesian inference for models introduced in the following papers:
+**metapack** (version 0.1.0) provides functions to perform Bayesian inference for models introduced in the following papers:
 + Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. *Journal of the American Statistical Association*, **110(510)**, 528-544.
 + Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J. (2021). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. Submitted (Under revision).
 

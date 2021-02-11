@@ -6,6 +6,6 @@
    # echo output to screen
    packageStartupMessage("## Meta-Analysis (metapack)")
    packageStartupMessage("## Copyright (C) ", this.year,
-      " Daeyoung Lim, Ming-Hui Chen, Sungduk Kim, and Joseph G. Ibrahim", sep="")
+      " Daeyoung Lim, Ming-Hui Chen, Sungduk Kim, Joseph G. Ibrahim, Arvind K. Shah, and Jianxin Lin", sep="")
    packageStartupMessage("## Visit merlot.stat.uconn.edu/packages/metapack")
 }
