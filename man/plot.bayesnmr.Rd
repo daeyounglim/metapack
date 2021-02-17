@@ -11,6 +11,9 @@
 
 \item{...}{additional parameters for plot}
 }
+\value{
+No return value
+}
 \description{
 get goodness of fit
 }

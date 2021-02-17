@@ -13,6 +13,9 @@
 
 \item{...}{additional arguments for plot}
 }
+\value{
+No return value
+}
 \description{
 plot the surface under the cumulative ranking curve (SUCRA)
 }

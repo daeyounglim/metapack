@@ -16,7 +16,7 @@
 \item{...}{additional arguments for print}
 }
 \value{
-does not return anything; print a summary of the output
+No return value; print a summary of the output
 }
 \description{
 Print results

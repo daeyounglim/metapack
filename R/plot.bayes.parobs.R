@@ -3,6 +3,7 @@
 #' @param ... additional parameters for plot
 #' @importFrom graphics par
 #' @importFrom stats density 
+#' @return No return value
 #' @export
 #' 
 #' 

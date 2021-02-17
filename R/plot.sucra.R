@@ -2,6 +2,7 @@
 #' @param x the output model from fitting a network meta analysis/regression model
 #' @param legend.position the position of the legend that will be passed onto ggplot
 #' @param ... additional arguments for plot
+#' @return No return value
 #' @importFrom grDevices devAskNewPage rgb
 #' @importFrom graphics axis lines plot
 #' @importFrom ggplot2 ggplot geom_line aes labs theme_gray theme ylab

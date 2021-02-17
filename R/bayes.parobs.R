@@ -523,14 +523,6 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
 						 paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
 	}
 
-  # if (!is.null(colnames(XCovariate)) && !is.null(colnames(WCovariate))) {
-  #   if (!is.null(group)) {
-  #     rownames(fout$theta) <- c(rep(colnames(XCovariate), J), paste0(rep(colnames(WCovariate), J),"*(1-2nd)"), paste0(rep(colnames(WCovariate), J),"*2nd"))
-  #   } else {
-  #     rownames(fout$theta) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
-  #            paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
-  #   }
-  # }
   out <- list(
     Outcome = Outcome,
     SD = SD,

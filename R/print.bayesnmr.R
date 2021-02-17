@@ -4,7 +4,7 @@
 #' @param level credible level for interval estimation; set to 0.95 by default
 #' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for print
-#' @return does not return anything; print a summary of the output
+#' @return No return value; print a summary of the output
 #' @importFrom stats quantile sd
 #' @export
 "print.bayesnmr" <- function(x, level=0.95, HPD=TRUE, ...) {

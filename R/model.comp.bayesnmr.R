@@ -3,6 +3,7 @@
 #' @param type the type of model comparison measures; DIC or LPML
 #' @param verbose FALSE by default; If TRUE, then progress bar will appear
 #' @param ncores the number of CPU cores to use for parallel processing. It must not exceed the number of existing cores. If unspecified, it will default to 2 cores or the number of existing cores, whichever is smaller.
+#' @return dataframe containing the compute the model comparison measures
 #' @importFrom parallel detectCores
 #' @export
 

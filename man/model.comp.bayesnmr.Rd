@@ -15,6 +15,9 @@
 
 \item{ncores}{the number of CPU cores to use for parallel processing. It must not exceed the number of existing cores. If unspecified, it will default to 2 cores or the number of existing cores, whichever is smaller.}
 }
+\value{
+dataframe containing the compute the model comparison measures
+}
 \description{
 get compute the model comparison measures
 }
