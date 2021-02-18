@@ -22,7 +22,7 @@ dataframe containing HPD intervals for the parameters
 get the highest posterior density (HPD) interval
 }
 \details{
-A \eqn{100(1-\alpha)}\% HPD interval for \eqn{\theta} is given by \deqn{R(\pi_\alpha) = {\theta: \pi(\theta| D) \ge \pi_\alpha},} where \eqn{\pi_\alpha} is the largest constant that satisfies \eqn{P(\theta \in  R(\pi_\alpha)) \ge 1-\alpha}. \code{hpd} computes the HPD interval from an MCMC sample by letting \eqn{\theta_(j)} be the \eqn{j}th smallest of the MCMC sample, \eqn{{\theta_i}} and denoting \deqn{R_j(n) = (\theta_(j), \theta_(j+[(1-\alpha)n])),} for \eqn{j=1,2,\ldots,n-[(1-\alpha)n]}. Once \eqn{\theta_i}'s are sorted, the appropriate \eqn{j} is chosen so that \deqn{\theta_(j+[(1-\alpha)n]) - \theta_(j) = \min_{1\le j \leq n-[(1-\alpha)n]} (\theta_(j+[(1-\alpha)n]) - \theta_(j)).}
+A \eqn{100(1-\alpha)}\% HPD interval for \eqn{\theta} is given by \deqn{R(\pi_\alpha) = {\theta: \pi(\theta| D) \ge \pi_\alpha},} where \eqn{\pi_\alpha} is the largest constant that satisfies \eqn{P(\theta \in  R(\pi_\alpha)) \ge 1-\alpha}. \code{hpd} computes the HPD interval from an MCMC sample by letting \eqn{\theta_{(j)}} be the \eqn{j}th smallest of the MCMC sample, \eqn{{\theta_i}} and denoting \deqn{R_j(n) = (\theta_{(j)}, \theta_{(j+[(1-\alpha)n])}),} for \eqn{j=1,2,\ldots,n-[(1-\alpha)n]}. Once \eqn{\theta_i}'s are sorted, the appropriate \eqn{j} is chosen so that \deqn{\theta_{(j+[(1-\alpha)n])} - \theta_{(j)} = \min_{1\le j \leq n-[(1-\alpha)n]} (\theta_{(j+[(1-\alpha)n])} - \theta_{(j)}).}
 }
 \references{
 Chen, M. H., & Shao, Q. M. (1999). Monte Carlo estimation of Bayesian credible and HPD intervals. \emph{Journal of Computational and Graphical Statistics}, \strong{8(1)}, 69-92.

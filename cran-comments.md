@@ -1,13 +1,3 @@
-## Resubmission
-This is a resubmission. In this version I have:
-
-* Added return values for functions
-        'model.comp.bayes.parobs'
-        'model.comp.bayesnmr'
-        'plot.bayes.parobs'
-        'plot.bayesnmr'
-        'plot.sucra'
-
 ## Test environments
 * local macOS Big Sur 11.1 R 4.0.3
 * ubuntu 20.04 (release and devel on R CMD check)
