@@ -1,4 +1,9 @@
+#ifndef BOOST_DISABLE_ASSERTS
 #define BOOST_DISABLE_ASSERTS
+#endif
+#ifndef BOOST_MATH_DISABLE_DEPRECATED_03_WARNING
+#define BOOST_MATH_DISABLE_DEPRECATED_03_WARNING
+#endif
 #include <cmath>
 #include <Rmath.h>
 #include <algorithm>
