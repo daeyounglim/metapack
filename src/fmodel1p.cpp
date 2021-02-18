@@ -141,7 +141,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 				mu_theta += XSy - WSX.t() * Sig_gamk_inv * WSy;
 			}
 			Sig_theta = 0.5 * (Sig_theta + Sig_theta.t());
-			mat Sig_theta_chol = arma::chol(arma::symmatu(Sig_theta));
+			mat Sig_theta_chol = arma::chol(Sig_theta);
 			vec ttmp(nt);
 			std::generate(ttmp.begin(), ttmp.end(), ::norm_rand);
 			theta = arma::solve(arma::trimatu(Sig_theta_chol), arma::solve(arma::trimatl(Sig_theta_chol.t()), mu_theta) + ttmp);
@@ -193,7 +193,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 					mugam += ntk * (WS * resid_i.t());
 				}
 				Siggam = 0.5 * (Siggam + Siggam.t());
-				mat SiggamChol = arma::chol(arma::symmatu(Siggam));
+				mat SiggamChol = arma::chol(Siggam);
 				vec gtmp(nw*J);
 				std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
 				gamR.col(k) = arma::solve(arma::trimatu(SiggamChol), arma::solve(arma::trimatl(SiggamChol.t()), mugam) + gtmp);
@@ -309,7 +309,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 					mu_theta += XSy - WSX.t() * Sig_gamk_inv * WSy;
 				}
 				Sig_theta = 0.5 * (Sig_theta + Sig_theta.t());
-				mat Sig_theta_chol = arma::chol(arma::symmatu(Sig_theta));
+				mat Sig_theta_chol = arma::chol(Sig_theta);
 				vec ttmp(nt);
 				std::generate(ttmp.begin(), ttmp.end(), ::norm_rand);
 				theta = arma::solve(arma::trimatu(Sig_theta_chol), arma::solve(arma::trimatl(Sig_theta_chol.t()), mu_theta) + ttmp);
@@ -361,7 +361,7 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 						mugam += ntk * (WS * resid_i.t());
 					}
 					Siggam = 0.5 * (Siggam + Siggam.t());
-					mat SiggamChol = arma::chol(arma::symmatu(Siggam));
+					mat SiggamChol = arma::chol(Siggam);
 					vec gtmp(nw*J);
 					std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
 					gamR.col(k) = arma::solve(arma::trimatu(SiggamChol), arma::solve(arma::trimatl(SiggamChol.t()), mugam) + gtmp);

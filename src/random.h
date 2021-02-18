@@ -8,12 +8,6 @@
 
 namespace RNG
 {
-	// double runif( int &seed );
-	// double rnorm ( int &seed );
-	// double rexp ( int& seed );
-	// double rchisq ( const double& df, int& seed );
-	// double rgamma ( const double& shape, const double& rate, int& seed );
-	// double sgamma ( const double& shape, int& seed );
 	double _gig_mode(const double& lambda, const double& omega);
 	double _rgig_ROU_noshift (const double& lambda, const double& lambda_old, const double& omega, const double& alpha);
 	double _rgig_newapproach1 (const double& lambda, const double& lambda_old, const double& omega, const double& alpha);
