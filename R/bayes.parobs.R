@@ -64,8 +64,8 @@
 #' @examples
 #' library(metapack)
 #' data("cholesterol")
-#' Outcome <- model.matrix(~ pldlc + phdlc + ptg, data = cholesterol)
-#' SD <- model.matrix(~ sdldl + sdhdl + sdtg, data = cholesterol)
+#' Outcome <- model.matrix(~ 0 + pldlc + phdlc + ptg, data = cholesterol)
+#' SD <- model.matrix(~ 0 + sdldl + sdhdl + sdtg, data = cholesterol)
 #' Trial <- cholesterol$Trial
 #' Treat <- cholesterol$trt
 #' Npt <- cholesterol$Npt

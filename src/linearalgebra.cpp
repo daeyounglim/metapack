@@ -3,9 +3,7 @@
 #include <RcppArmadillo.h>
 #include <Rdefines.h>
 #include "linearalgebra.h"
-// [[Rcpp::depends(RcppArmadillo)]]
 
-// [[Rcpp::export]]
 arma::mat vecr(const arma::mat& X) {
 	const int J = X.n_cols;
 	arma::vec vphi((J*(J-1))/2);
@@ -18,7 +16,7 @@ arma::mat vecr(const arma::mat& X) {
 	return vphi;
 }
 
-// [[Rcpp::export]]
+
 arma::mat vecrinv(const arma::vec& X, const int& J) {
 	const int vdim = X.n_elem;
 	arma::mat R(J, J, arma::fill::zeros);

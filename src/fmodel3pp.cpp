@@ -130,6 +130,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 			if (Progress::check_abort()) {
 				return Rcpp::List::create(Rcpp::Named("error") = "user interrupt aborted");
 			}
+			++icount_mh;
 			// Update theta
 			mat Sig_theta(nt, nt, fill::zeros);
 			Sig_theta.diag().fill(1.0 / c0);

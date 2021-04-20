@@ -69,14 +69,6 @@ mhpd <- function(x, alpha) {
     .Call(`_metapack_mhpd`, x, alpha)
 }
 
-vecr <- function(X) {
-    .Call(`_metapack_vecr`, X)
-}
-
-vecrinv <- function(X, J) {
-    .Call(`_metapack_vecrinv`, X, J)
-}
-
 pRho_to_Rho <- function(pRho) {
     .Call(`_metapack_pRho_to_Rho`, pRho)
 }

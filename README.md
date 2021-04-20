@@ -26,6 +26,8 @@ If you encounter a clear bug, please file an issue with a minimal reproducible e
 + Ming-Hui Chen <ming-hui.chen@uconn.edu>
 + Sungduk Kim <kims2@mail.nih.gov>
 + Joseph G. Ibrahim <ibrahim@bios.unc.edu>
++ Arvind Shah <arvind_shah@merck.com>
++ Jianxin Lin <jianxin_lin@merck.com>
 
 ## Acknowledgments
 + Dr. Chen and Dr. Ibrahim's research was partially supported by NIH grants #GM70335 and #P01CA142538, and Merck & Co., Inc., Kenilworth, NJ, USA.

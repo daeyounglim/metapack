@@ -503,29 +503,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// vecr
-arma::mat vecr(const arma::mat& X);
-RcppExport SEXP _metapack_vecr(SEXP XSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(vecr(X));
-    return rcpp_result_gen;
-END_RCPP
-}
-// vecrinv
-arma::mat vecrinv(const arma::vec& X, const int& J);
-RcppExport SEXP _metapack_vecrinv(SEXP XSEXP, SEXP JSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const int& >::type J(JSEXP);
-    rcpp_result_gen = Rcpp::wrap(vecrinv(X, J));
-    return rcpp_result_gen;
-END_RCPP
-}
 // pRho_to_Rho
 arma::mat pRho_to_Rho(arma::mat& pRho);
 RcppExport SEXP _metapack_pRho_to_Rho(SEXP pRhoSEXP) {
@@ -611,8 +588,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_metapack_pearson_parcov", (DL_FUNC) &_metapack_pearson_parcov, 6},
     {"_metapack_vhpd", (DL_FUNC) &_metapack_vhpd, 2},
     {"_metapack_mhpd", (DL_FUNC) &_metapack_mhpd, 2},
-    {"_metapack_vecr", (DL_FUNC) &_metapack_vecr, 1},
-    {"_metapack_vecrinv", (DL_FUNC) &_metapack_vecrinv, 2},
     {"_metapack_pRho_to_Rho", (DL_FUNC) &_metapack_pRho_to_Rho, 1},
     {"_metapack_Rho_to_pRho", (DL_FUNC) &_metapack_Rho_to_pRho, 1},
     {"_metapack_calc_modelfit_pearson", (DL_FUNC) &_metapack_calc_modelfit_pearson, 5},
