@@ -10,9 +10,9 @@ There were no ERRORs, or WARNINGs.
 There was 1 NOTE:
 
 * checking installed package size ... NOTE
-  installed size is  5.2Mb
+  installed size is  5.8Mb
   sub-directories of 1Mb or more:
-    libs   4.9Mb
+    libs   5.5Mb
 
 
 ## Downstream dependencies
