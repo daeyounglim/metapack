@@ -6,9 +6,9 @@
 
 
 # metapack
-**metapack** (version 0.1.0) provides functions to perform Bayesian inference for models introduced in the following papers:
+**metapack** (version 0.1.1) provides functions to perform Bayesian inference for models introduced in the following papers:
 + Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. *Journal of the American Statistical Association*, **110(510)**, 528-544.
-+ Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J. (2021). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. Submitted (Under revision).
++ Li, H, Lim, D, Chen, M-H, et al. Bayesian network meta‐regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. *Statistics in Medicine*. 2021; 1-22. [https://doi.org/10.1002/sim.8983](https://doi.org/10.1002/sim.8983)
 
 To see the model specification, please refer to the corresponding papers or the long-form vignette of this package.
 

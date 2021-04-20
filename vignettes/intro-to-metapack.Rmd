@@ -159,7 +159,7 @@ Since the aforementioned setting regards the correlations as missing, the report
 and $(n_{tk}-1)S_{tk} \sim \mathcal{W}_{n_{tk}-1}(\Sigma_{tk})$ where $\boldsymbol{X}_{tk} = \mathrm{blockdiag}(\boldsymbol{x}_{tk1}^\prime,\boldsymbol{x}_{tk2}^\prime,\ldots,\boldsymbol{x}_{tkJ}^\prime)$, $\boldsymbol{\beta} = (\boldsymbol{\beta}_1^\prime, \cdots, \boldsymbol{\beta}_J^\prime)^\prime$, $\boldsymbol{W}_{tk}=\mathrm{blockdiag}(\boldsymbol{w}_{tk1}^\prime, \ldots,\boldsymbol{w}_{tkJ}^\prime)$, $\boldsymbol{\gamma}_k = (\boldsymbol{\gamma}_{k1}^\prime,\boldsymbol{\gamma}_{k2}^\prime, \ldots,\boldsymbol{\gamma}_{kJ}^\prime)^\prime$, $\overline{\boldsymbol{\epsilon}}_{\cdot tk} \sim \mathcal{N}(\boldsymbol{0}, \Sigma_{tk}/n_{tk})$, $S_{tk}$ is the full-rank covariance matrix whose diagonal entries are the observed $\boldsymbol{s}_{tk}$, and $\mathcal{W}_\nu(\Sigma)$ is the Wishart distribution with $\nu$ degrees of freedom and a $J\times J$ scale matrix $\Sigma$ whose density function is
 
 $$
-f(X\mid \nu,\Sigma) = \dfrac{1}{2^{J\nu}|\Sigma|^{\nu/2}\Gamma_p(\nu/2)}|X|^{(\nu-J-1)/2}\exp\left(-\dfrac{1}{2}\mathrm{tr}(\Sigma^{-1}X) \right)I(X\in \mathcal{S}_{++}^J),
+f(X\mid \nu,\Sigma) = \dfrac{1}{2^{J\nu}|\Sigma|^{\nu/2}\Gamma_J(\nu/2)}|X|^{(\nu-J-1)/2}\exp\left(-\dfrac{1}{2}\mathrm{tr}(\Sigma^{-1}X) \right)I(X\in \mathcal{S}_{++}^J),
 $$
 
 where $\Gamma_p$ is the multivariate gamma function defined by
