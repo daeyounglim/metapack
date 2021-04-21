@@ -12,7 +12,6 @@
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
 #include "nelmin.h"
-#include "ListBuilder.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
@@ -346,11 +345,12 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 			prog.increment();
 		}
 	}
-	return ListBuilder()
-		.add("resid", resid_save)
-		.add("theta", theta_save)
-		.add("Sigma", Sigma_save)
-		.add("Omega", Omega_save);
+	return Rcpp::List::create(
+			Rcpp::Named("resid") = resid_save,
+			Rcpp::Named("theta") = theta_save,
+			Rcpp::Named("Sigma") = Sigma_save,
+			Rcpp::Named("Omega") = Omega_save
+		);
 }
 
 

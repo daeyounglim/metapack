@@ -8,7 +8,6 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 #include "random.h"
-#include "ListBuilder.h"
 #include "linearalgebra.h"
 #include "misc_nmr.h"
 #include "nelmin.h"
@@ -890,20 +889,21 @@ Rcpp::List BayesNMR(const arma::vec& y,
 		nua_rates /= static_cast<double>(ndiscard+nkeep*nskip);
 	}
 
-	return ListBuilder()
-	.add("resid", resid_save)
-	.add("theta", beta_save)
-	.add("phi", phi_save)
-	.add("lam", lam_save)
-	.add("sig2", sig2_save)
-	.add("Rho", Rho_save)
-	.add("gam", gam_save)
-	.add("df", df_save)
-	.add("nua", nua_save)
-	.add("nub", nub_save)
-	.add("Rho_acceptance", Rho_rates)
-	.add("lam_acceptance", lam_rates)
-	.add("phi_acceptance", phi_rates)
-	.add("df_acceptance", df_rates)
-	.add("nua_acceptance", nua_rates);
+	return Rcpp::List::create(
+			Rcpp::Named("resid") = resid_save,
+			Rcpp::Named("theta") = beta_save,
+			Rcpp::Named("phi") = phi_save,
+			Rcpp::Named("lam") = lam_save,
+			Rcpp::Named("sig2") = sig2_save,
+			Rcpp::Named("Rho") = Rho_save,
+			Rcpp::Named("gam") = gam_save,
+			Rcpp::Named("df") = df_save,
+			Rcpp::Named("nua") = nua_save,
+			Rcpp::Named("nub") = nub_save,
+			Rcpp::Named("Rho_acceptance") = Rho_rates,
+			Rcpp::Named("lam_acceptance") = lam_rates,
+			Rcpp::Named("phi_acceptance") = phi_rates,
+			Rcpp::Named("df_acceptance") = df_rates,
+			Rcpp::Named("nua_acceptance") = nua_rates
+		);
 }
