@@ -22,7 +22,7 @@ using namespace RNG;
  *
  * adapted from the C code in the monomvm package for R.
  */
-#define ZTOL (DOUBLE_EPS*10.0)
+#define ZTOL (DBL_EPSILON*10.0)
 
 
 double RNG::_gig_mode(const double& lambda, const double& omega)
