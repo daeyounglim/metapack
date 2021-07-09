@@ -1,9 +1,8 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
-* Removed ListBuilder.h to fix the rchk errors, which were related to protected SEXP objects
-* Changed all 'return Listbuilder()' in the source files to 'Rcpp::List::create(...)'
-* Added DOI information for the network meta-regression model in the DESCRIPTION file
+* removed unused functions in loglik_POCov.cpp and linearalgebra.cpp
+* changed rwish to arma::wishrnd and deleted random.cpp
 
 ## Test environments
 * local x64 Windows 10 (Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz) R version 4.0.2 

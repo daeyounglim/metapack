@@ -21,7 +21,7 @@ LazyLoad: yes
 LazyData: true
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Imports: Rcpp, ggplot2, methods, gridExtra
+Imports: Rcpp, ggplot2, methods, gridExtra, Formula
 Depends: R (>= 3.4)
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, BH
 Suggests: 

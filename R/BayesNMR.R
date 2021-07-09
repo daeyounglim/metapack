@@ -83,19 +83,19 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, pr
   if (!is(Outcome, "vector")) {
     tmp <- try(Outcome <- as.vector(Outcome))
     if (is(tmp, "try-error")) {
-      stop("Outcome must be a vector or able to be coerced to a vector")
+      stop(paste(sQuote("Outcome"), "must be a vector or able to be coerced to a vector"))
     }
   }
   if (!is(SD, "vector")) {
     tmp <- try(SD <- as.vector(SD))
     if (is(tmp, "try-error")) {
-      stop("SD must be a vector or able to be coerced to a vector")
+      stop(paste(sQuote("SD"), "must be a vector or able to be coerced to a vector"))
     }
   }
   if (!is(XCovariate, "matrix")) {
     tmp <- try(XCovariate <- model.matrix(~ 0 + ., data = XCovariate), silent = TRUE)
     if (is(tmp, "try-error")) {
-      stop("XCovariate must be a matrix or able to be coerced to a matrix")
+      stop(paste(sQuote("XCovariate"), "must be a matrix or able to be coerced to a matrix"))
     }
   }
   if (missing(ZCovariate)) {
@@ -104,26 +104,26 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, pr
     if (!is(ZCovariate, "matrix")) {
       tmp <- try(ZCovariate <- model.matrix(~ 0 + ., data = ZCovariate), silent = TRUE)
       if (is(tmp, "try-error")) {
-        stop("ZCovariate must be a matrix or able to be coerced to a matrix")
+        stop(paste(sQuote("ZCovariate"), "must be a matrix or able to be coerced to a matrix"))
       }
     }
   }
   if (!is(Treat, "vector")) {
     tmp <- try(Treat <- as.vector(Treat))
     if (is(tmp, "try-error")) {
-      stop("Treat must be a vector or able to be coerced to a vector")
+      stop(paste(sQuote("Treat"), "must be a vector or able to be coerced to a vector"))
     }
   }
   if (!is(Trial, "vector")) {
     tmp <- try(Trial <- as.vector(Trial))
     if (is(tmp, "try-error")) {
-      stop("Trial must be a vector or able to be coerced to a vector")
+      stop(paste(sQuote("Trial"), "must be a vector or able to be coerced to a vector"))
     }
   }
   if (!is(Npt, "numeric")) {
     tmp <- try(Npt <- as.numeric(Npt))
     if (is(tmp, "try-error")) {
-      stop("Npt must be numeric or able to be coerced to numeric")
+      stop(paste(sQuote("Npt"), "must be numeric or able to be coerced to numeric"))
     }
   }
   if (any(is.na(Outcome)) | any(is.na(XCovariate)) | any(is.na(ZCovariate)) | any(is.na(Treat)) | any(is.na(Trial)) | any(is.na(Npt))) {

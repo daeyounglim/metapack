@@ -7,7 +7,6 @@
 #include <iterator>
 #include <progress.hpp>
 #include <progress_bar.hpp>
-#include "misc.h"
 #include "ramcmc.h"
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
