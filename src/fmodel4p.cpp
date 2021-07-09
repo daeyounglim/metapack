@@ -9,7 +9,6 @@
 #include <progress_bar.hpp>
 #include "misc.h"
 #include "ramcmc.h"
-#include "random.h"
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
 #include "nelmin.h"
@@ -242,8 +241,8 @@ Rcpp::List fmodel4p(const arma::mat& Outcome,
 				mat qq1 = Omega0inv + (gamstar * gamstar.t());
 				gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 				mat qq2 = Omega0inv + (gamstar * gamstar.t());
-				mat ominv1 = RNG::rwish(shape_omega1, arma::inv(qq1));
-				mat ominv2 = RNG::rwish(shape_omega2, arma::inv(qq2));
+				mat ominv1 = arma::wishrnd(arma::inv(qq1), shape_omega1);
+				mat ominv2 = arma::wishrnd(arma::inv(qq2), shape_omega2);
 				mat om1 = arma::inv_sympd(ominv1);
 				mat om2 = arma::inv_sympd(ominv2);
 				Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
@@ -366,7 +365,7 @@ Rcpp::List fmodel4p(const arma::mat& Outcome,
 				double ntk = Npt(i);
 				vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 				mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * (arma::diagmat(delta) * Rho * arma::diagmat(delta));
-				mat Siginv_new = RNG::rwish(ntk+nu0, qq.i());
+				mat Siginv_new = arma::wishrnd(qq.i(), ntk + nu0);
 				Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 			}
 
@@ -569,8 +568,8 @@ Rcpp::List fmodel4p(const arma::mat& Outcome,
 					mat qq1 = Omega0inv + (gamstar * gamstar.t());
 					gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 					mat qq2 = Omega0inv + (gamstar * gamstar.t());
-					mat ominv1 = RNG::rwish(shape_omega1, arma::inv(qq1));
-					mat ominv2 = RNG::rwish(shape_omega2, arma::inv(qq2));
+					mat ominv1 = arma::wishrnd(arma::inv(qq1), shape_omega1);
+					mat ominv2 = arma::wishrnd(arma::inv(qq2), shape_omega2);
 					mat om1 = arma::inv_sympd(ominv1);
 					mat om2 = arma::inv_sympd(ominv2);
 					Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
@@ -693,7 +692,7 @@ Rcpp::List fmodel4p(const arma::mat& Outcome,
 					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 					resid_ikeep.row(i) = resid_i.t();
 					mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * (arma::diagmat(delta) * Rho * arma::diagmat(delta));
-					mat Siginv_new = RNG::rwish(ntk+nu0, qq.i());
+					mat Siginv_new = arma::wishrnd(qq.i(), ntk + nu0);
 					Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 					mat Sig_new = arma::inv_sympd(Siginv_new);
 					Sig_lt.row(i) = arma::trans(vech(Sig_new));

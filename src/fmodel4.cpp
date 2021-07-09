@@ -9,7 +9,6 @@
 #include <progress_bar.hpp>
 #include "misc.h"
 #include "ramcmc.h"
-#include "random.h"
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
 #include "nelmin.h"
@@ -208,7 +207,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 			for (int jj = 0; jj < J; ++jj) {
 				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 				mat qq = Omega0inv + (gamstar * gamstar.t());
-				mat ominv = RNG::rwish(shape_omega, arma::inv(qq));
+				mat ominv = arma::wishrnd(arma::inv(qq), shape_omega);
 				mat om = arma::inv_sympd(ominv);
 				Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 				Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -323,7 +322,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 				double ntk = Npt(i);
 				vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 				mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * (arma::diagmat(delta) * Rho * arma::diagmat(delta));
-				mat Siginv_new = RNG::rwish(ntk+nu0, qq.i());
+				mat Siginv_new = arma::wishrnd(qq.i(), ntk+nu0);
 				Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 			}
 
@@ -499,7 +498,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 				for (int jj = 0; jj < J; ++jj) {
 					mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 					mat qq = Omega0inv + (gamstar * gamstar.t());
-					mat ominv = RNG::rwish(shape_omega, arma::inv(qq));
+					mat ominv = arma::wishrnd(arma::inv(qq), shape_omega);
 					mat om = arma::inv_sympd(ominv);
 					Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 					Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -616,7 +615,7 @@ Rcpp::List fmodel4(const arma::mat& Outcome,
 					vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 					resid_ikeep.row(i) = resid_i;
 					mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * (arma::diagmat(delta) * Rho * arma::diagmat(delta));
-					mat Siginv_new = RNG::rwish(ntk+nu0, qq.i());
+					mat Siginv_new = arma::wishrnd(qq.i(), ntk+nu0);
 					Siginv_lt.row(i) = arma::trans(vech(Siginv_new));
 					mat Sig_new = arma::inv_sympd(Siginv_new);
 					Sig_lt.row(i) = arma::trans(vech(Sig_new));

@@ -6,6 +6,11 @@
 #include "loglik_POCov.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 
+/*
+ * Initial version: DY 2020/08/18
+ * - DY 2021/07/08: removed unused functions
+*/
+
 double loglik_rik(const double& rstar,
 				  const arma::rowvec& vrtk,
 				  const int& kk,
@@ -55,40 +60,6 @@ double loglik_delta_m3(const double& logdel,
 	return -0.5 * arma::dot(qq, VRV) - (a0 + ntk) * logdel - b0 * std::exp(-logdel);
 }
 
-double loglik_rho_m3(const double& zprho,
-					 const arma::vec& vRho,
-					 const arma::mat& qq,
-					 const int& ii,
-					 const int& iR,
-					 const int& iC,
-					 const int& J,
-					 const double& sumNpt) {
-	using namespace arma;
-	using namespace std;
-	using namespace Rcpp;
-	using namespace R;
-
-	vec vRhop = vRho;
-	vRhop(ii) = zprho;
-	double z = std::tanh(zprho);
-
-	mat pRRho = vecrinv(arma::tanh(vRhop), J);
-	pRRho.diag().fill(1.0);
-	mat Rhop = pRho_to_Rho(pRRho);
-	mat Rhopinv;
-	try {
-		Rhopinv = arma::inv(Rhop);
-	} catch (std::runtime_error & e) {
-		Rcpp::Rcout << z << std::endl;
-		return -arma::datum::inf;
-	}
-	double logdet_val, logdet_sign;
-	arma::log_det(logdet_val, logdet_sign, Rhop);
-
-	double loglik = -0.5 * arma::dot(qq, Rhopinv) - 0.5 * sumNpt * logdet_val;
-	loglik += 0.5 * static_cast<double>(J + 1 - std::abs(iC - iR)) * std::log1p(-z*z);
-	return loglik;
-}
 
 double loglik_vRho_m3(const arma::vec& vRho,
 					 const arma::mat& Rhopinv,
@@ -227,72 +198,6 @@ double loglik_delta_m4p(const double& logdel,
     return loglik;
 }
 
-double loglik_rho_m4(const double& zprho,
-	        		 const arma::vec& vRho,
-	        		 const int& ii,
-	        		 const arma::vec& delta,
-	        		 const arma::mat& WCovariate,
-	        		 const arma::mat& SD,
-	        		 const arma::mat& resid,
-	        		 const arma::vec& Npt,
-	        		 const arma::mat& vRtk,
-	        		 const arma::uvec& Trial,
-	        		 const arma::mat& gamR,
-	        		 const int& iR,
-	        		 const int& iC,
-	        		 const double& d0,
-	        		 const double& nu0,
-	        		 const int& N,
-	        		 const int& J,
-	        		 const int& K,
-	        		 const int& T,
-	        		 const arma::mat& Sigma0inv) {
-	using namespace arma;
-	using namespace std;
-	using namespace Rcpp;
-	using namespace R;
-
-	double z = std::tanh(zprho);
-	vec vRhop = vRho;
-	vRhop(ii) = zprho;
-	mat pRRp = vecrinv(arma::tanh(vRhop), J);
-	pRRp.diag().fill(1.0);
-	mat Rhop = pRho_to_Rho(pRRp);
-
-	double logdet_val;
-	double logdet_sign;
-	log_det(logdet_val, logdet_sign, Rhop);
-
-	mat Delta = arma::diagmat(delta);
-
-	int nw = WCovariate.n_cols;
-	mat Sig_prop = Delta * Rhop * Delta;
-	double loglik = 0.5 * (static_cast<double>(T*K) * nu0 + d0 - static_cast<double>(J) - 1.0) * logdet_val - 0.5 * arma::dot(Sigma0inv, Sig_prop);
-	for (int i = 0; i < N; ++i) {
-		rowvec w_i = WCovariate.row(i);
-
-		mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
-		pRR.diag().fill(1.0);
-		mat R = pRho_to_Rho(pRR);
-
-		int k = Trial(i);
-		vec gam_k = gamR.col(k);
-		mat V = arma::diagmat(SD.row(i));
-		mat W(J, nw*J, fill::zeros);
-		for (int j = 0; j < J; ++j) {
-			W(j, span(j*nw, (j+1)*nw-1)) = w_i;
-		}
-		double ntk = Npt(i);
-		vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
-		mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * Sig_prop;
-		log_det(logdet_val, logdet_sign, qq);
-		loglik -= 0.5 * (ntk + nu0) * logdet_val;
-	}
-	loglik += 0.5 * (static_cast<double>(J+1-std::abs(iC-iR))) * std::log1p(-z*z);
-    return loglik;
-}
-
-
 double loglik_vRho_m4(const arma::vec& vRho,
 	        		 const arma::vec& delta,
 	        		 const arma::mat& WCovariate,
@@ -355,80 +260,6 @@ double loglik_vRho_m4(const arma::vec& vRho,
 	}
     return loglik;
 }
-
-
-double loglik_rho_m4p(const double& zprho,
-					 const arma::vec& vRho,
-	        		 const int& ii,
-	        		 const arma::vec& delta,
-	        		 const arma::mat& WCovariate,
-	        		 const arma::mat& SD,
-	        		 const arma::mat& resid,
-	        		 const arma::vec& Npt,
-	        		 const arma::mat& vRtk,
-	        		 const arma::uvec& Trial,
-	        		 const arma::uvec& Second,
-	        		 const arma::mat& gamR,
-	        		 const int& iR,
-	        		 const int& iC,
-	        		 const double& d0,
-	        		 const double& nu0,
-	        		 const int& N,
-	        		 const int& J,
-	        		 const int& K,
-	        		 const int& T,
-	        		 const arma::mat& Sigma0inv) {
-	using namespace arma;
-	using namespace std;
-	using namespace Rcpp;
-	using namespace R;
-
-	double z = std::tanh(zprho);
-	vec vRhop = vRho;
-	vRhop(ii) = zprho;
-	mat pRRp = vecrinv(arma::tanh(vRhop), J);
-	pRRp.diag().fill(1.0);
-	mat Rhop = pRho_to_Rho(pRRp);
-
-	double logdet_val;
-	double logdet_sign;
-	log_det(logdet_val, logdet_sign, Rhop);
-
-	mat Delta = arma::diagmat(delta);
-
-	int nn = WCovariate.n_cols;
-	int nw = nn * 2;
-	mat Sig_prop = Delta * Rhop * Delta;
-	double loglik = 0.5 * (static_cast<double>(T*K) * nu0 + d0 - static_cast<double>(J) - 1.0) * logdet_val - 0.5 * arma::dot(Sigma0inv, Sig_prop);
-	for (int i = 0; i < N; ++i) {
-		rowvec w_i = WCovariate.row(i);
-		rowvec wstar_i(nw, fill::zeros);
-		if (Second(i) == 0) {
-			wstar_i.head(nn) =  w_i;
-		} else {
-			wstar_i.tail(nn) =  w_i;
-		}
-		mat pRR = vecrinv(trans(arma::tanh(vRtk.row(i))), J);
-		pRR.diag().fill(1.0);
-		mat R = pRho_to_Rho(pRR);
-
-		int k = Trial(i);
-		vec gam_k = gamR.col(k);
-		mat V = arma::diagmat(SD.row(i));
-		mat W(J, nw*J, fill::zeros);
-		for (int j = 0; j < J; ++j) {
-			W(j, span(j*nw, (j+1)*nw-1)) = wstar_i;
-		}
-		double ntk = Npt(i);
-		vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
-		mat qq = ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V + (nu0 - static_cast<double>(J) - 1.0) * Sig_prop;
-		log_det(logdet_val, logdet_sign, qq);
-		loglik -= 0.5 * (ntk + nu0) * logdet_val;
-	}
-	loglik += 0.5 * (static_cast<double>(J+1-std::abs(iC-iR))) * std::log1p(-z*z);
-    return loglik;
-}
-
 
 double loglik_vRho_m4p(const arma::vec& vRho,
 	        		 const arma::vec& delta,
