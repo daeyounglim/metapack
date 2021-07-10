@@ -4,19 +4,58 @@
 \alias{synthesize}
 \title{Wrapper function for worker functions: bayes.parobs, bayes.nmr}
 \usage{
-synthesize(formula, data, prior = list(), control = list(), ...)
+synthesize(
+  formula,
+  data,
+  prior = list(),
+  mcmc = list(),
+  control = list(),
+  init = list(),
+  ...
+)
 }
 \arguments{
-\item{formula}{an object of class of \link[Formula]{Formula}: a symbolic description of the meta-analytic model to be fitted. The list of models includes multivariate meta-regression and univariate network meta-regression. More will be added moving forward.}
+\item{formula}{an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of trial sample sizes must be provided using the function \code{ns()}. For example, \code{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)} — an incomplete formula only for illustration purposes. If no \code{ns()} is found, IPD model is assumed.}
 
-\item{data}{a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `synthesize` is called.}
+\item{data}{a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in \code{data}, the variables are taken from \code{environment(formula)}, typically the environment from which \code{synthesize} is called.}
 
-\item{prior}{an optional object that contains the hyperparameter values for the model}
+\item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., \code{help(bayes.parobs)} or \code{help(bayes.nmr)}.}
 
-\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm}
+\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \link{bayes.parobs} or \link{bayes.nmr}). For multivariate models, \code{model} is required in the \code{control} argument, which is passed to \code{fmodel} as an integer.
+\itemize{
+\item \code{model="NoRecovery"} - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is \href{https://en.wikipedia.org/wiki/Inverse-gamma_distribution}{the inverse-gamma distribution}. This specification is useful if the user does not care about the correlation recovery. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
+\item \code{model="EquiCovariance"} - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
+\item \code{model="EquiWithinTreat"} - \eqn{\Sigma_{tk}=\Sigma_t} and \eqn{\Sigma_t^{-1}\sim  Wish_{s_0}(\Sigma_0)}. This is a relaxed version of \code{model=2}, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
+\item \code{model="EquiCorrelation"} - \eqn{\Sigma_{tk}=\delta_{tk} \rho \delta_{tk}} where \eqn{\delta_{tk}=diag(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})}, and \eqn{\rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
+\item \code{model="Hierarchical"} - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{tk}^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_{tk}} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (\code{c0}, \code{dj0}, \code{d0}, \code{nu0}, \code{Sigma0}, \code{Omega0})
+}}
+
+\item{init}{(Optional) a list of initial values for the parameters to be sampled}
+}
+\value{
+\code{synthesize} returns a classed object currently either \code{bayes.parobs} or \code{bayes.nmr}
 }
 \description{
 This is the one function to rule them all. All other worker functions will be subsumed by this function, so that users can forget about the implementation details.
+}
+\details{
+\code{synthesize} currently subsumes two worker functions: \code{bayes.parobs} and \code{bayes.nmr}. \code{synthesize} offers a formula interface, unlike the worker functions, where the \code{formula} (see \link[Formula]{Formula}) is parsed and a model is identified according to the configuration.
+All formulas are parsed using \link[Formula]{Formula}. Formulas for \code{synthesize} are limited to a particular structure: 1 or 2 LHS, and strictly 3 RHS. That is, \code{lhs_1 ~ rhs_1 | rhs2 | rhs3} or \code{lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3} (see Example for more). The tilde (\code{~}) separates the LHS and RHS, each side further separated into parts by the vertical bar (\code{|}).
+The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, the following order \strong{must be observed} for \code{synthesize} to correctly identify and configure your model accordingly.
+\itemize{
+\item The first LHS, the responses, is required for all models.
+\item The second LHS is only required for aggregate models, corresponding to the standard deviations of the responses.
+\item The first RHS corresponds to fixed-effects covariates.
+\item The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma}`) for multivariate meta-analysis or modeling the variances (log\eqn{\tau} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
+\item The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be \code{treat + trial + group}, or \code{treat + trial} if no grouping exists.
+}
+
+Internally, \code{synthesize} looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and \href{https://en.wikipedia.org/wiki/Meta-analysis#Approaches}{aggregate/IPD} (individual participant data).
+\itemize{
+\item multivariate/univariate: the dimension of the response has full information
+\item meta-analysis/network meta-analysis: the number of levels (\code{nlevels}) of treatments determines this
+\item aggregate/IPD: \code{synthesize} looks for \code{ns()} in the first RHS. Aggregate models \strong{must} provide the trial sample sizes using the function \code{ns()} (e.g., if \code{n} is the sample sizes, \verb{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))}). If there is no \code{ns()}, IPD is assumed.
+}
 }
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}

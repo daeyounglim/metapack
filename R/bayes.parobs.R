@@ -226,6 +226,8 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     XCovariate_ <- XCovariate
   }
 
+  
+
   mcmctime <- system.time({
     if (second.exist) {
       if (fmodel == 1) {

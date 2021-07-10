@@ -11,8 +11,8 @@ vhpd <- function(x, level = 0.95) {
     cl <- level
     gap <- max(1, min(n - 1, round(n * level))) / n
     if (level > gap) {
-      warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
-      cl <- gap-1.0e-4
+        warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
+        cl <- gap-1.0e-4
     }
     alpha <- 1 - cl
     out <- .Call(`_metapack_vhpd`, as.vector(x), as.double(alpha))
@@ -25,8 +25,8 @@ mhpd <- function(x, level = 0.95) {
     gap <- max(1, min(n - 1, round(n * level))) / n
     cl <- level
     if (level > gap) {
-      warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
-      cl <- gap-1.0e-4
+        warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
+        cl <- gap-1.0e-4
     }
     alpha <- 1 - cl
     out <- .Call(`_metapack_mhpd`, as.matrix(x), as.double(alpha))
@@ -41,28 +41,44 @@ hpdarray <- function(A, level = 0.95) {
     gap <- max(1, min(n - 1, round(n * level))) / n
     cl <- level
     if (level > gap) {
-      warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
-      cl <- gap-1.0e-4
+        warning("The desired level cannot be reached with the provided posterior sample size.\n The level should be smaller than ", gap, ". ", "Forcing the HPD level to ", gap-1.0e-4, "\n")
+        cl <- gap-1.0e-4
     }
     alpha <- 1 - cl
-  out <- array(0, dim = c(nR, nC, 2))
-  dimnames(out)[[3]] <- c("lower", "upper")
-  for (iC in 1:nC) {
+    out <- array(0, dim = c(nR, nC, 2))
+    dimnames(out)[[3]] <- c("lower", "upper")
+    for (iC in 1:nC) {
         hpd_ic <- .Call(`_metapack_mhpd`, as.matrix(A[,iC,]), as.double(alpha))
-    out[,iC,1] <- hpd_ic[,1]
-    out[,iC,2] <- hpd_ic[,2]
-  }
-  attr(out, "Empirical level") <- gap 
-  return(out)
+        out[,iC,1] <- hpd_ic[,1]
+        out[,iC,2] <- hpd_ic[,2]
+    }
+    attr(out, "Empirical level") <- gap 
+    return(out)
 }
 
 ciarray <- function(A, level = 0.95) {
-  nR <- nrow(A)
-  nC <- ncol(A)
-  out <- array(0, dim = c(nR, nC, 2))
-  dimnames(out)[[3]] <- c("lower", "upper")
-  sig.level <- 1 - level
-  out[,,1] <- apply(A, c(1,2), function(xx) quantile(xx, prob = sig.level / 2))
-  out[,,2] <- apply(A, c(1,2), function(xx) quantile(xx, prob = 1 - sig.level / 2))
-  return(out)
+    nR <- nrow(A)
+    nC <- ncol(A)
+    out <- array(0, dim = c(nR, nC, 2))
+    dimnames(out)[[3]] <- c("lower", "upper")
+    sig.level <- 1 - level
+    out[,,1] <- apply(A, c(1,2), function(xx) quantile(xx, prob = sig.level / 2))
+    out[,,2] <- apply(A, c(1,2), function(xx) quantile(xx, prob = 1 - sig.level / 2))
+    return(out)
 }
+
+#' @export
+ns <- function(x) x
+
+# "parse.formula" <- function(formula) {
+#   mf <- match.call(expand.dots = FALSE)
+#   mf$drop.unused.levels <- TRUE
+#   mf[[1]] <- as.name("model.frame")
+
+#   mf <- eval(mf, parent.frame(1L))
+#   mt <- attr(mf, "terms")
+
+
+#   xidx <- which(substr(pnames, 1, 3) == 'fs(')
+# }
+
