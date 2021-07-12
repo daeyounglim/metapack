@@ -135,7 +135,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     second.exist <- TRUE
     sl <- unique(group)
     if (length(sl) != 2) {
-      stop("The second-line trial indicators must be binary.")
+      stop(paste(sQuote("group"), "must be binary"))
     }
     nr <- 2
     if (is.null(group_order)) {
@@ -155,7 +155,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   ndiscard <- mcvals$ndiscard
   nskip <- mcvals$nskip
   if (nskip < 1) {
-    stop("The thinning cannot be smaller than 1.")
+    stop(paste0(sQuote("nskip"), "can't be smaller than 1"))
   }
   nkeep <- mcvals$nkeep
 
@@ -214,10 +214,10 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   Rho_init <- init_final$Rho
 
   if (any(eigen(Omega_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
-    stop("The initial value for Omega is not positive definite")
+    stop(paste("The initial value for", sQuote("Omega"), "is not positive definite"))
   }
   if (any(eigen(Rho_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
-    stop("The initial value for Omega is not positive definite")
+    stop(paste("The initial value for", sQuote("Rho"), "is not positive definite"))
   }
   
   if (scale_x) {
@@ -372,7 +372,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           as.logical(verbose)
         )
       } else {
-        stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4, 5}.")
+        stop(paste(sQuote("fmodel"), "is invalid. Please pick from {1, 2, 3, 4, 5}"))
       }
     } else {
       if (fmodel == 1) {
@@ -512,7 +512,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
           as.logical(verbose)
         )
       } else {
-        stop("`fmodel` is invalid. Please pick from {1, 2, 3, 4, 5}.")
+        stop(paste(sQuote("fmodel"), "is invalid. Please pick from {1, 2, 3, 4, 5}"))
       }
     }
   })

@@ -136,7 +136,7 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, pr
   ndiscard <- mcvals$ndiscard
   nskip <- mcvals$nskip
   if (nskip < 1) {
-    stop("The thinning cannot be smaller than 1.")
+    stop(paste0(sQuote("nskip"), "can't be smaller than 1"))
   }
   nkeep <- mcvals$nkeep
 
@@ -203,7 +203,7 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, pr
   init_final[names(init)] <- init
   Rho_init <- init_final$Rho
   if (any(eigen(Rho_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
-    stop("The initial value for Omega is not positive definite")
+    stop(paste("The initial value for", sQuote("Omega"), "is not positive definite"))
   }
 
   ctrl <- list(
@@ -221,7 +221,7 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, pr
   sample_df <- ctrl$sample_df
 
   if (is.infinite(df) && sample_df) {
-    stop("The degrees of freedom cannot be sampled for a normal random-effects model")
+    stop(paste(sQuote("df"), "can't be sampled for a normal random-effects model"))
   }
 
 

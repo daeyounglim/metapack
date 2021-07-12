@@ -73,13 +73,15 @@ Internally, \code{synthesize} looks for three things: multivariate/univariate, m
 Currently, only \code{multivariate} + \code{meta-analysis} and \code{univariate} + \verb{network meta-analysis} are allowed. More models will be added in the future.
 }
 \examples{
+set.seed(2797542)
 data("cholesterol")
 f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
   age + durat + white + male + dm + ns(Npt) | trt | trt + Trial + onstat'
 out_1 <- synthesize(as.formula(f_1), data = cholesterol,
   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
-  control=list(model="NoRecovery", scale_x = TRUE, verbose=TRUE))
+  control=list(model="NoRecovery", scale_x = TRUE, verbose=FALSE))
 
+set.seed(2797542)
 data("TNM")
 TNM$group <- factor(match(TNM$Treat, c("PBO", "R"), nomatch = 0))
 f_2 <- 'ptg | sdtg ~
@@ -88,7 +90,7 @@ f_2 <- 'ptg | sdtg ~
   scale(bldlc) + scale(btg) + group | Treat  + Trial'
 out_2 <- synthesize(as.formula(f_2), data = TNM,
   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
-  control=list(scale_x = TRUE, verbose=TRUE))
+  control=list(scale_x = TRUE, verbose=FALSE))
 }
 \references{
 Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. \emph{Journal of the American Statistical Association}, \strong{110(510)}, 528-544.
