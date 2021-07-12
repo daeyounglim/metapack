@@ -6,8 +6,8 @@
 #' @param SD the standard deviation of the responses for each arm of every study.
 #' @param XCovariate the aggregate covariates for the fixed effects.
 #' @param ZCovariate the aggregate covariates associated with the variance of the random effects.
-#' @param Trial the study/trial identifiers. The elements within will be coerced to consecutive integers.
 #' @param Treat the treatment identifiers for trial arm. This is equivalent to the arm labels in each study. The elements within will be coerced to consecutive integers
+#' @param Trial the study/trial identifiers. The elements within will be coerced to consecutive integers.
 #' @param Npt the number of observations/participants for a unique `(t,k)`, or each arm of every trial.
 #' @param prior (Optional) a list of hyperparameters. The hyperparameters include `df`, `c01`, `c02`, `a4`, `b4`, `a5`, and `b5`. `df` indicates the degrees of freedom whose value is 20. The hyperparameters `a*` and `b*` will take effect only if `sample_df=TRUE`. See `control`.
 #' @param mcmc (Optional) a list of MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes.nmr` will save the posterior sample every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
@@ -68,8 +68,8 @@
 #'              -45.07127, -28.27232, -44.14054, -28.13203, -19.19989,
 #'              -47.21824, -51.31234, -48.46266, -47.71443)
 #' set.seed(2797542)
-#' fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$Trial,
-#'     TNM$Treat, TNM$Npt, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
+#' fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$Treat,
+#'     TNM$Trial, TNM$Npt, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
 #'     mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'     init = list(theta = theta_init),
 #'     Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE",
@@ -79,7 +79,7 @@
 #' @importFrom methods is
 #' @md
 #' @export
-bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, scale_x = FALSE, verbose = FALSE) {
+bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, scale_x = FALSE, verbose = FALSE) {
   if (!is(Outcome, "vector")) {
     tmp <- try(Outcome <- as.vector(Outcome))
     if (is(tmp, "try-error")) {
@@ -129,6 +129,7 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Trial, Treat, Npt, pr
   if (any(is.na(Outcome)) | any(is.na(XCovariate)) | any(is.na(ZCovariate)) | any(is.na(Treat)) | any(is.na(Trial)) | any(is.na(Npt))) {
     stop("Missing data (NA) detected. Handle missing data (e.g., delete missings, delete variables, imputation) before passing it as an argument")
   }
+
 
   mcvals <- list(ndiscard = 5000L, nskip = 1L, nkeep = 20000L)
   mcvals[names(mcmc)] <- mcmc

@@ -1,3 +1,30 @@
+check.numeric <- function(v) {
+    if (!inherits(v, c("character", "factor"))) {
+        if (inherits(v, c("numeric", "integer", "logical"))) {
+            return(rep(TRUE, length(v)))
+        }
+    }
+
+    if (inherits(v, "factor")) {
+        v <- as.character(v)
+    }
+
+    regexp_pattern <- "(^(-|\\+)?((\\.?\\d+)|(\\d+\\.\\d+)|(\\d+\\.?))$)|(^(-|\\+)?((\\.?\\d+)|(\\d+\\.\\d+)|(\\d+\\.?))e(-|\\+)?(\\d+)$)"
+    grepl(regexp_pattern, v)
+}
+
+unfactor <- function(v) {
+    if (inherits(v, "factor")) {
+        x <- as.character(v)
+        if (all(check.numeric(v))) {
+            x <- as.numeric(v)
+        }
+    } else {
+        x <- as.character(v)
+    }
+    x
+}
+
 relabel.vec <- function(x, order)
 {
   old.x <- x
@@ -67,18 +94,7 @@ ciarray <- function(A, level = 0.95) {
     return(out)
 }
 
+#' helper function encoding trial sample sizes in formulas
+#' @param x the name of the variable containing trial sample sizes
 #' @export
 ns <- function(x) x
-
-# "parse.formula" <- function(formula) {
-#   mf <- match.call(expand.dots = FALSE)
-#   mf$drop.unused.levels <- TRUE
-#   mf[[1]] <- as.name("model.frame")
-
-#   mf <- eval(mf, parent.frame(1L))
-#   mt <- attr(mf, "terms")
-
-
-#   xidx <- which(substr(pnames, 1, 3) == 'fs(')
-# }
-

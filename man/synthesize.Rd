@@ -2,6 +2,7 @@
 % Please edit documentation in R/synthesize.R
 \name{synthesize}
 \alias{synthesize}
+\alias{synthesise}
 \title{Wrapper function for worker functions: bayes.parobs, bayes.nmr}
 \usage{
 synthesize(
@@ -10,8 +11,16 @@ synthesize(
   prior = list(),
   mcmc = list(),
   control = list(),
-  init = list(),
-  ...
+  init = list()
+)
+
+synthesise(
+  formula,
+  data,
+  prior = list(),
+  mcmc = list(),
+  control = list(),
+  init = list()
 )
 }
 \arguments{
@@ -20,6 +29,8 @@ synthesize(
 \item{data}{a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in \code{data}, the variables are taken from \code{environment(formula)}, typically the environment from which \code{synthesize} is called.}
 
 \item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., \code{help(bayes.parobs)} or \code{help(bayes.nmr)}.}
+
+\item{mcmc}{an optional object containing MCMC specification. \code{ndiscard} is the number of burn-in iterations. \code{nskip} configures the thinning of the MCMC. For instance, if \code{nskip=5}, parameters will be saved every 5 iterations. \code{nkeep} is the size of the posterior sample. The total number of iterations will be \code{ndiscard + nskip * nkeep}.}
 
 \item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \link{bayes.parobs} or \link{bayes.nmr}). For multivariate models, \code{model} is required in the \code{control} argument, which is passed to \code{fmodel} as an integer.
 \itemize{
@@ -37,6 +48,8 @@ synthesize(
 }
 \description{
 This is the one function to rule them all. All other worker functions will be subsumed by this function, so that users can forget about the implementation details.
+
+\code{synthesize()} and \code{synthesise()} are synonyms.
 }
 \details{
 \code{synthesize} currently subsumes two worker functions: \code{bayes.parobs} and \code{bayes.nmr}. \code{synthesize} offers a formula interface, unlike the worker functions, where the \code{formula} (see \link[Formula]{Formula}) is parsed and a model is identified according to the configuration.
@@ -47,15 +60,42 @@ The meaning of each part is syntactically determined by its location inside the 
 \item The second LHS is only required for aggregate models, corresponding to the standard deviations of the responses.
 \item The first RHS corresponds to fixed-effects covariates.
 \item The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma}`) for multivariate meta-analysis or modeling the variances (log\eqn{\tau} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
-\item The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be \code{treat + trial + group}, or \code{treat + trial} if no grouping exists.
+\item The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be \code{treat + trial + group}, or \code{treat + trial} if no grouping exists. Variables here must be supplied in the exact order described; otherwise, model will not be correctly identified.
 }
 
 Internally, \code{synthesize} looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and \href{https://en.wikipedia.org/wiki/Meta-analysis#Approaches}{aggregate/IPD} (individual participant data).
 \itemize{
 \item multivariate/univariate: the dimension of the response has full information
-\item meta-analysis/network meta-analysis: the number of levels (\code{nlevels}) of treatments determines this
+\item meta-analysis/network meta-analysis: the number of levels (\code{nlevels}) of treatments determines this. If \code{treat} is not already a factor variable, it is coerced to be one.
 \item aggregate/IPD: \code{synthesize} looks for \code{ns()} in the first RHS. Aggregate models \strong{must} provide the trial sample sizes using the function \code{ns()} (e.g., if \code{n} is the sample sizes, \verb{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))}). If there is no \code{ns()}, IPD is assumed.
 }
+
+Currently, only \code{multivariate} + \code{meta-analysis} and \code{univariate} + \verb{network meta-analysis} are allowed. More models will be added in the future.
+}
+\examples{
+data("cholesterol")
+f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
+  age + durat + white + male + dm + ns(Npt) | trt | trt + Trial + onstat'
+out_1 <- synthesize(as.formula(f_1), data = cholesterol,
+  mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
+  control=list(model="NoRecovery", scale_x = TRUE, verbose=TRUE))
+
+data("TNM")
+TNM$group <- factor(match(TNM$Treat, c("PBO", "R"), nomatch = 0))
+f_2 <- 'ptg | sdtg ~
+  0 + bldlc + bhdlc + btg + age + white + male + bmi +
+  potencymed + potencyhigh + durat + ns(Npt) | 
+  scale(bldlc) + scale(btg) + group | Treat  + Trial'
+out_2 <- synthesize(as.formula(f_2), data = TNM,
+  mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
+  control=list(scale_x = TRUE, verbose=TRUE))
+}
+\references{
+Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. \emph{Journal of the American Statistical Association}, \strong{110(510)}, 528-544.
+
+Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. \emph{Biostatistics}, \strong{20(3)}, 499-516.
+
+Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2021). Bayesian network meta‐regression hierarchical models using heavy‐tailed multivariate random effects with covariate‐dependent variances. \emph{Statistics in Medicine}.
 }
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}

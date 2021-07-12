@@ -1,10 +1,14 @@
 #' Wrapper function for worker functions: bayes.parobs, bayes.nmr
 #' 
+#' @description
 #' This is the one function to rule them all. All other worker functions will be subsumed by this function, so that users can forget about the implementation details.
+#' 
+#' `synthesize()` and `synthesise()` are synonyms.
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param formula an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of trial sample sizes must be provided using the function `ns()`. For example, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)` — an incomplete formula only for illustration purposes. If no `ns()` is found, IPD model is assumed.
 #' @param data a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `synthesize` is called.
 #' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., `help(bayes.parobs)` or `help(bayes.nmr)`.
+#' @param mcmc an optional object containing MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, parameters will be saved every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
 #' @param control an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to `prior`, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \link{bayes.parobs} or \link{bayes.nmr}). For multivariate models, `model` is required in the `control` argument, which is passed to `fmodel` as an integer.
 #' 
 #' * `model="NoRecovery"` - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
@@ -23,23 +27,42 @@
 #'  + The second LHS is only required for aggregate models, corresponding to the standard deviations of the responses.
 #'  + The first RHS corresponds to fixed-effects covariates.
 #'  + The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma}`) for multivariate meta-analysis or modeling the variances (log\eqn{\tau} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
-#'  + The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be `treat + trial + group`, or `treat + trial` if no grouping exists.
+#'  + The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be `treat + trial + group`, or `treat + trial` if no grouping exists. Variables here must be supplied in the exact order described; otherwise, model will not be correctly identified.
 #' 
 #' Internally, `synthesize` looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and [aggregate/IPD](https://en.wikipedia.org/wiki/Meta-analysis#Approaches) (individual participant data).
 #' 
 #'  + multivariate/univariate: the dimension of the response has full information
-#'  + meta-analysis/network meta-analysis: the number of levels (`nlevels`) of treatments determines this
+#'  + meta-analysis/network meta-analysis: the number of levels (`nlevels`) of treatments determines this. If `treat` is not already a factor variable, it is coerced to be one.
 #'  + aggregate/IPD: `synthesize` looks for `ns()` in the first RHS. Aggregate models **must** provide the trial sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed.
 #' 
-#' @md
-#' #' @references 
+#' Currently, only `multivariate` + `meta-analysis` and `univariate` + `network meta-analysis` are allowed. More models will be added in the future.
+#' 
+#' @examples
+#' data("cholesterol")
+#' f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
+#'   age + durat + white + male + dm + ns(Npt) | trt | trt + Trial + onstat'
+#' out_1 <- synthesize(as.formula(f_1), data = cholesterol,
+#'   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
+#'   control=list(model="NoRecovery", scale_x = TRUE, verbose=TRUE))
+#'
+#' data("TNM")
+#' TNM$group <- factor(match(TNM$Treat, c("PBO", "R"), nomatch = 0))
+#' f_2 <- 'ptg | sdtg ~
+#'   0 + bldlc + bhdlc + btg + age + white + male + bmi +
+#'   potencymed + potencyhigh + durat + ns(Npt) | 
+#'   scale(bldlc) + scale(btg) + group | Treat  + Trial'
+#' out_2 <- synthesize(as.formula(f_2), data = TNM,
+#'   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
+#'   control=list(scale_x = TRUE, verbose=TRUE))
+#' @references 
+#' Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. *Journal of the American Statistical Association*, **110(510)**, 528-544.
+#' 
 #' Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. *Biostatistics*, **20(3)**, 499-516.
 #' 
 #' Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2021). Bayesian network meta‐regression hierarchical models using heavy‐tailed multivariate random effects with covariate‐dependent variances. *Statistics in Medicine*.
-#' 
-#' Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. *Journal of the American Statistical Association*, **110(510)**, 528-544.
+#' @md
 #' @export
-'synthesize' <- function(formula, data, prior = list(), mcmc = list(), control = list(), init = list(), ...) {
+'synthesize' <- function(formula, data, prior = list(), mcmc = list(), control = list(), init = list()) {
     # initial version: DY 2021/07/08
     # - DY Jul 09 2021: add univariate/multivariate detection and individual/aggregate detection
     #                   models for individual participant data will come in the future
@@ -77,7 +100,7 @@
 
     
 
-    # RHS should consist of (1) X matrix; (2) W matrix; and (3) treatments and trials
+    # RHS should consist of (1) X matrix; (2) W/Z matrix; and (3) treatments and trials
     # Any RHS length different from 3 will break the code
     if (!is.na(length(ff)[2]) && length(ff)[2] != 3) {
         stop(paste("Formula has", length(ff)[2], "RHS's, which should be 3"))
@@ -115,15 +138,15 @@
     }
 
     treat <- mf[,trt_idx]
-    if (is.factor(treat)) {
+    if (inherits(treat, "factor")) {
         ntreatment <- nlevels(treat)
         treatment_labels <- levels(treat)
-        treat_ <- as.integer(treat)
+        treat_ <- unfactor(treat)
     } else {
         treat_ <- factor(treat)
         ntreatment <- nlevels(treat_)
         treatment_labels <- levels(treat_)
-        treat_ <- as.integer(treat_)
+        treat_ <- unfactor(treat_)
     }
     if (ntreatment > 2) {
         network_meta <- TRUE
@@ -131,11 +154,13 @@
         network_meta <- FALSE
     }
     trial <- mf[,trial_idx]
-    if (!is.factor(trial)) {
+    if (!inherits(trial, "factor")) {
         trial_ <- factor(trial)
         trial_labels <- levels(trial_)
+        trial_ <- unfactor(trial_)
     } else {
         trial_labels <- levels(trial)
+        trial_ <- unfactor(trial_)
     }
 
     y <- model.part(ff, data = mf, lhs = 1)
@@ -183,8 +208,13 @@
             5
         }
 
-        return(bayes.parobs(y, std_dev, x, z, treat_, as.integer(trial), nsample, fmodel, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, group = groups_, group_order = group_labels, scale_x = scale_x, verbose = verbose))
+        return(bayes.parobs(y, std_dev, x, z, treat_, trial, nsample, fmodel, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, group = groups_, group_order = group_labels, scale_x = scale_x, verbose = verbose))
     } else {
-        return(bayes.nmr(y, std_dev, x, z, treat_, as.integer(trial), nsample, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, scale_x = scale_x, verbose = verbose))
+        return(bayes.nmr(unlist(y), unlist(std_dev), x, z, treat_, trial, nsample, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, scale_x = scale_x, verbose = verbose))
     }
 }
+
+
+#' @rdname synthesize
+#' @export
+synthesise <- synthesize

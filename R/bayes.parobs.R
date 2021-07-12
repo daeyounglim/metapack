@@ -78,7 +78,7 @@
 #' fit <- bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial,
 #'    Npt, fmodel, mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'    scale_x = TRUE, group = cholesterol$onstat, verbose = FALSE)
-#' @importFrom stats model.matrix optim
+#' @importFrom stats model.matrix
 #' @importFrom methods is
 #' @md
 #' @export
