@@ -71,6 +71,8 @@ Rcpp::List fmodel1p(const arma::mat& Outcome,
 	const int K1 = static_cast<double>(K) - K2;
 	const double shape_omega1 = static_cast<double>(K1) + dj0;
 	const double shape_omega2 = static_cast<double>(K2) + dj0;
+	Rcpp::Rcout << "shape_omega1: " << shape_omega1 << std::endl;
+	Rcpp::Rcout << "shape_omega2: " << shape_omega2 << std::endl;
 	mat resid = Outcome;
 
 	/*********

@@ -43,7 +43,7 @@
 #' + `Outcome` - the aggregate response used in the function call.
 #' + `SD` - the standard deviation used in the function call.
 #' + `Npt` - the number of participants for `(t,k)` used in the function call.
-#' + `XCovariate` - the aggregate design matrix for fixed effects used in the function call. Depending on `scale_x`, this may differ from #' the matrix provided at function call.
+#' + `XCovariate` - the aggregate design matrix for fixed effects used in the function call. Depending on `scale_x`, this may differ from the matrix provided at function call.
 #' + `WCovariate` - the aggregate design matrix for random effects.
 #' + `Treat` - the *renumbered* treatment indicators. Depending on `Treat_order`, it may differ from the vector provided at function call.
 #' + `Trial` - the *renumbered* trial indicators. Depending on `Trial_order`, it may differ from the vector provided at function call.

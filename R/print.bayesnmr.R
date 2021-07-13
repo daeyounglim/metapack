@@ -8,7 +8,12 @@
 #' @importFrom stats quantile sd
 #' @export
 "print.bayesnmr" <- function(x, level=0.95, HPD=TRUE, ...) {
-	cat("Bayesian Network Meta-Regression Hierarchical Models\nUsing Heavy-Tailed Multivariate Random Effects\nwith Covariate-Dependent Variances\n")
+	if (inherits(x, "bsynthesis")) {
+		cat("\nCall:\n", paste(deparse(x$call), sep = "\n", 
+	        collapse = "\n"), sep = "")
+	} else {
+		cat("Bayesian Network Meta-Regression Hierarchical Models\nUsing Heavy-Tailed Multivariate Random Effects\nwith Covariate-Dependent Variances\n")
+	}
 	cat("\n")
 	cat("Model:\n")
 	cat("  (Aggregate mean)\n    y_kt = x_kt'theta + tau_kt * gamma_kt + N(0, sigma_kt^2 / n_kt)\n")

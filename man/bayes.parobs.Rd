@@ -77,7 +77,7 @@ An object of class \code{bayes.nmr} is a list containing the following component
 \item \code{Outcome} - the aggregate response used in the function call.
 \item \code{SD} - the standard deviation used in the function call.
 \item \code{Npt} - the number of participants for \verb{(t,k)} used in the function call.
-\item \code{XCovariate} - the aggregate design matrix for fixed effects used in the function call. Depending on \code{scale_x}, this may differ from #' the matrix provided at function call.
+\item \code{XCovariate} - the aggregate design matrix for fixed effects used in the function call. Depending on \code{scale_x}, this may differ from the matrix provided at function call.
 \item \code{WCovariate} - the aggregate design matrix for random effects.
 \item \code{Treat} - the \emph{renumbered} treatment indicators. Depending on \code{Treat_order}, it may differ from the vector provided at function call.
 \item \code{Trial} - the \emph{renumbered} trial indicators. Depending on \code{Trial_order}, it may differ from the vector provided at function call.

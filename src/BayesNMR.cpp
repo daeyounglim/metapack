@@ -18,8 +18,8 @@ Rcpp::List BayesNMR(const arma::vec& y,
 					const arma::vec& sd,
 					const arma::mat& x,
 					const arma::mat& z,
-					const arma::uvec& ids,
-					const arma::uvec& iarm,
+					const arma::uvec& ids, // study id (trial indicators)
+					const arma::uvec& iarm, // arm id (treatment indicators)
 					const arma::vec& npt,
 					const double& nu, // = degrees of freedom
 					const double& c01_inv,

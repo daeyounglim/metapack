@@ -16,8 +16,8 @@ check.numeric <- function(v) {
 unfactor <- function(v) {
     if (inherits(v, "factor")) {
         x <- as.character(v)
-        if (all(check.numeric(v))) {
-            x <- as.numeric(v)
+        if (all(check.numeric(x))) {
+            x <- as.numeric(x)
         }
     } else {
         x <- as.character(v)

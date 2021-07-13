@@ -9,7 +9,6 @@
 #' @md
 #' @return dataframe containing HPD intervals for the parameters
 #' @export
-
 "hpd" <- function(object, parm, level = 0.95, HPD = TRUE) {
     UseMethod("hpd", object)
 } 

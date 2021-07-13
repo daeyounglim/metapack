@@ -18,23 +18,34 @@ knitr::opts_chunk$set(fig.width = 7, fig.height = 4)
 ```
 
 ### Table of Contents
++ [Meta-analytic data](#meta-data)
++ [`meta_analyze`](#meta-analyze)
 + [How to use `bayes.parobs`](#bayes-parobs)
 + [How to use `bayes.nmr`](#bayes-nmr)
 + [Appendix: model descriptions](#appx)
 + [References](#references)
 
-The **metapack** package contains two main functions interfacing C++ using **Rcpp** [@Rcpp2017] and **RcppArmadillo** [@RcppArmadillo2014]: `bayes.parobs` and `bayes.nmr`. `bayes.parobs` fits multivariate meta-regression models with a partially observed sample covariance matrix [@yao2015bayesian], and `bayes.nmr` fits the network meta-regression models. We refer the readers to [the Appendix](#appx) for the mathematical formulations of the models.
-
-To use either of our functions, `bayes.parobs` and `bayes.nmr`, the data set must be preprocessed into the following format, with the only exception that `bayes.nmr` has `ZCovariate` instead of `WCovariate` to be consistent with the mathematical notation in the original paper.
-
+## Meta-analytic data {#meta-data}
+Meta-analytic data is largely characterized in several ways: univariate or multivariate, meta-analysis or network meta-analysis, and aggregate data or individual participant data. All other modeling choices fall into prior specification. For aggregate-data models, the standard data format is shown in the following table:
 <a name="table-1"></a>
 
-| Outcome | SD | XCovariate | WCovariate | Trial (`k`) | Treat (`t`) | Npt |
+| Outcome | Std.Dev | XCovariate | WCovariate | Trial (`k`) | Treat (`t`) | Npt |
 |:-------:|:--:|:----------:|:----------:|:-----:|:-----:|:---:|
 | $\bar{y}_{\cdot 13}$ | $S_{13}$ | $\boldsymbol{x}_{13}^\prime$ | $\boldsymbol{w}_{13}^\prime$ | 1 | 3 | 1000 |
 | $\bar{y}_{\cdot 10}$ | $S_{10}$ | $\boldsymbol{x}_{10}^\prime$ | $\boldsymbol{w}_{20}^\prime$ | 1 | 0 | 1000 |
 | $\bar{y}_{\cdot 20}$  | $S_{20}$ | $\boldsymbol{x}_{20}^\prime$ | $\boldsymbol{w}_{20}^\prime$ | 2 | 0 | 1000 |
 | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ |
+
+Outcome is the response(s), Std.Dev is the standard deviation(s) of the response(s), XCovariate and WCovariate are the design matrices, and Npt is the trial sample sizes. The pair of trial and treatment indicators is unique to a specific row. Individual participant data doesn't have Std.Dev and Npt.
+
+## `meta_analyze` {#meta-analyze}
+`meta_analyze` is the main function in **metapack**.
+
+
+The **metapack** package contains two main functions interfacing C++ using **Rcpp** [@Rcpp2017] and **RcppArmadillo** [@RcppArmadillo2014]: `bayes.parobs` and `bayes.nmr`. `bayes.parobs` fits multivariate meta-regression models with a partially observed sample covariance matrix [@yao2015bayesian], and `bayes.nmr` fits the network meta-regression models. We refer the readers to [the Appendix](#appx) for the mathematical formulations of the models.
+
+To use either of our functions, `bayes.parobs` and `bayes.nmr`, the data set must be preprocessed into the following format, with the only exception that `bayes.nmr` has `ZCovariate` instead of `WCovariate` to be consistent with the mathematical notation in the original paper.
+
 
 The functions requires the data to be formatted in a way that every row corresponds to a unique pair of $(t,k)$ which stands for $t$th treatment and $k$th trial. Therefore, $\bar{y}_{\cdot tk}$ and $S_{tk}$ are $J$-dimensional row vectors for `bayes.parobs`, and scalars for `bayes.nmr`.
 

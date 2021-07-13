@@ -8,10 +8,15 @@
 #' @importFrom stats sd quantile
 #' @export
 "print.bayes.parobs" <- function(x, level=0.95, HPD=TRUE, ...) {
-	cat("Bayesian Inference for Multivariate Meta-Regression\nWith a Partially Observed Within-Study Sample Covariance Matrix\n")
+	if (inherits(x, "bsynthesis")) {
+		cat("\nCall:\n", paste(deparse(x$call), sep = "\n", 
+	        collapse = "\n"), sep = "")
+	} else {
+		cat("Bayesian Inference for Multivariate Meta-Regression\nWith a Partially Observed Within-Study Sample Covariance Matrix\n")
+	}
 	cat("\n")
 	cat("Model:\n")
-	cat("  (Aggregate mean)\n    y_tk = X_tk * theta + W_tk * gamma + N(0, Sigma_kt / n_kt)\n")
+	cat("  (Aggregate mean)\n    y_tk = X_tk * theta + W_tk * gamma_k + N(0, Sigma_kt / n_kt)\n")
 	cat("  (Sample Variance)\n    (n_kt - 1) S_tk ~ Wishart(n_kt - 1, Sigma_tk)\n")
 	cat("  (Random effects)\n    ")
 	cat("[gamma_k | Omega] ~ N(0, Omega)\n")

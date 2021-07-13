@@ -39,6 +39,10 @@
 	theta.hpd <- mhpd(theta.post, level)
 	theta$lower <- theta.hpd[,1]
 	theta$upper <- theta.hpd[,2]
+	if (inherits(object, "bsynthesis")) {
+		cat("\nCall:\n", paste(deparse(object$call), sep = "\n", 
+	        collapse = "\n"), "\n", sep = "")
+	}
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
 	colnames(r) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
 	cat("\nPosterior inference in network meta-regression models\n")

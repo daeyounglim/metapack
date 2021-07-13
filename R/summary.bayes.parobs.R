@@ -6,8 +6,13 @@
 #' @export
 "summary.bayes.parobs" <- function(object, ...) {
 	digits <- max(3, getOption("digits") - 3)
-	if (class(object) != "bayes.parobs") {
-		stop("'summary.bayes.parobs' designed for 'bayes.parobs' objects")
+	if (!inherits(object, "bayes.parobs")) {
+		stop(paste(sQuote('summary.bayes.parobs'), "designed for", sQuote('bayes.parobs'), "objects"))
+	}
+
+	if (inherits(object, "bsynthesis")) {
+		cat("\nCall:\n", paste(deparse(object$call), sep = "\n", 
+	        collapse = "\n"), "\n", sep = "")
 	}
 	if (object$scale_x) {
 		J <- ncol(object$Outcome)
