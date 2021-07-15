@@ -7,17 +7,17 @@
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param formula an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of trial sample sizes must be provided using the function `ns()`. For example, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)`---an incomplete formula only for illustration purposes. If no `ns()` is found, IPD model is assumed.
 #' @param data a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `meta_analyze` is called.
-#' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., `help(bayes.parobs)` or `help(bayes.nmr)`.
-#' @param mcmc an optional object containing MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, parameters will be saved every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
-#' @param control an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to `prior`, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \link{bayes.parobs} or \link{bayes.nmr}). For multivariate models, `model` is required in the `control` argument, which is passed to `fmodel` as an integer.
+#' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., `help(bayes.parobs)` or `help(bayes.nmr)`. For multivariate meta-analysis, `model` is required in the `prior` argument, which is passed to `fmodel` as an integer.
 #' 
 #' * `model="NoRecovery"` - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
 #' * `model="EquiCovariance"` - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
 #' * `model="EquiWithinTreat"` - \eqn{\Sigma_{tk}=\Sigma_t} and \eqn{\Sigma_t^{-1}\sim  Wish_{s_0}(\Sigma_0)}. This is a relaxed version of `model=2`, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
 #' * `model="EquiCorrelation"` - \eqn{\Sigma_{tk}=\delta_{tk} \rho \delta_{tk}} where \eqn{\delta_{tk}=diag(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})}, and \eqn{\rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
 #' * `model="Hierarchical"` - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{tk}^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_{tk}} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (`c0`, `dj0`, `d0`, `nu0`, `Sigma0`, `Omega0`)
+#' @param mcmc an optional object containing MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, parameters will be saved every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
+#' @param control an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to `prior`, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes.parobs}} or \code{\link{bayes.nmr}}).
 #' @param init (Optional) a list of initial values for the parameters to be sampled
-#' @return `meta_analyze` returns a classed object currently either `bayes.parobs` or `bayes.nmr`
+#' @return `meta_analyze` returns a classed object of `bsynthesis` for *Bayesian synthesis*
 #' @import Formula
 #' @details `meta_analyze` currently subsumes two worker functions: `bayes.parobs` and `bayes.nmr`. `meta_analyze` offers a formula interface, unlike the worker functions, where the `formula` (see \link[Formula]{Formula}) is parsed and a model is identified according to the configuration.
 #' All formulas are parsed using \link[Formula]{Formula}. Formulas for `meta_analyze` are limited to a particular structure: 1 or 2 LHS, and strictly 3 RHS. That is, `lhs_1 ~ rhs_1 | rhs2 | rhs3` or `lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3` (see Example for more). The tilde (`~`) separates the LHS and RHS, each side further separated into parts by the vertical bar (`|`).
@@ -36,15 +36,17 @@
 #'  + aggregate/IPD: `meta_analyze` looks for `ns()` in the first RHS. Aggregate models **must** provide the trial sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed.
 #' 
 #' Currently, only `multivariate` + `meta-analysis` and `univariate` + `network meta-analysis` are allowed. More models will be added in the future.
-#' 
+#' @aliases meta_analyse
+#' @seealso \code{\link{bayes.parobs}} for multivariate meta-analysis, and \code{\link{bayes.nmr}} for univariate network meta-analysis.
 #' @examples
 #' set.seed(2797542)
 #' data("cholesterol")
 #' f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
 #'   age + durat + white + male + dm + ns(Npt) | trt | trt + Trial + onstat'
 #' out_1 <- meta_analyze(as.formula(f_1), data = cholesterol,
+#'   prior = list(model="NoRecovery"),
 #'   mcmc = list(ndiscard = 3, nskip = 1, nkeep = 1),
-#'   control=list(model="NoRecovery", scale_x = TRUE, verbose=FALSE))
+#'   control=list(scale_x = TRUE, verbose=FALSE))
 #'
 #' set.seed(2797542)
 #' data("TNM")
@@ -106,14 +108,26 @@
     # RHS should consist of (1) X matrix; (2) W/Z matrix; and (3) treatments and trials
     # Any RHS length different from 3 will break the code
     if (!is.na(length(ff)[2]) && length(ff)[2] != 3) {
-        stop(paste("Formula has", length(ff)[2], "RHS's, which should be 3"))
+        if (length(ff)[2] == 2) {
+            warning(paste(length(ff)[2], "RHS's identified. Second design matrix defaults to a vector of ones ..."))
+            z <- matrix(1, nr=nrow(mf), nc=1) # second 
+            # Process treatments and trials (or also groups if first-line/second-line grouping exists)
+            # ! If not factors already, treatments and trials are converted to factors
+            # ! to extract the levels and labels.
+            # ! Check if grouping exists
+            last_part <- gsub(" ", "", strsplit(as.character(ff)[2], split = "[|]")[[1]][3])
+        } else {
+            stop(paste("Formula has", length(ff)[2], "RHS's"))
+        }
+    } else {
+        z <- model.matrix(ff, data = mf, rhs = 2)
+        # Process treatments and trials (or also groups if first-line/second-line grouping exists)
+        # ! If not factors already, treatments and trials are converted to factors
+        # ! to extract the levels and labels.
+        # ! Check if grouping exists
+        last_part <- gsub(" ", "", strsplit(as.character(ff)[3], split = "[|]")[[1]][3])
     }
 
-    # Process treatments and trials (or also groups if first-line/second-line grouping exists)
-    # ! If not factors already, treatments and trials are converted to factors
-    # ! to extract the levels and labels.
-    # ! Check if grouping exists
-    last_part <- gsub(" ", "", strsplit(as.character(ff)[3], split = "[|]")[[1]][3])
     last_vars <- strsplit(last_part, split = "[+]")[[1]]
     groups_exist <- ifelse(length(last_vars) == 3, TRUE, FALSE)
     groups_ <- NULL
@@ -186,6 +200,8 @@
     multivariate_flag <- ncol(y) > 1
     if (network_meta && multivariate_flag) {
         stop("Multivariate network meta-analysis will be implemented soon")
+    } else if (!network_meta && !multivariate_flag) {
+        stop("Univariate meta-analysis is not handled as an edge case.")
     }
 
     x <- model.matrix(ff, data = mf, rhs = 1)
@@ -193,20 +209,25 @@
         # Remove sample size from X matrix
         x <- x[,-which(colnames(x) == pnames[nsample_idx])]
     }
-    z <- model.matrix(ff, data = mf, rhs = 2)
+    
     
     if (!is.null(control$scale_x)) {
         scale_x <- control$scale_x
+    } else {
+        scale_x <- FALSE
     }
     if (!is.null(control$verbose)) {
         verbose <- control$verbose
+    } else {
+        verbose <- FALSE
     }
 
     if (multivariate_flag && agg_flag) {
-        if (is.null(control$model)) {
-            warning(paste(sQuote("model"), "in", sQuote("control"), "argument is not specified. Defaulting to", sQuote("NoRecovery")))
+        if (is.null(prior$model)) {
+            warning(paste(sQuote("model"), "in", sQuote("prior"), "argument is not specified. Defaulting to", sQuote("NoRecovery")))
+            prior$model <- "NoRecovery"
         }
-        fmodel_ <- match.arg(control$model, c("NoRecovery", "EquiCovariance", "EquiWithinTreat", "EquiCorrelation", "Hierarchical"), several.ok = FALSE)
+        fmodel_ <- match.arg(prior$model, c("NoRecovery", "EquiCovariance", "EquiWithinTreat", "EquiCorrelation", "Hierarchical"), several.ok = FALSE)
         fmodel <- if (fmodel_ == "NoRecovery") {
             1
         } else if (fmodel_ == "EquiCovariance") {
@@ -221,11 +242,15 @@
 
         out <- bayes.parobs(y, std_dev, x, z, treat_, trial, nsample, fmodel, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, group = groups_, group_order = group_labels, scale_x = scale_x, verbose = verbose)
         out$call <- cl
+        out$multivariate <- multivariate_flag
+        out$aggregate <- agg_flag
         class(out) <- c(class(out), "bsynthesis")
         return(out)
     } else {
         out <- bayes.nmr(unlist(y), unlist(std_dev), x, z, treat_, trial, nsample, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, scale_x = scale_x, verbose = verbose)
         out$call <- cl
+        out$multivariate <- multivariate_flag
+        out$aggregate <- agg_flag
         class(out) <- c(class(out), "bsynthesis")
         return(out)
     }

@@ -28,11 +28,7 @@ meta_analyse(
 
 \item{data}{a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in \code{data}, the variables are taken from \code{environment(formula)}, typically the environment from which \code{meta_analyze} is called.}
 
-\item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., \code{help(bayes.parobs)} or \code{help(bayes.nmr)}.}
-
-\item{mcmc}{an optional object containing MCMC specification. \code{ndiscard} is the number of burn-in iterations. \code{nskip} configures the thinning of the MCMC. For instance, if \code{nskip=5}, parameters will be saved every 5 iterations. \code{nkeep} is the size of the posterior sample. The total number of iterations will be \code{ndiscard + nskip * nkeep}.}
-
-\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \link{bayes.parobs} or \link{bayes.nmr}). For multivariate models, \code{model} is required in the \code{control} argument, which is passed to \code{fmodel} as an integer.
+\item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., \code{help(bayes.parobs)} or \code{help(bayes.nmr)}. For multivariate meta-analysis, \code{model} is required in the \code{prior} argument, which is passed to \code{fmodel} as an integer.
 \itemize{
 \item \code{model="NoRecovery"} - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is \href{https://en.wikipedia.org/wiki/Inverse-gamma_distribution}{the inverse-gamma distribution}. This specification is useful if the user does not care about the correlation recovery. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
 \item \code{model="EquiCovariance"} - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
@@ -41,10 +37,14 @@ meta_analyse(
 \item \code{model="Hierarchical"} - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{tk}^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_{tk}} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (\code{c0}, \code{dj0}, \code{d0}, \code{nu0}, \code{Sigma0}, \code{Omega0})
 }}
 
+\item{mcmc}{an optional object containing MCMC specification. \code{ndiscard} is the number of burn-in iterations. \code{nskip} configures the thinning of the MCMC. For instance, if \code{nskip=5}, parameters will be saved every 5 iterations. \code{nkeep} is the size of the posterior sample. The total number of iterations will be \code{ndiscard + nskip * nkeep}.}
+
+\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes.parobs}} or \code{\link{bayes.nmr}}).}
+
 \item{init}{(Optional) a list of initial values for the parameters to be sampled}
 }
 \value{
-\code{meta_analyze} returns a classed object currently either \code{bayes.parobs} or \code{bayes.nmr}
+\code{meta_analyze} returns a classed object of \code{bsynthesis} for \emph{Bayesian synthesis}
 }
 \description{
 This is the one function to rule them all. All other worker functions will be subsumed by this function, so that users can forget about the implementation details and focus on modeling.
@@ -78,8 +78,9 @@ data("cholesterol")
 f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
   age + durat + white + male + dm + ns(Npt) | trt | trt + Trial + onstat'
 out_1 <- meta_analyze(as.formula(f_1), data = cholesterol,
+  prior = list(model="NoRecovery"),
   mcmc = list(ndiscard = 3, nskip = 1, nkeep = 1),
-  control=list(model="NoRecovery", scale_x = TRUE, verbose=FALSE))
+  control=list(scale_x = TRUE, verbose=FALSE))
 
 set.seed(2797542)
 data("TNM")
@@ -98,6 +99,9 @@ Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Ba
 Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. \emph{Biostatistics}, \strong{20(3)}, 499-516.
 
 Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2021). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. \emph{Statistics in Medicine}.
+}
+\seealso{
+\code{\link{bayes.parobs}} for multivariate meta-analysis, and \code{\link{bayes.nmr}} for univariate network meta-analysis.
 }
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}

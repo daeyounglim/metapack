@@ -126,6 +126,9 @@ fit <- bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial,
 \references{
 Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. \emph{Journal of the American Statistical Association}, \strong{110(510)}, 528-544.
 }
+\seealso{
+\code{\link{meta_analyze}} for using the \code{\link[Formula]{Formula}} interface
+}
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 }

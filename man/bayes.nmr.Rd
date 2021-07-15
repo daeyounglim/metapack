@@ -117,6 +117,9 @@ Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakove
 
 Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2021). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. \emph{Statistics in Medicine}.
 }
+\seealso{
+\code{\link{meta_analyze}} for using the \code{\link[Formula]{Formula}} interface
+}
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 }

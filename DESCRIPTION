@@ -2,7 +2,7 @@ Package: metapack
 Type: Package
 Title: Bayesian Meta-Analysis and Network Meta-Analysis
 Version: 0.1.3
-Date: 2021-07-10
+Date: 2021-07-15
 Authors@R: c(
 	person("Daeyoung", "Lim", email = "daeyoung.lim@uconn.edu",
 	role = c("aut", "cre")),

@@ -3,7 +3,8 @@ This is a resubmission. In this version I have:
 
 * removed unused functions in loglik_POCov.cpp and linearalgebra.cpp
 * changed rwish to arma::wishrnd and deleted random.cpp
-* create function `synthesize()` with a formula interface
+* created function `meta_analyze()` with a formula interface
+* added `coef()` method
 
 ## Test environments
 * local x64 Windows 10 (Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz) R version 4.0.2 
