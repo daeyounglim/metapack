@@ -5,6 +5,7 @@ This is a resubmission. In this version I have:
 * changed rwish to arma::wishrnd and deleted random.cpp
 * created function `meta_analyze()` with a formula interface
 * added `coef()` method
+* renamed variables in the two data sets, and redocumented the data sets accordingly
 
 ## Test environments
 * local x64 Windows 10 (Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz) R version 4.0.2 

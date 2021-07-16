@@ -73,7 +73,9 @@ Aside from `formula` and `data`, there are four remaining arguments that are req
 * `control` configures the estimation algorithm. Currently, the Metropolis-Hastings algorithm is the only estimation method that allows tuning. `*_stepsize` with the asterisk replaced with one of the parameter names indicates the stepsize for determining the sample evaluation points in the localized Metropolis algorithm.
 * `init` provides the initial values for the parameters in case a user has *a priori* known high-quality starting values.
 
-## Use case 1 - multivariate meta-analysis with `meta_analyze` {#bayes-parobs}
+## Use case 1 - (multivariate) meta-analysis with `meta_analyze` {#bayes-parobs}
+Univariate meta-analysis can be specified with one response endpoint and two treatments, except that the covariance modeling must be "NoRecovery".
+
 Multivariate meta-analysis is characterized by multiple response endpoints and two treatments. Additionally, multivariate meta-analysis requires a model for the covariance matrix to be specified as `model` in the `prior` argument—which defaults to `model=NoRecovery` if left unspecified. The available options are listed below. The objects parenthesized at the end of every bullet point are the hyperparameters associated with each model.
 
 <a name="model-spec"></a>

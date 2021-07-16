@@ -1,4 +1,4 @@
-#' Fit Bayesian Inference for Multivariate Meta-Regression With a Partially Observed Within-Study Sample Covariance Matrix
+#' Fit Bayesian Inference for Meta-Regression
 #'
 #' This is a function for running the Markov chain Monte Carlo algorithm for the *Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix* model. The first six arguments are required.
 #' fmodel can be one of 5 numbers: 1, 2, 3, 4, and 5. The first model, fmodel = 1 denoted by M1, indicates that the \eqn{\Sigma_{tk}}
@@ -66,12 +66,12 @@
 #' data("cholesterol")
 #' Outcome <- model.matrix(~ 0 + pldlc + phdlc + ptg, data = cholesterol)
 #' SD <- model.matrix(~ 0 + sdldl + sdhdl + sdtg, data = cholesterol)
-#' Trial <- cholesterol$Trial
-#' Treat <- cholesterol$trt
-#' Npt <- cholesterol$Npt
+#' Trial <- cholesterol$trial
+#' Treat <- cholesterol$treat
+#' Npt <- cholesterol$n
 #' XCovariate <- model.matrix(~ 0 + bldlc + bhdlc + btg + age + durat +
 #'  white + male + dm, data = cholesterol)
-#' WCovariate <- model.matrix(~ trt, data = cholesterol)
+#' WCovariate <- model.matrix(~ treat, data = cholesterol)
 #' 
 #' fmodel <- 1
 #' set.seed(2797542)
@@ -213,6 +213,21 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   gamR_init <- init_final$gamR
   Omega_init <- init_final$Omega
   Rho_init <- init_final$Rho
+  if (length(theta_init) != (xcols + nw*nr) * J) {
+    stop(paste("theta initialized with length", sQuote(length(theta_init)), "but", sQuote((xcols + nw*nr) * J), "wanted"))
+  }
+  if (dim(Omega_init)[1] != nw*nr*J || dim(Omega_init)[2] != nw*nr*J) {
+    stop(paste("Omega initialized with dimensions", sQuote(dim(Omega_init)), "but", sQuote(nw*nr*J), "wanted"))
+  }
+  if (dim(Rho_init)[1] != J || dim(Rho_init)[2] != J) {
+    stop(paste("Rho initialized with dimensions", sQuote(dim(Rho_init)), "but", sQuote(J), "wanted"))
+  }
+  if (dim(gamR_init)[1] != nw*nr*J) {
+    stop(paste("gamR initialized with", sQuote(dim(gamR_init)[1]), "rows but", sQuote(nw*nr*J), "wanted"))
+  }
+  if (dim(gamR_init)[2] != K) {
+    stop(paste("gamR initialized with", sQuote(dim(gamR_init)[2]), "columns but", sQuote(K), "wanted"))
+  }
 
   if (any(eigen(Omega_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
     stop(paste("The initial value for", sQuote("Omega"), "is not positive definite"))

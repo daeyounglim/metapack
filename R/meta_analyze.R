@@ -7,42 +7,61 @@
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param formula an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of trial sample sizes must be provided using the function `ns()`. For example, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)`---an incomplete formula only for illustration purposes. If no `ns()` is found, IPD model is assumed.
 #' @param data a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `meta_analyze` is called.
-#' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., `help(bayes.parobs)` or `help(bayes.nmr)`. For multivariate meta-analysis, `model` is required in the `prior` argument, which is passed to `fmodel` as an integer.
+#' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., `help(bayes.parobs)` or `help(bayes.nmr)`. For meta-analysis, `model` is required in the `prior` argument, which is passed to `fmodel` as an integer. If the response is univariate, `NoRecovery` is the only valid option.
 #' 
 #' * `model="NoRecovery"` - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
 #' * `model="EquiCovariance"` - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
 #' * `model="EquiWithinTreat"` - \eqn{\Sigma_{tk}=\Sigma_t} and \eqn{\Sigma_t^{-1}\sim  Wish_{s_0}(\Sigma_0)}. This is a relaxed version of `model=2`, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
 #' * `model="EquiCorrelation"` - \eqn{\Sigma_{tk}=\delta_{tk} \rho \delta_{tk}} where \eqn{\delta_{tk}=diag(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})}, and \eqn{\rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
 #' * `model="Hierarchical"` - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{tk}^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_{tk}} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (`c0`, `dj0`, `d0`, `nu0`, `Sigma0`, `Omega0`)
+#' 
+#' For network meta-analysis,
+#' 
+#' * `df` - the degrees of freedom of the multivariate t-distribution for the random effects. Any positive value can be assigned; if `df=Inf`, multivariate normal random effects will be assumed.
+#' * `c01` - the variance of the fixed-effect coefficients' prior distribuiton, a multivariate normal distribution, i.e., \eqn{\theta \sim N(0, c_{1}I)}.
+#' * `c02` - the variance of the random-effects' variance-related coefficients' prior distribution, a multivariate normal distribution, i.e., \eqn{\phi \sim N(0, c_{2}I)}.
+#' * `a4`, `b4`, `a5`, `b5` - the hyperparameters related to when the degrees of freedom for the random effects are treated as unknown/random. `df` is then considered to follow \eqn{Ga(\nu_a, \nu_a/\nu_b)}, \eqn{\nu_a \sim Ga(a_4, b_4)}, and \eqn{\nu_b \sim IG(a_5, b_5)}. All gamma and inverse-gamma distributions are rate-parameterized.
+#' 
 #' @param mcmc an optional object containing MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, parameters will be saved every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
 #' @param control an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to `prior`, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes.parobs}} or \code{\link{bayes.nmr}}).
-#' @param init (Optional) a list of initial values for the parameters to be sampled
+#' These are the lists of available tuning parameters in `control` for meta-analysis and network meta-analysis. Keep in mind that `model` will render some irrelevant tuning parameters ineffective.
+#' 
+#' * Meta-analysis - `model` (string), `sample_Rho` (logical), `Rho_stepsize` (double), `R_stepsize` (double), `delta_stepsize` (double), `sample_Rho` (logical)
+#' * Network meta-analysis - `sample_df` (logical), `sample_Rho` (logical), `lambda_stepsize` (double), `phi_stepsize` (double), `Rho_stepsize` (double)
+#' 
+#' @param init (Optional) a list of initial values for the parameters to be sampled. The following is the list of available parameters for meta-analysis and network meta-analysis.
+#' 
+#' * Meta-analysis - `theta` (vector), `gamR` (matrix), `Omega` (matrix), `Rho` (matrix)
+#' * Network meta-analysis - `theta` (vector), `phi` (vector), `sig2` (vector), `Rho` (matrix)
+#' 
+#' The dimensions of the initial values must be conformable for matrix operations. If dimensions don't agree, `meta_analyze` will tell you the correct dimension.
+#' 
 #' @return `meta_analyze` returns a classed object of `bsynthesis` for *Bayesian synthesis*
 #' @import Formula
-#' @details `meta_analyze` currently subsumes two worker functions: `bayes.parobs` and `bayes.nmr`. `meta_analyze` offers a formula interface, unlike the worker functions, where the `formula` (see \link[Formula]{Formula}) is parsed and a model is identified according to the configuration.
-#' All formulas are parsed using \link[Formula]{Formula}. Formulas for `meta_analyze` are limited to a particular structure: 1 or 2 LHS, and strictly 3 RHS. That is, `lhs_1 ~ rhs_1 | rhs2 | rhs3` or `lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3` (see Example for more). The tilde (`~`) separates the LHS and RHS, each side further separated into parts by the vertical bar (`|`).
-#' The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, the following order **must be observed** for `meta_analyze` to correctly identify and configure your model accordingly.
+#' @details `meta_analyze` currently subsumes two worker functions: `bayes.parobs` and `bayes.nmr`. `meta_analyze` offers a formula interface.
+#' All formulas are parsed using \link[Formula]{Formula}. Formulas for `meta_analyze` are constrained to take up a strict structure: one or two LHS, and two or three RHS. That is, `lhs_1 ~ rhs_1 | rhs2 | rhs3` or `lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3` (see Examples for more). The tilde (`~`) separates the LHS's and RHS's, each side further separated into parts by vertical bars (`|`).
+#' The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, all parts **must** come in the exact order as prescribed for `meta_analyze` to correctly configure your model.
 #'
 #'  + The first LHS, the responses, is required for all models.
 #'  + The second LHS is only required for aggregate models, corresponding to the standard deviations of the responses.
 #'  + The first RHS corresponds to fixed-effects covariates.
-#'  + The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma_{k}}`) for multivariate meta-analysis or modeling the variances (log\eqn{\tau} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
+#'  + The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma_{k}}`) for multivariate meta-analysis or modeling the variances (\eqn{\log\tau_{tk}} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
 #'  + The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be `treat + trial + group`, or `treat + trial` if no grouping exists. Variables here must be supplied in the exact order described; otherwise, model will not be correctly identified.
 #' 
 #' Internally, `meta_analyze` looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and [aggregate/IPD](https://en.wikipedia.org/wiki/Meta-analysis#Approaches) (individual participant data).
 #' 
-#'  + multivariate/univariate: the dimension of the response has full information
+#'  + multivariate/univariate: the dimension of the response is explicit in the formula, and is determinative.
 #'  + meta-analysis/network meta-analysis: the number of levels (`nlevels`) of treatments determines this. If `treat` is not already a factor variable, it is coerced to be one.
-#'  + aggregate/IPD: `meta_analyze` looks for `ns()` in the first RHS. Aggregate models **must** provide the trial sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed.
+#'  + aggregate/IPD: `meta_analyze` looks for `ns()` in the first RHS. Aggregate models **must** provide the trial sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
 #' 
-#' Currently, only `multivariate` + `meta-analysis` and `univariate` + `network meta-analysis` are allowed. More models will be added in the future.
+#' Currently, only `univariate/multivariate` + `meta-analysis` and `univariate` + `network meta-analysis` are allowed. More models will be added in the future.
 #' @aliases meta_analyse
 #' @seealso \code{\link{bayes.parobs}} for multivariate meta-analysis, and \code{\link{bayes.nmr}} for univariate network meta-analysis.
 #' @examples
 #' set.seed(2797542)
 #' data("cholesterol")
 #' f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
-#'   age + durat + white + male + dm + ns(Npt) | trt | trt + Trial + onstat'
+#'   age + durat + white + male + dm + ns(n) | treat | treat + trial + onstat'
 #' out_1 <- meta_analyze(as.formula(f_1), data = cholesterol,
 #'   prior = list(model="NoRecovery"),
 #'   mcmc = list(ndiscard = 3, nskip = 1, nkeep = 1),
@@ -50,11 +69,11 @@
 #'
 #' set.seed(2797542)
 #' data("TNM")
-#' TNM$group <- factor(match(TNM$Treat, c("PBO", "R"), nomatch = 0))
+#' TNM$group <- factor(match(TNM$treat, c("PBO", "R"), nomatch = 0))
 #' f_2 <- 'ptg | sdtg ~
 #'   0 + bldlc + bhdlc + btg + age + white + male + bmi +
-#'   potencymed + potencyhigh + durat + ns(Npt) |
-#'   scale(bldlc) + scale(btg) + group | Treat  + Trial'
+#'   potencymed + potencyhigh + durat + ns(n) |
+#'   scale(bldlc) + scale(btg) + group | treat  + trial'
 #' out_2 <- meta_analyze(as.formula(f_2), data = TNM,
 #'   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'   control=list(scale_x = TRUE, verbose=FALSE))
@@ -170,8 +189,10 @@
     }
     if (ntreatment > 2) {
         network_meta <- TRUE
-    } else {
+    } else if (ntreatment == 2) {
         network_meta <- FALSE
+    } else {
+        stop(paste("Invalid", sQuote("treat")))
     }
     trial <- mf[,trial_idx]
     if (!inherits(trial, "factor")) {
@@ -200,8 +221,6 @@
     multivariate_flag <- ncol(y) > 1
     if (network_meta && multivariate_flag) {
         stop("Multivariate network meta-analysis will be implemented soon")
-    } else if (!network_meta && !multivariate_flag) {
-        stop("Univariate meta-analysis is not handled as an edge case.")
     }
 
     x <- model.matrix(ff, data = mf, rhs = 1)
@@ -222,7 +241,7 @@
         verbose <- FALSE
     }
 
-    if (multivariate_flag && agg_flag) {
+    if (!network_meta && agg_flag) {
         if (is.null(prior$model)) {
             warning(paste(sQuote("model"), "in", sQuote("prior"), "argument is not specified. Defaulting to", sQuote("NoRecovery")))
             prior$model <- "NoRecovery"
@@ -238,6 +257,10 @@
             4
         } else if (fmodel_ == "Hierarchical") {
             5
+        }
+
+        if (!multivariate_flag && fmodel != 1) {
+            stop(paste("Univariate meta-analysis only valid with", sQuote("NoRecovery")))
         }
 
         out <- bayes.parobs(y, std_dev, x, z, treat_, trial, nsample, fmodel, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, group = groups_, group_order = group_labels, scale_x = scale_x, verbose = verbose)

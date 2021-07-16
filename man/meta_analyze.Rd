@@ -28,20 +28,39 @@ meta_analyse(
 
 \item{data}{a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in \code{data}, the variables are taken from \code{environment(formula)}, typically the environment from which \code{meta_analyze} is called.}
 
-\item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., \code{help(bayes.parobs)} or \code{help(bayes.nmr)}. For multivariate meta-analysis, \code{model} is required in the \code{prior} argument, which is passed to \code{fmodel} as an integer.
+\item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., \code{help(bayes.parobs)} or \code{help(bayes.nmr)}. For meta-analysis, \code{model} is required in the \code{prior} argument, which is passed to \code{fmodel} as an integer. If the response is univariate, \code{NoRecovery} is the only valid option.
 \itemize{
 \item \code{model="NoRecovery"} - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is \href{https://en.wikipedia.org/wiki/Inverse-gamma_distribution}{the inverse-gamma distribution}. This specification is useful if the user does not care about the correlation recovery. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
 \item \code{model="EquiCovariance"} - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
 \item \code{model="EquiWithinTreat"} - \eqn{\Sigma_{tk}=\Sigma_t} and \eqn{\Sigma_t^{-1}\sim  Wish_{s_0}(\Sigma_0)}. This is a relaxed version of \code{model=2}, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
 \item \code{model="EquiCorrelation"} - \eqn{\Sigma_{tk}=\delta_{tk} \rho \delta_{tk}} where \eqn{\delta_{tk}=diag(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})}, and \eqn{\rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
 \item \code{model="Hierarchical"} - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{tk}^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_{tk}} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (\code{c0}, \code{dj0}, \code{d0}, \code{nu0}, \code{Sigma0}, \code{Omega0})
+}
+
+For network meta-analysis,
+\itemize{
+\item \code{df} - the degrees of freedom of the multivariate t-distribution for the random effects. Any positive value can be assigned; if \code{df=Inf}, multivariate normal random effects will be assumed.
+\item \code{c01} - the variance of the fixed-effect coefficients' prior distribuiton, a multivariate normal distribution, i.e., \eqn{\theta \sim N(0, c_{1}I)}.
+\item \code{c02} - the variance of the random-effects' variance-related coefficients' prior distribution, a multivariate normal distribution, i.e., \eqn{\phi \sim N(0, c_{2}I)}.
+\item \code{a4}, \code{b4}, \code{a5}, \code{b5} - the hyperparameters related to when the degrees of freedom for the random effects are treated as unknown/random. \code{df} is then considered to follow \eqn{Ga(\nu_a, \nu_a/\nu_b)}, \eqn{\nu_a \sim Ga(a_4, b_4)}, and \eqn{\nu_b \sim IG(a_5, b_5)}. All gamma and inverse-gamma distributions are rate-parameterized.
 }}
 
 \item{mcmc}{an optional object containing MCMC specification. \code{ndiscard} is the number of burn-in iterations. \code{nskip} configures the thinning of the MCMC. For instance, if \code{nskip=5}, parameters will be saved every 5 iterations. \code{nkeep} is the size of the posterior sample. The total number of iterations will be \code{ndiscard + nskip * nkeep}.}
 
-\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes.parobs}} or \code{\link{bayes.nmr}}).}
+\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes.parobs}} or \code{\link{bayes.nmr}}).
+These are the lists of available tuning parameters in \code{control} for meta-analysis and network meta-analysis. Keep in mind that \code{model} will render some irrelevant tuning parameters ineffective.
+\itemize{
+\item Meta-analysis - \code{model} (string), \code{sample_Rho} (logical), \code{Rho_stepsize} (double), \code{R_stepsize} (double), \code{delta_stepsize} (double), \code{sample_Rho} (logical)
+\item Network meta-analysis - \code{sample_df} (logical), \code{sample_Rho} (logical), \code{lambda_stepsize} (double), \code{phi_stepsize} (double), \code{Rho_stepsize} (double)
+}}
 
-\item{init}{(Optional) a list of initial values for the parameters to be sampled}
+\item{init}{(Optional) a list of initial values for the parameters to be sampled. The following is the list of available parameters for meta-analysis and network meta-analysis.
+\itemize{
+\item Meta-analysis - \code{theta} (vector), \code{gamR} (matrix), \code{Omega} (matrix), \code{Rho} (matrix)
+\item Network meta-analysis - \code{theta} (vector), \code{phi} (vector), \code{sig2} (vector), \code{Rho} (matrix)
+}
+
+The dimensions of the initial values must be conformable for matrix operations. If dimensions don't agree, \code{meta_analyze} will tell you the correct dimension.}
 }
 \value{
 \code{meta_analyze} returns a classed object of \code{bsynthesis} for \emph{Bayesian synthesis}
@@ -52,31 +71,31 @@ This is the one function to rule them all. All other worker functions will be su
 \code{meta_analyze()} and \code{meta_analyse()} are synonyms.
 }
 \details{
-\code{meta_analyze} currently subsumes two worker functions: \code{bayes.parobs} and \code{bayes.nmr}. \code{meta_analyze} offers a formula interface, unlike the worker functions, where the \code{formula} (see \link[Formula]{Formula}) is parsed and a model is identified according to the configuration.
-All formulas are parsed using \link[Formula]{Formula}. Formulas for \code{meta_analyze} are limited to a particular structure: 1 or 2 LHS, and strictly 3 RHS. That is, \code{lhs_1 ~ rhs_1 | rhs2 | rhs3} or \code{lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3} (see Example for more). The tilde (\code{~}) separates the LHS and RHS, each side further separated into parts by the vertical bar (\code{|}).
-The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, the following order \strong{must be observed} for \code{meta_analyze} to correctly identify and configure your model accordingly.
+\code{meta_analyze} currently subsumes two worker functions: \code{bayes.parobs} and \code{bayes.nmr}. \code{meta_analyze} offers a formula interface.
+All formulas are parsed using \link[Formula]{Formula}. Formulas for \code{meta_analyze} are constrained to take up a strict structure: one or two LHS, and two or three RHS. That is, \code{lhs_1 ~ rhs_1 | rhs2 | rhs3} or \code{lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3} (see Examples for more). The tilde (\code{~}) separates the LHS's and RHS's, each side further separated into parts by vertical bars (\code{|}).
+The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, all parts \strong{must} come in the exact order as prescribed for \code{meta_analyze} to correctly configure your model.
 \itemize{
 \item The first LHS, the responses, is required for all models.
 \item The second LHS is only required for aggregate models, corresponding to the standard deviations of the responses.
 \item The first RHS corresponds to fixed-effects covariates.
-\item The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma_{k}}`) for multivariate meta-analysis or modeling the variances (log\eqn{\tau} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
+\item The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma_{k}}`) for multivariate meta-analysis or modeling the variances (\eqn{\log\tau_{tk}} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
 \item The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be \code{treat + trial + group}, or \code{treat + trial} if no grouping exists. Variables here must be supplied in the exact order described; otherwise, model will not be correctly identified.
 }
 
 Internally, \code{meta_analyze} looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and \href{https://en.wikipedia.org/wiki/Meta-analysis#Approaches}{aggregate/IPD} (individual participant data).
 \itemize{
-\item multivariate/univariate: the dimension of the response has full information
+\item multivariate/univariate: the dimension of the response is explicit in the formula, and is determinative.
 \item meta-analysis/network meta-analysis: the number of levels (\code{nlevels}) of treatments determines this. If \code{treat} is not already a factor variable, it is coerced to be one.
-\item aggregate/IPD: \code{meta_analyze} looks for \code{ns()} in the first RHS. Aggregate models \strong{must} provide the trial sample sizes using the function \code{ns()} (e.g., if \code{n} is the sample sizes, \verb{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))}). If there is no \code{ns()}, IPD is assumed.
+\item aggregate/IPD: \code{meta_analyze} looks for \code{ns()} in the first RHS. Aggregate models \strong{must} provide the trial sample sizes using the function \code{ns()} (e.g., if \code{n} is the sample sizes, \verb{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))}). If there is no \code{ns()}, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
 }
 
-Currently, only \code{multivariate} + \code{meta-analysis} and \code{univariate} + \verb{network meta-analysis} are allowed. More models will be added in the future.
+Currently, only \code{univariate/multivariate} + \code{meta-analysis} and \code{univariate} + \verb{network meta-analysis} are allowed. More models will be added in the future.
 }
 \examples{
 set.seed(2797542)
 data("cholesterol")
 f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
-  age + durat + white + male + dm + ns(Npt) | trt | trt + Trial + onstat'
+  age + durat + white + male + dm + ns(n) | treat | treat + trial + onstat'
 out_1 <- meta_analyze(as.formula(f_1), data = cholesterol,
   prior = list(model="NoRecovery"),
   mcmc = list(ndiscard = 3, nskip = 1, nkeep = 1),
@@ -84,11 +103,11 @@ out_1 <- meta_analyze(as.formula(f_1), data = cholesterol,
 
 set.seed(2797542)
 data("TNM")
-TNM$group <- factor(match(TNM$Treat, c("PBO", "R"), nomatch = 0))
+TNM$group <- factor(match(TNM$treat, c("PBO", "R"), nomatch = 0))
 f_2 <- 'ptg | sdtg ~
   0 + bldlc + bhdlc + btg + age + white + male + bmi +
-  potencymed + potencyhigh + durat + ns(Npt) |
-  scale(bldlc) + scale(btg) + group | Treat  + Trial'
+  potencymed + potencyhigh + durat + ns(n) |
+  scale(bldlc) + scale(btg) + group | treat  + trial'
 out_2 <- meta_analyze(as.formula(f_2), data = TNM,
   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
   control=list(scale_x = TRUE, verbose=FALSE))

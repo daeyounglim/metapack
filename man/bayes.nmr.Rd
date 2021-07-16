@@ -2,7 +2,7 @@
 % Please edit documentation in R/BayesNMR.R
 \name{bayes.nmr}
 \alias{bayes.nmr}
-\title{Fit Bayesian Network Meta-Regression Hierarchical Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances}
+\title{Fit Bayesian Network Meta-Regression Models}
 \usage{
 bayes.nmr(
   Outcome,
@@ -104,8 +104,8 @@ theta_init <- c(0.05113, -1.38866, 1.09817, -0.85855, -1.12056, -1.14133,
              -45.07127, -28.27232, -44.14054, -28.13203, -19.19989,
              -47.21824, -51.31234, -48.46266, -47.71443)
 set.seed(2797542)
-fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$Treat,
-    TNM$Trial, TNM$Npt, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
+fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$treat,
+    TNM$trial, TNM$n, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
     mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
     init = list(theta = theta_init),
     Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE",

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bayes.parobs.R
 \name{bayes.parobs}
 \alias{bayes.parobs}
-\title{Fit Bayesian Inference for Multivariate Meta-Regression With a Partially Observed Within-Study Sample Covariance Matrix}
+\title{Fit Bayesian Inference for Meta-Regression}
 \usage{
 bayes.parobs(
   Outcome,
@@ -110,12 +110,12 @@ library(metapack)
 data("cholesterol")
 Outcome <- model.matrix(~ 0 + pldlc + phdlc + ptg, data = cholesterol)
 SD <- model.matrix(~ 0 + sdldl + sdhdl + sdtg, data = cholesterol)
-Trial <- cholesterol$Trial
-Treat <- cholesterol$trt
-Npt <- cholesterol$Npt
+Trial <- cholesterol$trial
+Treat <- cholesterol$treat
+Npt <- cholesterol$n
 XCovariate <- model.matrix(~ 0 + bldlc + bhdlc + btg + age + durat +
  white + male + dm, data = cholesterol)
-WCovariate <- model.matrix(~ trt, data = cholesterol)
+WCovariate <- model.matrix(~ treat, data = cholesterol)
 
 fmodel <- 1
 set.seed(2797542)

@@ -6,7 +6,7 @@
 #' @export
 #' @method coef bsynthesis
 coef.bsynthesis <- function(object, ...) {
-    stopifnot(!inherits(object, "bsynthesis"))
+    stopifnot(inherits(object, "bsynthesis"))
 
     # undo scaling
     if (object$scale_x) {

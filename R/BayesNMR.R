@@ -1,4 +1,4 @@
-#' Fit Bayesian Network Meta-Regression Hierarchical Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances
+#' Fit Bayesian Network Meta-Regression Models
 #'
 #' This is a function the fits the model introduced in *Bayesian Network Meta-Regression Models Using Heavy-Tailed Multivariate Random Effects with Covariate-Dependent Variances*. The first seven arguments are required except `ZCovariate`. If not provided, `ZCovariate` will be assigned a vector of ones, `rep(1, length(Outcome))`. `ZCovariate` is the centerpiece of the modeling of variances and the heavy-tailed random effects distribution. 
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
@@ -68,8 +68,8 @@
 #'              -45.07127, -28.27232, -44.14054, -28.13203, -19.19989,
 #'              -47.21824, -51.31234, -48.46266, -47.71443)
 #' set.seed(2797542)
-#' fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$Treat,
-#'     TNM$Trial, TNM$Npt, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
+#' fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$treat,
+#'     TNM$trial, TNM$n, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
 #'     mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'     init = list(theta = theta_init),
 #'     Treat_order = c("PBO", "S", "A", "L", "R", "P", "E", "SE",
@@ -205,6 +205,18 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, pr
   Rho_init <- init_final$Rho
   if (any(eigen(Rho_init, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
     stop(paste("The initial value for", sQuote("Omega"), "is not positive definite"))
+  }
+  if (length(init_final$theta) != nt) {
+    stop(paste("theta initialized with length", sQuote(length(init_final$theta)), "but", sQuote(nt), "wanted"))
+  }
+  if (length(init_final$phi) != nz) {
+    stop(paste("phi initialized with length", sQuote(length(init_final$phi)), "but", sQuote(nz), "wanted"))
+  }
+  if (length(init_final$sig2) != ns) {
+    stop(paste("sig2 initialized with length", sQuote(length(init_final$sig2)), "but", sQuote(ns), "wanted"))
+  }
+  if (dim(init_final$Rho)[1] != nT || dim(init_final$Rho)[2] != nT) {
+    stop(paste("Rho initialized with dimensions", sQuote(dim(init_final$Rho)), "but", sQuote(nT), "wanted"))
   }
 
   ctrl <- list(
