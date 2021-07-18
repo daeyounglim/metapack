@@ -129,7 +129,7 @@
     if (!is.na(length(ff)[2]) && length(ff)[2] != 3) {
         if (length(ff)[2] == 2) {
             warning(paste(length(ff)[2], "RHS's identified. Second design matrix defaults to a vector of ones ..."))
-            z <- matrix(1, nr=nrow(mf), nc=1) # second 
+            z <- matrix(1, nrow=nrow(mf), ncol=1) # second 
             # Process treatments and trials (or also groups if first-line/second-line grouping exists)
             # ! If not factors already, treatments and trials are converted to factors
             # ! to extract the levels and labels.
