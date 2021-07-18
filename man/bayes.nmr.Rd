@@ -92,7 +92,7 @@ XCovariate <- scale(XCovariate, center = TRUE, scale = FALSE)
 ZCovariate <- matrix(0, ns, nz)
 for (j in 1:length(groupInfo)) {
     for (i in 1:ns) {
-        if (TNM$Treat[i] \%in\% groupInfo[[j]]) {
+        if (TNM$treat[i] \%in\% groupInfo[[j]]) {
             ZCovariate[i, j] <- 1
         }
     }

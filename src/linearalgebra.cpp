@@ -6,7 +6,7 @@
 
 arma::mat vecr(const arma::mat& X) {
 	const int J = X.n_cols;
-	arma::vec vphi((J*(J-1))/2);
+	arma::vec vphi((J*(J-1))/2, arma::fill::zeros);
 	for (int i = 0; i < J-1; ++i) {
 		for (int j = i+1; j < J; ++j) {
 			int k = (J*(J-1)/2) - (J-i)*((J-i)-1)/2 + j - i - 1;
@@ -32,7 +32,7 @@ arma::mat vecrinv(const arma::vec& X, const int& J) {
 arma::vec vecl(const arma::mat& X) {
 	using namespace arma;
 	int n = X.n_rows;
-	arma::vec out(n*(n-1)/2);
+	arma::vec out(n*(n-1)/2, arma::fill::zeros);
 	for (int j = 0; j < n-1; ++j) {
 		for (int i = j+1; i < n; ++i) {
 			out((n-1)*j - (j-1)*j/2 + i - 1 - j) = X(i, j);
@@ -43,7 +43,7 @@ arma::vec vecl(const arma::mat& X) {
 
 arma::vec vech(const arma::mat& X) {
 	int n = X.n_rows;
-	arma::vec out(n*(n+1)/2);
+	arma::vec out(n*(n+1)/2, arma::fill::zeros);
 	for (int j = 0; j < n; ++j) {
 		for (int i = j; i < n; ++i) {
 			out(n*j - (j-1)*j/2 + i - j) = X(i, j);
@@ -54,7 +54,7 @@ arma::vec vech(const arma::mat& X) {
 
 arma::mat vechinv(const arma::vec& v, const int& n) {
 	using namespace arma;
-	mat out(n, n, fill::zeros);
+	mat out(n, n, fill::zeros, arma::fill::zeros);
 	int count1 = 0;
 	int count2 = n-1;
 	for (int i = 0; i < n-1; ++i) {
