@@ -54,7 +54,7 @@ arma::vec vech(const arma::mat& X) {
 
 arma::mat vechinv(const arma::vec& v, const int& n) {
 	using namespace arma;
-	mat out(n, n, fill::zeros, arma::fill::zeros);
+	mat out(n, n, fill::zeros);
 	int count1 = 0;
 	int count2 = n-1;
 	for (int i = 0; i < n-1; ++i) {
