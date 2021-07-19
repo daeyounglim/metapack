@@ -80,7 +80,7 @@
 #'    scale_x = TRUE, group = cholesterol$onstat, verbose = FALSE)
 #' @importFrom stats model.matrix
 #' @importFrom methods is
-#' @seealso \code{\link{meta_analyze}} for using the \code{\link[Formula]{Formula}} interface
+#' @seealso \code{\link{bmeta_analyze}} for using the \code{\link[Formula]{Formula}} interface
 #' @md
 #' @export
 bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, group = NULL, group_order = NULL, scale_x = FALSE, verbose = FALSE) {

@@ -77,7 +77,7 @@
 #'     scale_x = TRUE, verbose = FALSE)
 #' @importFrom stats model.matrix
 #' @importFrom methods is
-#' @seealso \code{\link{meta_analyze}} for using the \code{\link[Formula]{Formula}} interface
+#' @seealso \code{\link{bmeta_analyze}} for using the \code{\link[Formula]{Formula}} interface
 #' @md
 #' @export
 bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, scale_x = FALSE, verbose = FALSE) {
