@@ -1,3 +1,7 @@
+# metapack 0.1.3
+* Remove `random.cpp` and use `arma::wishrnd()`
+* Add `bmeta_analyze()` with formula interface
+
 # metapack 0.1.2
 * Add DOI information for NMR-HTRe
 * Increment `icount` for robust adaptive Metropolis algorithm for M4 (MVMR-ParObs)
