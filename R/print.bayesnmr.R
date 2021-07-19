@@ -21,7 +21,7 @@
 	cat("  (Random effects)\n    ")
 	cat("[gam | Rho,nu] ~ MVT(0, E_k' Rho E_k, nu)\n")
 	cat("Priors:\n")
-	cat("  theta       ~ MVN(0, c01 * I_p), c01=", x$prior$c01, "\n")
+	cat("  theta      ~ MVN(0, c01 * I_p), c01=", x$prior$c01, "\n")
 	cat("  phi        ~ MVN(0, c02 * I_q), c02=", x$prior$c02, "\n")
 	cat("  p(sigma^2) ~ 1/sigma^2 * I(sigma^2 > 0)\n")
 	cat("  p(Rho)     ~ 1\n")
@@ -65,32 +65,23 @@
 		phi.hpd <- mhpd(x$mcmc.draws$phi, level)
 		phi$lower <- phi.hpd[,1]
 		phi$upper <- phi.hpd[,2]
-
-		gam.hpd <- mhpd(x$mcmc.draws$gam, level)
-		gam$lower <- gam.hpd[,1]
-		gam$upper <- gam.hpd[,2]
 	} else {
 		theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
 		theta$upper <- apply(theta.post, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 
 		phi$lower <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = sig.level/2))
 		phi$upper <- apply(x$mcmc.draws$phi, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
-
-		gam$lower <- apply(x$mcmc.draws$gam, 1, function(xx) quantile(xx, prob = sig.level/2))
-		gam$upper <- apply(x$mcmc.draws$gam, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
 	}
 	theta_print <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
 	phi_print <- cbind(phi$mean, phi$sd, phi$lower, phi$upper)
-	gam_print <- cbind(gam$mean, gam$sd, gam$lower, gam$upper)
-	p_print <- rbind(theta_print, phi_print, gam_print)
+	p_print <- rbind(theta_print, phi_print)
 	if (HPD) {
 		colnames(p_print) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
 	} else {
 		colnames(p_print) <- c("Post.Mean", "Std.Dev", "CI(Lower)", "CI(Upper)")
 	}
-	rownames(p_print) <- c(paste0("theta", 1:length(theta$mean)),
-						   paste0("phi", 1:length(phi$mean)),
-						   paste0("gam", 1:length(gam$mean)))
+	rownames(p_print) <- c(rownames(theta_print),
+						   paste0("phi", 1:length(phi$mean)))
 	p_print <- round(p_print, digits=digits)
 	print.default(p_print, print.gap = 2)
 	cat("---------------------------------------------------\n")

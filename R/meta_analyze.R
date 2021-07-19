@@ -1,12 +1,12 @@
-#' meta_analyze supersedes the previous two functions: bayes.parobs, bayes.nmr
+#' bmeta_analyze supersedes the previous two functions: bayes.parobs, bayes.nmr
 #' 
 #' @description
 #' This is the one function to rule them all. All other worker functions will be subsumed by this function, so that users can forget about the implementation details and focus on modeling.
 #' 
-#' `meta_analyze()` and `meta_analyse()` are synonyms.
+#' `bmeta_analyze()` and `bmeta_analyse()` are synonyms.
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param formula an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of trial sample sizes must be provided using the function `ns()`. For example, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)`---an incomplete formula only for illustration purposes. If no `ns()` is found, IPD model is assumed.
-#' @param data a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `meta_analyze` is called.
+#' @param data a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `bmeta_analyze` is called.
 #' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., `help(bayes.parobs)` or `help(bayes.nmr)`. For meta-analysis, `model` is required in the `prior` argument, which is passed to `fmodel` as an integer. If the response is univariate, `NoRecovery` is the only valid option.
 #' 
 #' * `model="NoRecovery"` - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
@@ -34,13 +34,13 @@
 #' * Meta-analysis - `theta` (vector), `gamR` (matrix), `Omega` (matrix), `Rho` (matrix)
 #' * Network meta-analysis - `theta` (vector), `phi` (vector), `sig2` (vector), `Rho` (matrix)
 #' 
-#' The dimensions of the initial values must be conformable for matrix operations. If dimensions don't agree, `meta_analyze` will tell you the correct dimension.
+#' The dimensions of the initial values must be conformable for matrix operations. If dimensions don't agree, `bmeta_analyze` will tell you the correct dimension.
 #' 
-#' @return `meta_analyze` returns a classed object of `bsynthesis` for *Bayesian synthesis*
+#' @return `bmeta_analyze` returns a classed object of `bsynthesis` for *Bayesian synthesis*
 #' @import Formula
-#' @details `meta_analyze` currently subsumes two worker functions: `bayes.parobs` and `bayes.nmr`. `meta_analyze` offers a formula interface.
-#' All formulas are parsed using \link[Formula]{Formula}. Formulas for `meta_analyze` are constrained to take up a strict structure: one or two LHS, and two or three RHS. That is, `lhs_1 ~ rhs_1 | rhs2 | rhs3` or `lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3` (see Examples for more). The tilde (`~`) separates the LHS's and RHS's, each side further separated into parts by vertical bars (`|`).
-#' The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, all parts **must** come in the exact order as prescribed for `meta_analyze` to correctly configure your model.
+#' @details `bmeta_analyze` currently subsumes two worker functions: `bayes.parobs` and `bayes.nmr`. `bmeta_analyze` offers a formula interface.
+#' All formulas are parsed using \link[Formula]{Formula}. Formulas for `bmeta_analyze` are constrained to take up a strict structure: one or two LHS, and two or three RHS. That is, `lhs_1 ~ rhs_1 | rhs2 | rhs3` or `lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3` (see Examples for more). The tilde (`~`) separates the LHS's and RHS's, each side further separated into parts by vertical bars (`|`).
+#' The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, all parts **must** come in the exact order as prescribed for `bmeta_analyze` to correctly configure your model.
 #'
 #'  + The first LHS, the responses, is required for all models.
 #'  + The second LHS is only required for aggregate models, corresponding to the standard deviations of the responses.
@@ -48,21 +48,21 @@
 #'  + The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma_{k}}`) for multivariate meta-analysis or modeling the variances (\eqn{\log\tau_{tk}} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
 #'  + The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be `treat + trial + group`, or `treat + trial` if no grouping exists. Variables here must be supplied in the exact order described; otherwise, model will not be correctly identified.
 #' 
-#' Internally, `meta_analyze` looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and [aggregate/IPD](https://en.wikipedia.org/wiki/Meta-analysis#Approaches) (individual participant data).
+#' Internally, `bmeta_analyze` looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and [aggregate/IPD](https://en.wikipedia.org/wiki/Meta-analysis#Approaches) (individual participant data).
 #' 
 #'  + multivariate/univariate: the dimension of the response is explicit in the formula, and is determinative.
 #'  + meta-analysis/network meta-analysis: the number of levels (`nlevels`) of treatments determines this. If `treat` is not already a factor variable, it is coerced to be one.
-#'  + aggregate/IPD: `meta_analyze` looks for `ns()` in the first RHS. Aggregate models **must** provide the trial sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
+#'  + aggregate/IPD: `bmeta_analyze` looks for `ns()` in the first RHS. Aggregate models **must** provide the trial sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
 #' 
 #' Currently, only `univariate/multivariate` + `meta-analysis` and `univariate` + `network meta-analysis` are allowed. More models will be added in the future.
-#' @aliases meta_analyse
+#' @aliases bmeta_analyse
 #' @seealso \code{\link{bayes.parobs}} for multivariate meta-analysis, and \code{\link{bayes.nmr}} for univariate network meta-analysis.
 #' @examples
 #' set.seed(2797542)
 #' data("cholesterol")
 #' f_1 <- 'pldlc + phdlc + ptg | sdldl + sdhdl + sdtg ~ 0 + bldlc + bhdlc + btg +
 #'   age + durat + white + male + dm + ns(n) | treat | treat + trial + onstat'
-#' out_1 <- meta_analyze(as.formula(f_1), data = cholesterol,
+#' out_1 <- bmeta_analyze(as.formula(f_1), data = cholesterol,
 #'   prior = list(model="NoRecovery"),
 #'   mcmc = list(ndiscard = 3, nskip = 1, nkeep = 1),
 #'   control=list(scale_x = TRUE, verbose=FALSE))
@@ -74,7 +74,7 @@
 #'   0 + bldlc + bhdlc + btg + age + white + male + bmi +
 #'   potencymed + potencyhigh + durat + ns(n) |
 #'   scale(bldlc) + scale(btg) + group | treat  + trial'
-#' out_2 <- meta_analyze(as.formula(f_2), data = TNM,
+#' out_2 <- bmeta_analyze(as.formula(f_2), data = TNM,
 #'   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'   control=list(scale_x = TRUE, verbose=FALSE))
 #' @references 
@@ -85,7 +85,7 @@
 #' Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2021). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. *Statistics in Medicine*.
 #' @md
 #' @export
-'meta_analyze' <- function(formula, data, prior = list(), mcmc = list(), control = list(), init = list()) {
+'bmeta_analyze' <- function(formula, data, prior = list(), mcmc = list(), control = list(), init = list()) {
     # initial version: DY 2021/07/08
     # - DY Jul 09 2021: add univariate/multivariate detection and individual/aggregate detection
     #                   models for individual participant data will come in the future
@@ -280,6 +280,6 @@
 }
 
 
-#' @rdname meta_analyze
+#' @rdname bmeta_analyze
 #' @export
-meta_analyse <- meta_analyze
+bmeta_analyse <- bmeta_analyze

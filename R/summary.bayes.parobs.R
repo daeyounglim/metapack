@@ -49,7 +49,6 @@
 		rownames(r) <- c(paste0(rep(xcc, J), "_", rep(1:J, each=length(xcc))),
 						 paste0(rep(wcc, 2*J), rep(rep(c("*(1-2nd)", "*2nd"), each = length(wcc)), J), "_", rep(1:J, each = 2*length(wcc))))
 	}
-	cat("\nPosterior inference in multivariate meta-regression models\n")
 	cat("Fixed-effects:\n")
 	r <- round(r, digits=digits)
 	print.default(r, print.gap = 2)
