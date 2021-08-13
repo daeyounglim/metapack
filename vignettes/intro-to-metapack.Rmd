@@ -25,7 +25,7 @@ MathJax.Hub.Config({
 
 ### Table of Contents
 + [Meta-analytic data](#meta-data)
-+ [`meta_analyze`](#meta-analyze)
++ [`bmeta_analyze`](#meta-analyze)
     + [Using `Formula`](#using-formula)
     + [Function arguments](#arguments)
 + [Use case 1 - multivariate meta-analysis](#bayes-parobs)
@@ -46,13 +46,13 @@ Meta-analytic data is largely characterized in three ways: univariate or multiva
 
 Outcome is the response(s), Std.Dev is the standard deviation(s) of the response(s), XCovariate and WCovariate are the design matrices, and Npt is the trial sample sizes. The pair of trial and treatment indicators is unique to a specific row. Individual participant data obviously doesn't have Std.Dev and Npt.
 
-## `meta_analyze` {#meta-analyze}
-`meta_analyze` is the main function in **metapack** that supersedes and subsumes all previous worker functions. `meta_analyze` internally parses the formula and identifies the model, which ultimately passes the arguments to a suitable worker function. The vanilla **formula** class lacks *parts* and should strictly have one left-hand side (LHS) and one right-hand side (RHS). **Formula** [@Formula2010] extends this formula interface to allow multiple parts and multiple responses, lending itself well into (network) meta-analysis.
+## `bmeta_analyze` {#meta-analyze}
+`bmeta_analyze` is the main function in **metapack** that supersedes and subsumes all previous worker functions. `bmeta_analyze` internally parses the formula and identifies the model, which ultimately passes the arguments to a suitable worker function. The vanilla **formula** class lacks *parts* and should strictly have one left-hand side (LHS) and one right-hand side (RHS). **Formula** [@Formula2010] extends this formula interface to allow multiple parts and multiple responses, lending itself well into (network) meta-analysis.
 
 Aside from the model-specific arguments, `control` has two items universally applicable: `scale_x` and `verbose`. When `TRUE`, the former standardizes the fixed-effects design matrix, and the latter allows printing the progress bar of the Markov chain Monte Carlo algorithm. Both default to `FALSE` if not provided. Note that if `scale_x` is `TRUE`, the subsequent methods like `print`, `summary`, or `coef` will revert the scaling to their original units. If this behavior is not desired, scale the variables explicitly in the formula.
 
 ### Using `Formula` {#using-formula}
-Each *part* in LHS or RHS is an R expression where variables (or functions of variables) are chained with a plus sign (`+`), e.g., `x1 + x2`. The tilde (`~`) separates all LHS's from all RHS's, each side further broken down into parts by vertical bars (`|`). The meaning of each part is syntactically determined by its location within a formula, like the English language. Therefore, the order must be observed as presribed for `meta_analyze` to correctly identify and configure the model.
+Each *part* in LHS or RHS is an R expression where variables (or functions of variables) are chained with a plus sign (`+`), e.g., `x1 + x2`. The tilde (`~`) separates all LHS's from all RHS's, each side further broken down into parts by vertical bars (`|`). The meaning of each part is syntactically determined by its location within a formula, like the English language. Therefore, the order must be observed as presribed for `bmeta_analyze` to correctly identify and configure the model.
 
 Capitalizing on the unique data structure of meta-analysis data, the general form of the formula is as follows:
 ```{R, eval=FALSE, echo=TRUE}
@@ -60,8 +60,8 @@ y1 + y2 | sd1 + sd2 ~ x1 + x2 + x3 + ns(n) | z1 + z2 + z3 | treat + trial (+ gro
 ```
 
 * The first LHS (`y1 + y2`), the responses, is required of all models. Depending on the number of variables given in the first LHS, the model is either univariate or multivariate.
-* The second LHS (`sd1 + sd2`) supplies the standard deviations of the endpoints required of an aggregate-data meta-analysis. Currently, with no IPD models implemented, `meta_analyze` will break if this part is missing; however, in the coming weeks, this requirement will be relaxed with the introduction of IPD models.
-* The first RHS (`x1 + x2 + x3 + ns(n)`) defines the fixed-effects covariates. For aggregate-data models, the trial sample sizes must be passed as an argument to `ns()`. In the example code, `n` is the variable containing the trial sample sizes. IPD models do not have trial samples sizes. In fact, `meta_analyze` checks the existence of `ns()` to determine whether it's aggregate data.
+* The second LHS (`sd1 + sd2`) supplies the standard deviations of the endpoints required of an aggregate-data meta-analysis. Currently, with no IPD models implemented, `bmeta_analyze` will break if this part is missing; however, in the coming weeks, this requirement will be relaxed with the introduction of IPD models.
+* The first RHS (`x1 + x2 + x3 + ns(n)`) defines the fixed-effects covariates. For aggregate-data models, the trial sample sizes must be passed as an argument to `ns()`. In the example code, `n` is the variable containing the trial sample sizes. IPD models do not have trial samples sizes. In fact, `bmeta_analyze` checks the existence of `ns()` to determine whether it's aggregate data.
 * The second RHS (`z1 + z2 + z3`) defines either the random-effects covariates (e.g., $w_{tk}^\top\boldsymbol{\gamma}$) or the variance-related covariates (e.g., $\log \tau = z_{tk}^\top \boldsymbol{\phi}$)—see [Appendix](#appx).
 * The third RHS (`treat + trial` or `treat + trial + groups`) corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. Variables here must be provided in the exact order shown in the example. If variables for this part are not already factors, they are coerced to extract the levels and number of levels—and *unfactored* afterward.
 
@@ -73,7 +73,7 @@ Aside from `formula` and `data`, there are four remaining arguments that are req
 * `control` configures the estimation algorithm. Currently, the Metropolis-Hastings algorithm is the only estimation method that allows tuning. `*_stepsize` with the asterisk replaced with one of the parameter names indicates the stepsize for determining the sample evaluation points in the localized Metropolis algorithm.
 * `init` provides the initial values for the parameters in case a user has *a priori* known high-quality starting values.
 
-## Use case 1 - (multivariate) meta-analysis with `meta_analyze` {#bayes-parobs}
+## Use case 1 - (multivariate) meta-analysis with `bmeta_analyze` {#bayes-parobs}
 Univariate meta-analysis can be specified with one response endpoint and two treatments, except that the covariance modeling must be "NoRecovery".
 
 Multivariate meta-analysis is characterized by multiple response endpoints and two treatments. Additionally, multivariate meta-analysis requires a model for the covariance matrix to be specified as `model` in the `prior` argument—which defaults to `model=NoRecovery` if left unspecified. The available options are listed below. The objects parenthesized at the end of every bullet point are the hyperparameters associated with each model.
@@ -89,7 +89,7 @@ Multivariate meta-analysis is characterized by multiple response endpoints and t
 The boilerplate code for multivariate meta-analysis is as follows:
 ```{R, eval=FALSE, echo=TRUE}
 f <- "y1 + y2 | sd1 + sd2 ~ x1 + x2 + x3 + ns(n) | z1 + z2 + z3 | treat + trial + groups"
-out <- meta_analyze(formula(f), data = df,
+out <- bmeta_analyze(formula(f), data = df,
         mcmc = list(ndiscard = 20000, nskip = 5, nkeep = 10000),
         prior = list(model = "NoRecovery"))
 ```
@@ -99,13 +99,13 @@ Except `model="NoRecovery"`, all else uses `R_stepsize` in the `control` argumen
 Rho_init <- diag(3) # assume 3 by 3
 Rho_init[upper.tri(Rho_init)] <- 
     Rho_init[lower.tri(Rho_init)] <- 0.2
-out <- meta_analyze(formula(f), data = df,
+out <- bmeta_analyze(formula(f), data = df,
         prior = list(model = "EquiCorr"), # abbreviation allowed
         control = list(sample_Rho = FALSE),
         init = list(Rho = Rho_init))
 ```
 
-## Use case 2 - univariate network meta-analysis with `meta_analyze` {#bayes-nmr}
+## Use case 2 - univariate network meta-analysis with `bmeta_analyze` {#bayes-nmr}
 Univariate network meta-analysis is characterized by a single response endpoint and more than two treatments. Similar to `model` in the multivariate meta-analysis case, the degrees of freedom (`df`) for the random effects' multivariate $t$-distribution are the parameter of interest in univariate network meta-analysis. Objects parenthesized at the end are the hyperparameters associated with the model.
 
 * `df = <positive_real_value>` - the random effects follow a multivariate $t$-distribution. If `df` is not provided by the user, it defaults to 20. (`c01`, `c02`)
@@ -115,7 +115,7 @@ Univariate network meta-analysis is characterized by a single response endpoint 
 The boilerplate code for univariate network meta-analysis is as follows:
 ```{R, eval=FALSE, echo=TRUE}
 f <- "y | sd ~ x1 + x2 + x3 + ns(n) | z1 + z2 + z3 | treat + trial"
-out <- meta_analyze(formula(f), data = df,
+out <- bmeta_analyze(formula(f), data = df,
         mcmc = list(discard = 20000, nskip = 5, nkeep = 10000),
         prior = list(df = 3)) # heavy-tailed random effects
 ```
@@ -125,7 +125,7 @@ If `control=list(sample_df=TRUE)`, the `df` value in `prior` is ignored. Identic
 Rho_init <- diag(nT) # nT = the number of treatments
 Rho_init[upper.tri(Rho_init)] <- 
     Rho_init[lower.tri(Rho_init)] <- 0.2
-out <- meta_analyze(formula(f), data = df,
+out <- bmeta_analyze(formula(f), data = df,
         control = list(sample_df = TRUE, sample_Rho = FALSE),
         init = list(Rho = Rho_init))
 ```
@@ -140,7 +140,7 @@ f <- "y | sd ~ x1 + x2 + x3 + ns(n) | treat + trial"
 
 ## Appendix {#appx}
 #### Multivariate meta-analysis model
-When there are multiple endpoints, the correlations thereof are oftentimes unreported. In a meta-regression setting, the correlations are something we want to know. In the case of subject-level meta-analyses (where individual participant/patient data are available), the correlations may only be one function call away. However, for study-level meta-analyses, the correlations must be estimated, which is not an easy task. `meta_analyze` provides five different models to estimate and recover the missing correlations.
+When there are multiple endpoints, the correlations thereof are oftentimes unreported. In a meta-regression setting, the correlations are something we want to know. In the case of subject-level meta-analyses (where individual participant/patient data are available), the correlations may only be one function call away. However, for study-level meta-analyses, the correlations must be estimated, which is not an easy task. `bmeta_analyze` provides five different models to estimate and recover the missing correlations.
 
 Since the aforementioned setting regards the correlations as missing, the reported data are $(\overline{\boldsymbol{y}}_{\cdot tk}, \boldsymbol{s}_{tk}) \in \mathbf{R}^J \times \mathbf{R}^J$ for the $t$th treatment arm and $k$th trial. Every trial out of $K$ trials includes $T$ treatment arms. The sample size of the $t$th treatment arm and $k$th trial is denoted by $n_{tk}$. If we write $\boldsymbol{x}_{tkj}\in \mathbf{R}^{p_j}$ to be the treatment-within-trial level regressor corresponding to the $j$th response, reflecting the fixed effects of the $t$th treatment arm, and $\boldsymbol{w}_{tkj}\in \mathbf{R}^{q_j}$ to be the same for the random effects, the model becomes
 
