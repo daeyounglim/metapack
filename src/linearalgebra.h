@@ -22,9 +22,11 @@ arma::mat veclinv(TN& v, const int& J) {
 	return out;
 }
 arma::mat vecrinv(const arma::vec& X, const int& J);
-arma::mat vecr(const arma::mat& X);
+arma::vec vecr(const arma::mat& X);
 arma::vec vech(const arma::mat& X);
 arma::mat vechinv(const arma::vec& v, const int& n);
 arma::mat pRho_to_Rho(arma::mat& pRho);
 arma::mat Rho_to_pRho(arma::mat& Rho);
+arma::mat find_diag(const arma::vec x, const double &TOL);
+arma::mat constructB(const arma::mat &Rangle);
 #endif

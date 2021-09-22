@@ -503,28 +503,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// pRho_to_Rho
-arma::mat pRho_to_Rho(arma::mat& pRho);
-RcppExport SEXP _metapack_pRho_to_Rho(SEXP pRhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type pRho(pRhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(pRho_to_Rho(pRho));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Rho_to_pRho
-arma::mat Rho_to_pRho(arma::mat& Rho);
-RcppExport SEXP _metapack_Rho_to_pRho(SEXP RhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type Rho(RhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(Rho_to_pRho(Rho));
-    return rcpp_result_gen;
-END_RCPP
-}
 // calc_modelfit_pearson
 arma::vec calc_modelfit_pearson(const arma::mat& resid, const arma::vec& npt, const arma::mat& sig2s, const int& nkeep, const bool& verbose);
 RcppExport SEXP _metapack_calc_modelfit_pearson(SEXP residSEXP, SEXP nptSEXP, SEXP sig2sSEXP, SEXP nkeepSEXP, SEXP verboseSEXP) {
@@ -569,6 +547,49 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fmodel_corr_modeling
+Rcpp::List fmodel_corr_modeling(const arma::mat& Outcome, const arma::mat& SD, const arma::mat& XCovariate, const arma::mat& WCovariate, const arma::mat& ZCovariate, const arma::uvec& Treat, const arma::uvec& Trial, const arma::uvec& Second, const arma::vec& Npt, const double& c0, const double& dj0, const double& a0, const double& b0, const double& a1, const double& b1, const double& a2, const double& b2, const double& a3, const double& b3, const arma::mat& Omega0, const int& K, const int& T, const int& ndiscard, const int& nskip, const int& nkeep, const int& transform_type, const double& delta_stepsize, const double& R_stepsize, const double& TOL, const arma::vec& theta_init, const arma::mat& gamR_init, const arma::mat& Omega_init, const bool& verbose);
+RcppExport SEXP _metapack_fmodel_corr_modeling(SEXP OutcomeSEXP, SEXP SDSEXP, SEXP XCovariateSEXP, SEXP WCovariateSEXP, SEXP ZCovariateSEXP, SEXP TreatSEXP, SEXP TrialSEXP, SEXP SecondSEXP, SEXP NptSEXP, SEXP c0SEXP, SEXP dj0SEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP a1SEXP, SEXP b1SEXP, SEXP a2SEXP, SEXP b2SEXP, SEXP a3SEXP, SEXP b3SEXP, SEXP Omega0SEXP, SEXP KSEXP, SEXP TSEXP, SEXP ndiscardSEXP, SEXP nskipSEXP, SEXP nkeepSEXP, SEXP transform_typeSEXP, SEXP delta_stepsizeSEXP, SEXP R_stepsizeSEXP, SEXP TOLSEXP, SEXP theta_initSEXP, SEXP gamR_initSEXP, SEXP Omega_initSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Outcome(OutcomeSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type SD(SDSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type XCovariate(XCovariateSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type WCovariate(WCovariateSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type ZCovariate(ZCovariateSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Treat(TreatSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Trial(TrialSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type Second(SecondSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Npt(NptSEXP);
+    Rcpp::traits::input_parameter< const double& >::type c0(c0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type dj0(dj0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type a0(a0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type b0(b0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< const double& >::type b1(b1SEXP);
+    Rcpp::traits::input_parameter< const double& >::type a2(a2SEXP);
+    Rcpp::traits::input_parameter< const double& >::type b2(b2SEXP);
+    Rcpp::traits::input_parameter< const double& >::type a3(a3SEXP);
+    Rcpp::traits::input_parameter< const double& >::type b3(b3SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Omega0(Omega0SEXP);
+    Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const int& >::type T(TSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ndiscard(ndiscardSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nskip(nskipSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nkeep(nkeepSEXP);
+    Rcpp::traits::input_parameter< const int& >::type transform_type(transform_typeSEXP);
+    Rcpp::traits::input_parameter< const double& >::type delta_stepsize(delta_stepsizeSEXP);
+    Rcpp::traits::input_parameter< const double& >::type R_stepsize(R_stepsizeSEXP);
+    Rcpp::traits::input_parameter< const double& >::type TOL(TOLSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type theta_init(theta_initSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type gamR_init(gamR_initSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Omega_init(Omega_initSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(fmodel_corr_modeling(Outcome, SD, XCovariate, WCovariate, ZCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, a1, b1, a2, b2, a3, b3, Omega0, K, T, ndiscard, nskip, nkeep, transform_type, delta_stepsize, R_stepsize, TOL, theta_init, gamR_init, Omega_init, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_metapack_BayesNMR", (DL_FUNC) &_metapack_BayesNMR, 29},
@@ -588,10 +609,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_metapack_pearson_parcov", (DL_FUNC) &_metapack_pearson_parcov, 6},
     {"_metapack_vhpd", (DL_FUNC) &_metapack_vhpd, 2},
     {"_metapack_mhpd", (DL_FUNC) &_metapack_mhpd, 2},
-    {"_metapack_pRho_to_Rho", (DL_FUNC) &_metapack_pRho_to_Rho, 1},
-    {"_metapack_Rho_to_pRho", (DL_FUNC) &_metapack_Rho_to_pRho, 1},
     {"_metapack_calc_modelfit_pearson", (DL_FUNC) &_metapack_calc_modelfit_pearson, 5},
     {"_metapack_calc_modelfit_lpml", (DL_FUNC) &_metapack_calc_modelfit_lpml, 19},
+    {"_metapack_fmodel_corr_modeling", (DL_FUNC) &_metapack_fmodel_corr_modeling, 33},
     {NULL, NULL, 0}
 };
 
