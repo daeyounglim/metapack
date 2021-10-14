@@ -157,7 +157,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 			}
 			Sig_theta = 0.5 * (Sig_theta + Sig_theta.t());
 			mat Sig_theta_chol = arma::chol(Sig_theta);
-			vec ttmp(nt);
+			vec ttmp(nt, fill::zeros);
 			std::generate(ttmp.begin(), ttmp.end(), ::norm_rand);
 			theta = arma::solve(arma::trimatu(Sig_theta_chol), arma::solve(arma::trimatl(Sig_theta_chol.t()), mu_theta) + ttmp);
 
@@ -400,7 +400,7 @@ Rcpp::List fmodel2p5p(const arma::mat& Outcome,
 				}
 				Sig_theta = 0.5 * (Sig_theta + Sig_theta.t());
 				mat Sig_theta_chol = arma::chol(Sig_theta);
-				vec ttmp(nt);
+				vec ttmp(nt, fill::zeros);
 				std::generate(ttmp.begin(), ttmp.end(), ::norm_rand);
 				theta = arma::solve(arma::trimatu(Sig_theta_chol), arma::solve(arma::trimatl(Sig_theta_chol.t()), mu_theta) + ttmp);
 

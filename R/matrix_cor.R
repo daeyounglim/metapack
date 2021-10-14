@@ -142,11 +142,13 @@
     }
     nkeep <- mcvals$nkeep
 
-    ctrl <- list(R_stepsize = 0.02, delta_stepsize = 0.2, TOL = 1.0e-6)
+    ctrl <- list(R_stepsize = 0.02, delta_stepsize = 0.2, TOL = 1.0e-09, prop_stepsize_burnin = 5, prop_stepsize_sampling = 1.2)
     ctrl[names(control)] <- control
     R_stepsize <- ctrl$R_stepsize
     delta_stepsize <- ctrl$delta_stepsize
     TOL <- ctrl$TOL
+    prop_stepsize_burnin <- ctrl$prop_stepsize_burnin
+    prop_stepsize_sampling <- ctrl$prop_stepsize_sampling
 
     J <- ncol(Outcome)
     nw <- ncol(WCovariate)
@@ -189,12 +191,14 @@
 
     init_final <- list(
         theta = numeric((xcols + nw * nr) * J),
-        gamR = matrix(0, nw * nr * J, K), Omega = diag(1, nrow = nw * nr * J)
+        gamR = matrix(0, nw * nr * J, K), Omega = diag(1, nrow = nw * nr * J),
+        eta = numeric(ncol(ZCovariate) * ((J*(J-1))/2))
     )
     init_final[names(init)] <- init
     theta_init <- init_final$theta
     gamR_init <- init_final$gamR
     Omega_init <- init_final$Omega
+    eta_init <- init_final$eta
     if (length(theta_init) != (xcols + nw * nr) * J) {
         stop(paste("theta initialized with length", sQuote(length(theta_init)), "but", sQuote((xcols + nw * nr) * J), "wanted"))
     }
@@ -253,6 +257,9 @@
                         as.double(theta_init),
                         as.matrix(gamR_init),
                         as.matrix(Omega_init),
+                        as.double(eta_init),
+                        as.double(prop_stepsize_burnin),
+                        as.double(prop_stepsize_sampling),
                         as.logical(verbose)
                     )
         }
@@ -281,7 +288,7 @@
         GroupLabels = group.order,
         K = K,
         T = T,
-        fmodel = fmodel,
+        transform_type = transform_type,
         scale_x = scale_x,
         prior = priorvals,
         control = ctrl,

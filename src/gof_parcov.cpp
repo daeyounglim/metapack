@@ -30,11 +30,8 @@ double mvnpdf(const arma::vec& x, const arma::vec& mu, const arma::mat& Sig, con
 	double logdet_sign;
 	log_det(logdet_val, logdet_sign, Sig);
 	double lpdf = -static_cast<double>(k) * M_LN_SQRT_2PI	- 0.5 * logdet_val - 0.5 * arma::dot(x - mu, arma::solve(Sig, x - mu));
-	if (logp) {
-		return lpdf;
-	} else {
-		return std::exp(lpdf);
-	}
+	
+	return logp ? lpdf : std::exp(lpdf);
 }
 
 // [[Rcpp::export]]

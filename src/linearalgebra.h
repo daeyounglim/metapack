@@ -23,6 +23,7 @@ arma::mat veclinv(TN& v, const int& J) {
 }
 arma::mat vecrinv(const arma::vec& X, const int& J);
 arma::vec vecr(const arma::mat& X);
+arma::vec vechr(const arma::mat& X);
 arma::vec vech(const arma::mat& X);
 arma::mat vechinv(const arma::vec& v, const int& n);
 arma::mat pRho_to_Rho(arma::mat& pRho);

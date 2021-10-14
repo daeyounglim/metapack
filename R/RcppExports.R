@@ -77,7 +77,7 @@ calc_modelfit_lpml <- function(y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, p
     .Call(`_metapack_calc_modelfit_lpml`, y, x, z, ids, iarm, npt, dfs, nu, betas, sig2s, phis, lams, Rhos, K, nT, nkeep, sample_df, verbose, ncores)
 }
 
-fmodel_corr_modeling <- function(Outcome, SD, XCovariate, WCovariate, ZCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, a1, b1, a2, b2, a3, b3, Omega0, K, T, ndiscard, nskip, nkeep, transform_type, delta_stepsize, R_stepsize, TOL, theta_init, gamR_init, Omega_init, verbose) {
-    .Call(`_metapack_fmodel_corr_modeling`, Outcome, SD, XCovariate, WCovariate, ZCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, a1, b1, a2, b2, a3, b3, Omega0, K, T, ndiscard, nskip, nkeep, transform_type, delta_stepsize, R_stepsize, TOL, theta_init, gamR_init, Omega_init, verbose)
+fmodel_corr_modeling <- function(Outcome, SD, XCovariate, WCovariate, ZCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, a1, b1, a2, b2, a3, b3, Omega0, K, T, ndiscard, nskip, nkeep, transform_type, delta_stepsize, R_stepsize, TOL, theta_init, gamR_init, Omega_init, eta_init, prop_stepsize_burnin, prop_stepsize_sampling, verbose) {
+    .Call(`_metapack_fmodel_corr_modeling`, Outcome, SD, XCovariate, WCovariate, ZCovariate, Treat, Trial, Second, Npt, c0, dj0, a0, b0, a1, b1, a2, b2, a3, b3, Omega0, K, T, ndiscard, nskip, nkeep, transform_type, delta_stepsize, R_stepsize, TOL, theta_init, gamR_init, Omega_init, eta_init, prop_stepsize_burnin, prop_stepsize_sampling, verbose)
 }
 

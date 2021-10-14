@@ -16,7 +16,11 @@ arma::vec vecr(const arma::mat& X) {
 	return vphi;
 }
 
-
+/******************************************************************************************
+ * vecrinv
+ * DESCRIPTION: Restore a vector of upper-diagonal elements to a matrix
+                Does not fill in the diagonal elements; the diagonal entries will be zeros
+******************************************************************************************/
 arma::mat vecrinv(const arma::vec& X, const int& J) {
 	const int vdim = X.n_elem;
 	arma::mat R(J, J, arma::fill::zeros);
@@ -37,6 +41,28 @@ arma::vec vecl(const arma::mat& X) {
 		for (int i = j+1; i < n; ++i) {
 			out((n-1)*j - (j-1)*j/2 + i - 1 - j) = X(i, j);
 		}
+	}
+	return out;
+}
+
+/*
+Row-wise half-vectorization
+stored by rows in lower triangular form as a one dimensional array, 
+//    in the sequence
+//    A(1,1),
+//    A(2,1), A(2,2),
+//    A(3,1), A(3,2), A(3,3), and so on.
+*/
+arma::vec vechr(const arma::mat& X) {
+	int n = X.n_rows;
+	arma::vec out(n*(n+1)/2, arma::fill::zeros);
+	out(0) = X(0,0);
+	int index = 1;
+	for (int i = 1; i < n; ++i) {
+		for (int j = 0; j < i+1; ++j) {
+			out(index + j) = X(i,j);
+		}
+		index +=  i+1;
 	}
 	return out;
 }
@@ -68,10 +94,10 @@ arma::mat vechinv(const arma::vec& v, const int& n) {
 	return out;
 }
 
-/**************************
-Convert partial correlation
-to correlation
-**************************/
+/*****************************************
+Convert partial correlation to correlation
+ * pRho must have unit diagonal elements
+*****************************************/
 arma::mat pRho_to_Rho(arma::mat& pRho) {
 	using namespace arma;
 	using namespace Rcpp;
@@ -172,7 +198,7 @@ arma::mat find_diag(const arma::vec x, const double &TOL)
 	double dist = m;
 	while (dist > m * TOL)
 	{
-		vec ld = arma::log(arma::diagvec(arma::expmat_sym(A)));
+		vec ld = arma::log(arma::diagvec(arma::expmat(A)));
 		diag -= ld;
 		A.diag() = diag;
 		dist = arma::norm(ld);

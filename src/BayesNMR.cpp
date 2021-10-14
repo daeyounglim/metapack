@@ -153,8 +153,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 			SigBetainv = 0.5 * (SigBetainv + SigBetainv.t());
 			mat SigBetainvChol = chol(SigBetainv);
 			vec muBeta = arma::solve(arma::trimatu(SigBetainvChol), arma::solve(trimatl(SigBetainvChol.t()), muBetaTmp));
-			vec btmp(nx+nT);
-			std::generate(btmp.begin(), btmp.end(), ::norm_rand);
+			vec btmp(nx+nT, fill::randn);
 			beta = muBeta + arma::solve(arma::trimatu(SigBetainvChol), btmp);
 			for (int k=0; k < K; ++k) {
 				mat E_k = Eks(k);
@@ -403,10 +402,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 				vec muRgam = arma::solve(arma::trimatu(SigRgamiChol), arma::solve(arma::trimatl(SigRgamiChol.t()), Z_k * diagmat(1.0 / sig2_k) * resid_k));
 
 				int n_k = idx.n_elem;
-				vec gtmp(n_k);
-				for (int gg=0; gg < n_k; ++gg)
-					gtmp(gg) = ::norm_rand();
-				// std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
+				vec gtmp(n_k, fill::randn);
 				Rgam(idx) = muRgam + arma::solve(arma::trimatu(SigRgamiChol), gtmp);
 			}
 
@@ -538,10 +534,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 				mat SigBetainvChol = chol(SigBetainv);
 				
 				vec muBeta = arma::solve(arma::trimatu(SigBetainvChol), arma::solve(trimatl(SigBetainvChol.t()), muBetaTmp));
-				vec btmp(nx+nT);
-				for (int bb = 0; bb < nx+nT; ++bb)
-					btmp(bb) = ::norm_rand();
-				// std::generate(btmp.begin(), btmp.end(), ::norm_rand);
+				vec btmp(nx+nT, fill::randn);
 				beta = muBeta + arma::solve(arma::trimatu(SigBetainvChol), btmp);
 				for (int k=0; k < K; ++k) {
 					mat E_k = Eks(k);
@@ -786,10 +779,7 @@ Rcpp::List BayesNMR(const arma::vec& y,
 					vec muRgam = arma::solve(arma::trimatu(SigRgamiChol), arma::solve(arma::trimatl(SigRgamiChol.t()), Z_k * diagmat(1.0 / sig2_k) * resid_k));
 
 					int n_k = idx.n_elem;
-					vec gtmp(n_k);
-					for (int gg = 0; gg < n_k; ++gg)
-						gtmp(gg) = ::norm_rand();
-					// std::generate(gtmp.begin(), gtmp.end(), ::norm_rand);
+					vec gtmp(n_k, fill::randn);
 					Rgam(idx) = muRgam + arma::solve(arma::trimatu(SigRgamiChol), gtmp);
 				}
 
