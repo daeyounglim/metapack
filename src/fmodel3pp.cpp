@@ -62,8 +62,6 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 		onstat(k) = static_cast<double>(Second(i_k));
 	}
 
-
-
 	/***********************
 	Parameter Initialization
 	***********************/
@@ -79,7 +77,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 	mat Rho = Rho_init;
 	mat pRho = Rho_to_pRho(Rho);
 	mat Rhoinv = arma::inv(Rho);
-	vec vRho = arma::atanh(vecr(Rho));
+	vec vRho = arma::atanh(vecr(pRho));
 
 	for (int i = 0; i < N; ++i) {
 		mat Sigma = arma::diagmat(delta.row(i)) * Rho * arma::diagmat(delta.row(i));

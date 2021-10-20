@@ -262,7 +262,7 @@
         if (!multivariate_flag && fmodel != 1) {
             stop(paste("Univariate meta-analysis only valid with", sQuote("NoRecovery")))
         }
-
+        
         out <- bayes.parobs(y, std_dev, x, z, treat_, trial, nsample, fmodel, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, group = groups_, group_order = group_labels, scale_x = scale_x, verbose = verbose)
         out$call <- cl
         out$multivariate <- multivariate_flag
