@@ -1,12 +1,13 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
-* made minor changes in the source — fmodel3.cpp and fmodel3pp.cpp
+* made minor changes in the source to initialize the parameters correctly — fmodel3.cpp and fmodel3pp.cpp
 
 ## Test environments
 * local macOS Big Sur 11.1 R 4.1.0
-* ubuntu 20.04 (release and devel on R CMD check)
-* ubuntu 16.04 (on travis-ci), R 4.0.2
+* Microsoft Windows Server 2019 (10.0.17763) on R CMD check
+* Mac OS X (10.15.7) on R CMD check
+* ubuntu 20.04 (release on R CMD check)
 * win-builder (devel, release, and oldrelease)
 
 ## R CMD check results

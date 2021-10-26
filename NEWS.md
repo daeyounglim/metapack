@@ -1,3 +1,6 @@
+# metapack 0.1.4
+* fix bug in `EquiCorrelation` model
+
 # metapack 0.1.3
 * Remove `random.cpp` and use `arma::wishrnd()`
 * Add `bmeta_analyze()` with formula interface
