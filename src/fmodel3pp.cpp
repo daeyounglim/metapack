@@ -113,6 +113,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 	cube delta_save(N, J, nkeep, fill::zeros);
 	cube Rho_save(J, J, nkeep, fill::zeros);
 	int icount_mh = 0;
+	int JJm12 = (J * (J - 1)) / 2;
 	/*******************
 	Begin burn-in period
 	*******************/
@@ -375,7 +376,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 				}
 				if (rho_proceed) {
 					// log-likelihood difference
-					double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
+					double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, JJm12, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, JJm12, sumNpt);
 
 					if (std::log(::unif_rand()) < ll_diff) {
 						vRho = vRhop;
@@ -408,9 +409,9 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 							goto finished_warmup;
 						}
 						double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
-						double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
+						double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, JJm12, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, JJm12, sumNpt);
 						double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));
-						double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
+						double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, JJm12, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, JJm12, sumNpt);
 						ll_diff = ll_diff_zx + log1pzystar - log1pxy;
 						if (std::log(::unif_rand()) < ll_diff) {
 							vRho = zzz;
@@ -767,7 +768,7 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 					}
 					if (rho_proceed) {
 						// log-likelihood difference
-						double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
+						double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, JJm12, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, JJm12, sumNpt);
 
 						if (std::log(::unif_rand()) < ll_diff) {
 							vRho = vRhop;
@@ -800,9 +801,9 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 								goto finished_sampling;
 							}
 							double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
-							double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, J, sumNpt);
+							double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, JJm12, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, JJm12, sumNpt);
 							double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));
-							double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, J, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, J, sumNpt);
+							double ll_diff_zx = loglik_vRho_m3(zzz, Rhopinvzzz, qq, JJm12, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, JJm12, sumNpt);
 							ll_diff = ll_diff_zx + log1pzystar - log1pxy;
 							if (std::log(::unif_rand()) < ll_diff) {
 								vRho = zzz;

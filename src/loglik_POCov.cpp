@@ -223,6 +223,7 @@ double loglik_vRho_m4(const arma::vec& vRho,
 	mat pRRp = vecrinv(arma::tanh(vRho), J);
 	pRRp.diag().fill(1.0);
 	mat Rhop = pRho_to_Rho(pRRp);
+	int JJm12 = (J*(J-1))/2;
 
 	double logdet_val;
 	double logdet_sign;
@@ -253,7 +254,7 @@ double loglik_vRho_m4(const arma::vec& vRho,
 		log_det(logdet_val, logdet_sign, qq);
 		loglik -= 0.5 * (ntk + nu0) * logdet_val;
 	}
-	for (int ii = 0; ii < J; ++ii) {
+	for (int ii = 0; ii < JJm12; ++ii) {
 		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
 		int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
 		loglik += 0.5 * static_cast<double>(J + 1 - std::abs(iC - iR)) * std::log1p(-z(ii)*z(ii));
@@ -287,6 +288,7 @@ double loglik_vRho_m4p(const arma::vec& vRho,
 	mat pRRp = vecrinv(arma::tanh(vRho), J);
 	pRRp.diag().fill(1.0);
 	mat Rhop = pRho_to_Rho(pRRp);
+	int JJm12 = (J*(J-1))/2;
 
 	double logdet_val;
 	double logdet_sign;
@@ -323,7 +325,7 @@ double loglik_vRho_m4p(const arma::vec& vRho,
 		log_det(logdet_val, logdet_sign, qq);
 		loglik -= 0.5 * (ntk + nu0) * logdet_val;
 	}
-	for (int ii = 0; ii < J; ++ii) {
+	for (int ii = 0; ii < JJm12; ++ii) {
 		int iR = J - 2 - static_cast<int>(std::sqrt(-8.0*static_cast<double>(ii) + 4.0*static_cast<double>(J*(J-1))-7.0)/2.0 - 0.5); // row index
 		int iC = ii + iR + 1 - (J*(J-1))/2 + ((J-iR)*((J-iR)-1))/2; // column index
 		loglik += 0.5 * static_cast<double>(J + 1 - std::abs(iC - iR)) * std::log1p(-z(ii)*z(ii));
