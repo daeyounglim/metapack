@@ -10,6 +10,7 @@
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
 #include "nelmin.h"
+#include "random.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
@@ -178,7 +179,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 			for (int jj = 0; jj < J; ++jj) {
 				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 				mat qq = Omega0inv + (gamstar * gamstar.t());
-				mat ominv = arma::wishrnd(arma::inv_sympd(qq), shape_omega);
+				mat ominv = RNG::rwish(arma::inv_sympd(qq), shape_omega);
 				mat om = arma::inv_sympd(ominv);
 				Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 				Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -202,7 +203,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 				vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 				qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 			}
-			Siginv = arma::wishrnd(arma::inv_sympd(qq), df);
+			Siginv = RNG::rwish(arma::inv_sympd(qq), df);
 
 			for (int i = 0; i < N; ++i) {
 				rowvec y_i = Outcome.row(i);
@@ -371,7 +372,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 				for (int jj = 0; jj < J; ++jj) {
 					mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 					mat qq = Omega0inv + (gamstar * gamstar.t());
-					mat ominv = arma::wishrnd(arma::inv_sympd(qq), shape_omega);
+					mat ominv = RNG::rwish(arma::inv_sympd(qq), shape_omega);
 					mat om = arma::inv_sympd(ominv);
 					Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 					Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -396,7 +397,7 @@ Rcpp::List fmodel2(const arma::mat& Outcome,
 					resid_ikeep.row(i) = resid_i.t();
 					qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 				}
-				Siginv = arma::wishrnd(arma::inv_sympd(qq), df);
+				Siginv = RNG::rwish(arma::inv_sympd(qq), df);
 				Sig = arma::inv_sympd(Siginv);
 
 				for (int i = 0; i < N; ++i) {

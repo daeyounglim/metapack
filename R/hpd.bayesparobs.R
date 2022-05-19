@@ -4,9 +4,9 @@
 #' @param level the probability which the HPD interval will cover
 #' @param HPD a logical value indicating whether HPD or equal-tailed credible interval should be computed; by default, TRUE
 #' @return dataframe containing HPD intervals for the parameters
-#' @method hpd bayes.parobs
+#' @method hpd bayesparobs
 #' @export
-"hpd.bayes.parobs" <- function(object, parm, level = 0.95, HPD = TRUE) {
+"hpd.bayesparobs" <- function(object, parm, level = 0.95, HPD = TRUE) {
 	if (object$scale_x) {
 		J <- ncol(object$Outcome)
 		xcols <- ncol(object$XCovariate)
@@ -56,7 +56,7 @@
 				}
 			}
 		}
-		class(out) <- "bayes.parobs.hpd"
+		class(out) <- "bayesparobs.hpd"
 		return(out)
 	} else {
 		cl <- list()

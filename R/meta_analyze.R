@@ -1,13 +1,21 @@
-#' bmeta_analyze supersedes the previous two functions: bayes.parobs, bayes.nmr
+#' bmeta_analyze supersedes the previous two functions: bayes_parobs, bayes_nmr
 #' 
 #' @description
-#' This is the one function to rule them all. All other worker functions will be subsumed by this function, so that users can forget about the implementation details and focus on modeling.
+#' All other worker functions are superseded by this function, so that users can forget about the implementation details and focus on modeling. Meta-analytic data can be either aggregate or individual participant data (IPD). Aggregate data implies that the response consists of estimated effect sizes and their corresponding standard errors, whereas IPD is raw data. Data sets to be used for metapack should be formatted as follows:
+#' 
+#' | Outcome | SD | DesignM1 | DesignM2 | Trial indicator (`k`) | Treatment indicator (`t`) | n |
+#' |:-------:|:--:|:--------:|:--------:|:---------------------:|:-------------------------:|:-:|
+#' |  \eqn{y_{13}} | \eqn{S_{13}} | \eqn{x_{13}} | \eqn{w_{13}} | 1   | 3 | 1000 |
+#' |  \eqn{y_{10}} | \eqn{S_{10}} | \eqn{x_{10}} | \eqn{w_{10}} | 1   | 0 | 545 |
+#' |  \eqn{y_{20}} | \eqn{S_{20}} | \eqn{x_{20}} | \eqn{w_{20}} | 2   | 0 | 1200 |
+#' 
+#' The first treatment indicator is intentionally selected to be 3, a number greater than 1, to indicate that this data format works for both meta-regression and network meta-regression. Meta-regression refers to when trials included have 2 treatments (i.e., \eqn{t = 0, 1} for all \eqn{k}), and the treatments are compared head to head. On the other hand, network meta-regression includes more than two treatments, where each trial can have a different set of treatments, allowing indirect comparison between treatments that are not compared head to head as long as *consistency* holds (see [Higgins et al. (2012)](https://doi.org/10.1002/jrsm.1044) for consistency).
 #' 
 #' `bmeta_analyze()` and `bmeta_analyse()` are synonyms.
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
-#' @param formula an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of trial sample sizes must be provided using the function `ns()`. For example, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)`---an incomplete formula only for illustration purposes. If no `ns()` is found, IPD model is assumed.
-#' @param data a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `bmeta_analyze` is called.
-#' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., `help(bayes.parobs)` or `help(bayes.nmr)`. For meta-analysis, `model` is required in the `prior` argument, which is passed to `fmodel` as an integer. If the response is univariate, `NoRecovery` is the only valid option.
+#' @param formula an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of arm sample sizes must be provided using the function `ns()`. For example, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)`---an incomplete formula only for illustration purposes. If no `ns()` is found, individual participant data (IPD) model is assumed.
+#' @param data a data frame, list, or environment (or an object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in `data`, the variables are taken from `environment(formula)`, typically the environment from which `bmeta_analyze` is called.
+#' @param prior an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, refer to the corresponding worker function's help page, e.g., `help(bayes_parobs)` or `help(bayes_nmr)`. For meta-analysis, `model` is required in the `prior` argument, which is passed to `fmodel` as an integer. If the response is univariate, `NoRecovery` is the only valid option.
 #' 
 #' * `model="NoRecovery"` - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
 #' * `model="EquiCovariance"` - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
@@ -23,7 +31,7 @@
 #' * `a4`, `b4`, `a5`, `b5` - the hyperparameters related to when the degrees of freedom for the random effects are treated as unknown/random. `df` is then considered to follow \eqn{Ga(\nu_a, \nu_a/\nu_b)}, \eqn{\nu_a \sim Ga(a_4, b_4)}, and \eqn{\nu_b \sim IG(a_5, b_5)}. All gamma and inverse-gamma distributions are rate-parameterized.
 #' 
 #' @param mcmc an optional object containing MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, parameters will be saved every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
-#' @param control an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to `prior`, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes.parobs}} or \code{\link{bayes.nmr}}).
+#' @param control an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to `prior`, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes_parobs}} or \code{\link{bayes_nmr}}).
 #' These are the lists of available tuning parameters in `control` for meta-analysis and network meta-analysis. Keep in mind that `model` will render some irrelevant tuning parameters ineffective.
 #' 
 #' * Meta-analysis - `model` (string), `sample_Rho` (logical), `Rho_stepsize` (double), `R_stepsize` (double), `delta_stepsize` (double), `sample_Rho` (logical)
@@ -38,8 +46,8 @@
 #' 
 #' @return `bmeta_analyze` returns a classed object of `bsynthesis` for *Bayesian synthesis*
 #' @import Formula
-#' @details `bmeta_analyze` currently subsumes two worker functions: `bayes.parobs` and `bayes.nmr`. `bmeta_analyze` offers a formula interface.
-#' All formulas are parsed using \link[Formula]{Formula}. Formulas for `bmeta_analyze` are constrained to take up a strict structure: one or two LHS, and two or three RHS. That is, `lhs_1 ~ rhs_1 | rhs2 | rhs3` or `lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3` (see Examples for more). The tilde (`~`) separates the LHS's and RHS's, each side further separated into parts by vertical bars (`|`).
+#' @details `bmeta_analyze` currently subsumes two worker functions: `bayes_parobs` and `bayes_nmr`. `bmeta_analyze` offers a formula interface.
+#' All formulas are parsed using \link[Formula]{Formula}. Formulas for `bmeta_analyze` are constrained to have a strict structure: one or two LHS, and two or three RHS. That is, `lhs_1 ~ rhs_1 | rhs2 | rhs3` or `lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3` (see Examples for more). The tilde (`~`) separates the LHS's and RHS's, each side further separated into parts by vertical bars (`|`).
 #' The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, all parts **must** come in the exact order as prescribed for `bmeta_analyze` to correctly configure your model.
 #'
 #'  + The first LHS, the responses, is required for all models.
@@ -48,15 +56,15 @@
 #'  + The second RHS corresponds to the variables in either the random-effects matrix (\eqn{w_{tk}' * \gamma_{k}}`) for multivariate meta-analysis or modeling the variances (\eqn{\log\tau_{tk}} = \eqn{z_{tk}' * \phi}) for univariate network meta-analysis.
 #'  + The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be `treat + trial + group`, or `treat + trial` if no grouping exists. Variables here must be supplied in the exact order described; otherwise, model will not be correctly identified.
 #' 
-#' Internally, `bmeta_analyze` looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and [aggregate/IPD](https://en.wikipedia.org/wiki/Meta-analysis#Approaches) (individual participant data).
+#' Internally, `bmeta_analyze` looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and [aggregate/IPD](https://en.wikipedia.org/wiki/Meta-analysis#Approaches).
 #' 
-#'  + multivariate/univariate: the dimension of the response is explicit in the formula, and is determinative.
-#'  + meta-analysis/network meta-analysis: the number of levels (`nlevels`) of treatments determines this. If `treat` is not already a factor variable, it is coerced to be one.
-#'  + aggregate/IPD: `bmeta_analyze` looks for `ns()` in the first RHS. Aggregate models **must** provide the trial sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
+#'  + multivariate/univariate: the dimension of the response is explicit in the formula, and determines univariate versus multivariate.
+#'  + meta-analysis/network meta-analysis: the number of levels (`nlevels`) of treatments determines this. If `treat` is not already a factor variable, it is coerced to one.
+#'  + aggregate/IPD: `bmeta_analyze` looks for `ns()` in the first RHS. Aggregate models **must** provide the arm sample sizes using the function `ns()` (e.g., if `n` is the sample sizes, `y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))`). If there is no `ns()`, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
 #' 
 #' Currently, only `univariate/multivariate` + `meta-analysis` and `univariate` + `network meta-analysis` are allowed. More models will be added in the future.
 #' @aliases bmeta_analyse
-#' @seealso \code{\link{bayes.parobs}} for multivariate meta-analysis, and \code{\link{bayes.nmr}} for univariate network meta-analysis.
+#' @seealso \code{\link{bayes_parobs}} for multivariate meta-analysis, and \code{\link{bayes_nmr}} for univariate network meta-analysis.
 #' @examples
 #' set.seed(2797542)
 #' data("cholesterol")
@@ -263,14 +271,14 @@
             stop(paste("Univariate meta-analysis only valid with", sQuote("NoRecovery")))
         }
         
-        out <- bayes.parobs(y, std_dev, x, z, treat_, trial, nsample, fmodel, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, group = groups_, group_order = group_labels, scale_x = scale_x, verbose = verbose)
+        out <- bayes_parobs(y, std_dev, x, z, treat_, trial, nsample, fmodel, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, group = groups_, group_order = group_labels, scale_x = scale_x, verbose = verbose)
         out$call <- cl
         out$multivariate <- multivariate_flag
         out$aggregate <- agg_flag
         class(out) <- c(class(out), "bsynthesis")
         return(out)
     } else {
-        out <- bayes.nmr(unlist(y), unlist(std_dev), x, z, treat_, trial, nsample, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, scale_x = scale_x, verbose = verbose)
+        out <- bayes_nmr(unlist(y), unlist(std_dev), x, z, treat_, trial, nsample, prior, mcmc, control, init, Treat_order = treatment_labels, Trial_order = trial_labels, scale_x = scale_x, verbose = verbose)
         out$call <- cl
         out$multivariate <- multivariate_flag
         out$aggregate <- agg_flag

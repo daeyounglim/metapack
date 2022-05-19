@@ -1,7 +1,7 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
-* made minor changes in the source to initialize the parameters correctly — fmodel3.cpp and fmodel3pp.cpp
+* made minor changes in the source to loop over the correct dimension — fmodel3.cpp and fmodel3pp.cpp
 
 ## Test environments
 * local macOS Big Sur 11.1 R 4.1.0

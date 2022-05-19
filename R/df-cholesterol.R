@@ -7,13 +7,13 @@
 #'		\item{study}{study identifier}
 #'		\item{trial}{trial identifier}
 #'		\item{treat}{treatment indicator for Statin or Statin+Ezetimibe}
-#'		\item{n}{the number of participants in the study corresponding to the trial and treatment}
-#'		\item{pldlc}{mean percentage difference in LDL-C}
-#'		\item{phdlc}{mean percentage difference in HDL-C}
-#'		\item{ptg}{mean percentage difference in triglycerides (TG)}
-#'		\item{sdldl}{sample standard deviation of percentage difference in LDL-C}
-#'		\item{sdhdl}{sample standard deviation of percentage difference in HDL-C}
-#'		\item{sdtg}{sample standard deviation of percentage difference in triglycerides (TG)}
+#'		\item{n}{the number of participants in the study arms corresponding to the trial and treatment}
+#'		\item{pldlc}{aggregate percentage change in LDL-C}
+#'		\item{phdlc}{aggregate percentage change from baseline in HDL-C}
+#'		\item{ptg}{aggregate percentage change from baseline in triglycerides (TG)}
+#'		\item{sdldl}{sample standard deviation of percentage change in LDL-C}
+#'		\item{sdhdl}{sample standard deviation of percentage change in HDL-C}
+#'		\item{sdtg}{sample standard deviation of percentage change in triglycerides (TG)}
 #'		\item{onstat}{whether the participants were on Statin prior to the trial}
 #'		\item{bldlc}{baseline LDL-C}
 #'		\item{bhdlc}{baseline HDL-C}

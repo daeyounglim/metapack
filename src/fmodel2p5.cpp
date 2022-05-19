@@ -10,6 +10,7 @@
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
 #include "nelmin.h"
+#include "random.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
@@ -191,7 +192,7 @@ Rcpp::List fmodel2p5(const arma::mat& Outcome,
 			for (int jj = 0; jj < J; ++jj) {
 				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 				mat qq = Omega0inv + (gamstar * gamstar.t());
-				mat ominv = arma::wishrnd(arma::inv_sympd(qq), shape_omega);
+				mat ominv = RNG::rwish(arma::inv_sympd(qq), shape_omega);
 				mat om = arma::inv_sympd(ominv);
 				Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 				Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -221,7 +222,7 @@ Rcpp::List fmodel2p5(const arma::mat& Outcome,
 					vec resid_i = arma::trans(resid.row(i_t)) - W * gam_k;
 					qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 				}
-				Siginv.col(t) = vech(arma::wishrnd(arma::inv_sympd(qq), s0 + nt_dot));
+				Siginv.col(t) = vech(RNG::rwish(arma::inv_sympd(qq), s0 + nt_dot));
 			}
 
 			for (int i = 0; i < N; ++i) {
@@ -396,7 +397,7 @@ Rcpp::List fmodel2p5(const arma::mat& Outcome,
 				for (int jj = 0; jj < J; ++jj) {
 					mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 					mat qq = Omega0inv + (gamstar * gamstar.t());
-					mat ominv = arma::wishrnd(arma::inv_sympd(qq), shape_omega);
+					mat ominv = RNG::rwish(arma::inv_sympd(qq), shape_omega);
 					mat om = arma::inv_sympd(ominv);
 					Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 					Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -427,7 +428,7 @@ Rcpp::List fmodel2p5(const arma::mat& Outcome,
 						resid_ikeep.row(i_t) = resid_i.t();
 						qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 					}
-					mat Siginv_new = arma::wishrnd(arma::inv_sympd(qq), s0 + nt_dot);
+					mat Siginv_new = RNG::rwish(arma::inv_sympd(qq), s0 + nt_dot);
 					mat Sig_new = arma::inv_sympd(Siginv_new);
 					Siginv.col(t) = vech(Siginv_new);
 					Sig.col(t) = vech(Sig_new);

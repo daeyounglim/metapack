@@ -2,12 +2,16 @@
 % Please edit documentation in R/summary.bayesnmr.R
 \name{summary.bayesnmr}
 \alias{summary.bayesnmr}
-\title{Summarize results}
+\title{`summary` method for class "`bayesnmr`"}
 \usage{
-\method{summary}{bayesnmr}(object, ...)
+\method{summary}{bayesnmr}(object, level = 0.95, HPD = TRUE, ...)
 }
 \arguments{
 \item{object}{the output model from fitting a network meta analysis/regression model}
+
+\item{level}{credible level for interval estimation; set to 0.95 by default}
+
+\item{HPD}{a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed}
 
 \item{...}{additional arguments for print}
 }
@@ -15,5 +19,5 @@
 does not return anything; print a summary of the output
 }
 \description{
-Summarize results
+`summary` method for class "`bayesnmr`"
 }

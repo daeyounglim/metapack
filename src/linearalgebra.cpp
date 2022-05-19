@@ -34,7 +34,6 @@ arma::mat vecrinv(const arma::vec& X, const int& J) {
 }
 
 arma::vec vecl(const arma::mat& X) {
-	using namespace arma;
 	int n = X.n_rows;
 	arma::vec out(n*(n-1)/2, arma::fill::zeros);
 	for (int j = 0; j < n-1; ++j) {
@@ -79,14 +78,13 @@ arma::vec vech(const arma::mat& X) {
 }
 
 arma::mat vechinv(const arma::vec& v, const int& n) {
-	using namespace arma;
-	mat out(n, n, fill::zeros);
+	arma::mat out(n, n, arma::fill::zeros);
 	int count1 = 0;
 	int count2 = n-1;
 	for (int i = 0; i < n-1; ++i) {
-		vec vv = v(span(count1, count2));
-		out(span(i+1, n-1),i) = vv.tail(n-1-i);
-		out(i, span(i, n-1)) = vv.t();
+		arma::vec vv = v(arma::span(count1, count2));
+		out(arma::span(i+1, n-1),i) = vv.tail(n-1-i);
+		out(i, arma::span(i, n-1)) = vv.t();
 		count1 = count2 + 1;
 		count2 += n-1-i;
 	}
@@ -99,20 +97,15 @@ Convert partial correlation to correlation
  * pRho must have unit diagonal elements
 *****************************************/
 arma::mat pRho_to_Rho(arma::mat& pRho) {
-	using namespace arma;
-	using namespace Rcpp;
-	using namespace R;
-	using namespace std;
-
 	const int nT = pRho.n_rows;
-	mat Rho = pRho;
+	arma::mat Rho = pRho;
 
 	for (int iL=2; iL < nT; ++iL) {
-		mat rmat(iL-1,iL-1, fill::zeros);
+		arma::mat rmat(iL-1,iL-1, arma::fill::zeros);
 
 		for (int iR=1; iR < nT-iL+1; ++iR) {
-			vec rvec1(nT-2, fill::zeros);
-			vec rvec3(nT-2, fill::zeros);
+			arma::vec rvec1(nT-2, arma::fill::zeros);
+			arma::vec rvec3(nT-2, arma::fill::zeros);
 
 			for (int i1=1; i1 < iL; ++i1) {
 				rvec1(i1-1) = Rho(iR-1, iR+i1-1);
@@ -127,7 +120,7 @@ arma::mat pRho_to_Rho(arma::mat& pRho) {
 					rmat(i1-1,j1-1) = Rho(iR+i1-1, iR+j1-1);
 				}
 			}
-			mat rmatinv = rmat.i();
+			arma::mat rmatinv = rmat.i();
 			for (int i1=1; i1 < iL; ++i1) {
 				for (int j1=1; j1 < iL; ++j1) {
 					rr11 += rvec1(i1-1) * rmatinv(i1-1,j1-1) * rvec1(j1-1);
@@ -143,20 +136,15 @@ arma::mat pRho_to_Rho(arma::mat& pRho) {
 }
 
 arma::mat Rho_to_pRho(arma::mat& Rho) {
-	using namespace arma;
-	using namespace Rcpp;
-	using namespace R;
-	using namespace std;
-
 	const int nT = Rho.n_rows;
-	mat pRho = Rho;
+	arma::mat pRho = Rho;
 
 	for (int iL=nT-1; iL > 1; --iL) {
-		mat rmat(iL-1,iL-1, fill::zeros);
+		arma::mat rmat(iL-1,iL-1, arma::fill::zeros);
 
 		for (int iR=1; iR < nT-iL+1; ++iR) {
-			vec rvec1(nT-2, fill::zeros);
-			vec rvec3(nT-2, fill::zeros);
+			arma::vec rvec1(nT-2, arma::fill::zeros);
+			arma::vec rvec3(nT-2, arma::fill::zeros);
 
 			for (int i1=1; i1 < iL; ++i1) {
 				rvec1(i1-1) = pRho(iR-1, iR+i1-1);
@@ -171,7 +159,7 @@ arma::mat Rho_to_pRho(arma::mat& Rho) {
 					rmat(i1-1,j1-1) = pRho(iR+i1-1, iR+j1-1);
 				}
 			}
-			mat rmatinv = rmat.i();
+			arma::mat rmatinv = rmat.i();
 			for (int i1=1; i1 < iL; ++i1) {
 				for (int j1=1; j1 < iL; ++j1) {
 					rr11 += rvec1(i1-1) * rmatinv(i1-1,j1-1) * rvec1(j1-1);
@@ -188,17 +176,15 @@ arma::mat Rho_to_pRho(arma::mat& Rho) {
 
 arma::mat find_diag(const arma::vec x, const double &TOL)
 {
-	using namespace arma;
-
 	int d = x.n_elem;
 	int n = static_cast<int>(1.0 + std::sqrt(1.0 + 8.0 * static_cast<double>(d))) / 2; // dimension of corresponding matrix
-	mat A = vecrinv(x, n);															   // = log(rho)
-	vec diag = arma::diagvec(A);
+	arma::mat A = vecrinv(x, n);															   // = log(rho)
+	arma::vec diag = arma::diagvec(A);
 	double m = std::sqrt(static_cast<double>(n));
 	double dist = m;
 	while (dist > m * TOL)
 	{
-		vec ld = arma::log(arma::diagvec(arma::expmat(A)));
+		arma::vec ld = arma::log(arma::diagvec(arma::expmat(A)));
 		diag -= ld;
 		A.diag() = diag;
 		dist = arma::norm(ld);

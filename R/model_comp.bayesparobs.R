@@ -5,8 +5,9 @@
 #' @param ncores the number of CPU cores to use for parallel processing. It must not exceed the number of existing cores. If unspecified, it will default to 2 cores or the number of existing cores, whichever is smaller.
 #' @return dataframe containing the compute the model comparison measures
 #' @importFrom parallel detectCores
+#' @method model_comp bayesparobs
 #' @export
-"model.comp.bayes.parobs" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
+"model_comp.bayesparobs" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
 	nkeep <- object$mcmc$nkeep
 	
 	Sigmahat <- apply(object$mcmc.draws$Sigma, c(1,2), mean)

@@ -1,11 +1,11 @@
 #' Fit Bayesian Inference for Meta-Regression
 #'
 #' This is a function for running the Markov chain Monte Carlo algorithm for the *Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix* model. The first six arguments are required.
-#' fmodel can be one of 5 numbers: 1, 2, 3, 4, and 5. The first model, fmodel = 1 denoted by M1, indicates that the \eqn{\Sigma_{tk}}
-#' are diagonal matrices with zero covariances. M2 indicates that \eqn{\Sigma_{tk}} are all equivalent but allowed to be full symmetric
-#' positive definite. M3 is where \eqn{\Sigma_{tk}} are allowed to differ across treatments, i.e., \eqn{\Sigma_{tk}=\Sigma_t}.
+#' fmodel can be one of 5 numbers: 1, 2, 3, 4, and 5. The first model, fmodel = 1 denoted by M1, indicates that the \eqn{\Sigma_{kt}}
+#' are diagonal matrices with zero covariances. M2 indicates that \eqn{\Sigma_{kt}} are all equivalent but allowed to be full symmetric
+#' positive definite. M3 is where \eqn{\Sigma_{kt}} are allowed to differ across treatments, i.e., \eqn{\Sigma_{kt}=\Sigma_t}.
 #' M4 assumes thata the correlation matrix, \eqn{\rho}, is identical for all trials/treatments, but the variances are allowed to vary.
-#' Finally, M5 assumes a hierarchical model where \eqn{(\Sigma_{tk} | \Sigma)} follows an inverse-Wishart distribution with fixed
+#' Finally, M5 assumes a hierarchical model where \eqn{(\Sigma_{kt} | \Sigma)} follows an inverse-Wishart distribution with fixed
 #' degrees of freedom and scale matrix \eqn{\Sigma}. \eqn{\Sigma} then follows another inverse-Wishart distribution with fixed parameters.
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}
 #' @param Outcome the aggregate mean of the responses for each arm of every study.
@@ -14,43 +14,43 @@
 #' @param WCovariate the aggregate covariates for the random effects.
 #' @param Treat the treatment identifiers. This is equivalent to the arm number of each study. The number of unique treatments must be equal across trials. The elements within will be coerced to consecutive integers.
 #' @param Trial the trial identifiers. This is equivalent to the arm labels in each study. The elements within will be coerced to consecutive integers
-#' @param Npt the number of observations/participants for a unique `(t,k)`, or each arm of every trial.
-#' @param fmodel the model number. The possible values for `fmodel` are 1 to 5, each indicating a different prior specification for \eqn{\Sigma_{tk}}. It will default to M1, `fmodel=1` if not specified at function call. See the following model descriptions. The objects enclosed in parentheses at the end of every bullet point are the hyperparameters associated with each model.
+#' @param Npt the number of observations/participants for a unique `(k,t)`, or each arm of every trial.
+#' @param fmodel the model number. The possible values for `fmodel` are 1 to 5, each indicating a different prior specification for \eqn{\Sigma_{kt}}. It will default to M1, `fmodel=1` if not specified at function call. See the following model descriptions. The objects enclosed in parentheses at the end of every bullet point are the hyperparameters associated with each model.
 #' 
-#' + `fmodel=1` - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
-#' + `fmodel=2` - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
-#' + `fmodel=3` - \eqn{\Sigma_{tk}=\Sigma_t} and \eqn{\Sigma_t^{-1}\sim  Wish_{s_0}(\Sigma_0)}. This is a relaxed version of `fmodel=2`, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
-#' + `fmodel=4` - \eqn{\Sigma_{tk}=\delta_{tk} \rho \delta_{tk}} where \eqn{\delta_{tk}=diag(\Sigma_{tk,11}^{1/2},\ldots,\Sigma_{tk,JJ}^{1/2})}, and \eqn{\rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
-#' + `fmodel=5` - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{tk}^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_{tk}} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (`c0`, `dj0`, `d0`, `nu0`, `Sigma0`, `Omega0`)
+#' + `fmodel=1` - \eqn{\Sigma_{kt} = diag(\sigma_{kt,11}^2,\ldots,\sigma_{kt,JJ}^2)} where \eqn{\sigma_{kt,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is [the inverse-gamma distribution](https://en.wikipedia.org/wiki/Inverse-gamma_distribution). This specification is useful if the user does not care about the correlation recovery. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
+#' + `fmodel=2` - \eqn{\Sigma_{kt}=\Sigma} for every combination of \eqn{(k,t)}{`(k,t)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
+#' + `fmodel=3` - \eqn{\Sigma_{kt}=\Sigma_t} and \eqn{\Sigma_t^{-1}\sim  Wish_{s_0}(\Sigma_0)}. This is a relaxed version of `fmodel=2`, allowing the correlation structure to differ across trials but forcing it to stay identical within a trial. (`c0`, `dj0`, `s0`, `Omega0`, `Sigma0`)
+#' + `fmodel=4` - \eqn{\Sigma_{kt}=\delta_{kt} \rho \delta_{kt}} where \eqn{\delta_{kt}=diag(\Sigma_{kt,11}^{1/2},\ldots,\Sigma_{kt,JJ}^{1/2})}, and \eqn{\rho} is the correlation matrix. This specification allows the variances to vary across arms but requires that the correlations be the same. This is due to the lack of correlation information in the data, which would in turn lead to the nonidentifiability of the correlations if they were allowed to vary. However, this still is an ambitious model which permits maximal degrees of freedom in terms of variance and correlation estimation. (`c0`, `dj0`, `a0`, `b0`, `Omega0`)
+#' + `fmodel=5` - The fifth model is hierarchical and thus may require more data than the others: \eqn{(\Sigma_{kt}^{-1}\mid \Sigma)\sim  Wish_{\nu_0}((\nu_0-J-1)^{-1}\Sigma^{-1})} and \eqn{\Sigma \sim  Wish_{d_0}(\Sigma_0)}. \eqn{\Sigma_{kt}} encodes the within-treatment-arm variation while \eqn{\Sigma} captures the between-treatment-arm variation. The hierarchical structure allows the "borrowing of strength" across treatment arms. (`c0`, `dj0`, `d0`, `nu0`, `Sigma0`, `Omega0`)
 
 #' @param prior (Optional) a list of hyperparameters. Despite `theta` in every model, each `fmodel`, along with the `group` argument, requires a different set of hyperparameters. See `fmodel` for the model specifications.
-#' @param mcmc (Optional) a list for MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes.parobs` will save the posterior sample every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
+#' @param mcmc (Optional) a list for MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes_parobs` will save the posterior sample every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
 #' @param control (Optional) a list of tuning parameters for [the Metropolis-Hastings algorithm](https://en.wikipedia.org/wiki/Metropolis-Hastings_algorithm). `Rho`, `R`, and `delta` are sampled through either localized Metropolis algorithm or delayed rejection robust adaptive Metropolis algorithm. `*_stepsize` with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. `sample_Rho` can be set to `FALSE` to suppress the sampling of `Rho` for `fmodel=4`. When `sample_Rho` is `FALSE`, \eqn{\rho} will be fixed using the value given by the `init` argument, which defaults to \eqn{0.5 I+0.511'} where \eqn{1} is the vector of ones.
 #' @param init (Optional) a list of initial values for the parameters to be sampled: `theta`, `gamR`, `Omega`, and `Rho`. The initial value for `Rho` will be effective only if `fmodel=4`.
 #' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the `Treat` vector. The first element will be assigned treatment zero, potentially indicating placebo. If not provided, the numbering will default to an alphabetical/numerical order.
 #' @param Trial_order (Optional) a vector of unique trials. The first element will be assigned zero. If not provided, the numbering will default to an alphabetical/numerical order.
-#' @param group (Optional) a vector containing binary variables for \eqn{u_{tk}}. If not provided, `bayes.parobs` will assume that there is no grouping and set \eqn{u_{tk}=0} for all `(t,k)`.
+#' @param group (Optional) a vector containing binary variables for \eqn{u_{kt}}. If not provided, `bayes_parobs` will assume that there is no grouping and set \eqn{u_{kt}=0} for all `(k,t)`.
 #' @param group_order (Optional) a vector of unique group labels. The first element will be assigned zero. If not provided, the numbering will default to an alphabetical/numerical order. `group_order` will take effect only if `group` is provided by the user.
 #' @param scale_x (Optional) a logical variable indicating whether `XCovariate` should be scaled/standardized. The effect of setting this to `TRUE` is not limited to merely standardizing `XCovariate`. The following generic functions will scale the posterior sample of `theta` back to its original unit: `plot`, `fitted`, `summary`, and `print`.
 #' @param verbose (Optional) a logical variable indicating whether to print the progress bar during the MCMC sampling.
 #' @references 
 #' Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. *Journal of the American Statistical Association*, **110(510)**, 528-544.
 
-#' @return `bayes.parobs` returns an object of class `"bayes.parobs"`. The functions `summary` or `print` are used to obtain and print a summary of the results. The generic accessor function `fitted` extracts the posterior mean, posterior standard deviation, and the interval estimates of the value returned by `bayes.parobs`.
+#' @return `bayes_parobs` returns an object of class `"bayesparobs"`. The functions `summary` or `print` are used to obtain and print a summary of the results. The generic accessor function `fitted` extracts the posterior mean, posterior standard deviation, and the interval estimates of the value returned by `bayes_parobs`.
 #' 
-#' An object of class `bayes.nmr` is a list containing the following components:
+#' An object of class `bayesparobs` is a list containing the following components:
 #' 
 #' + `Outcome` - the aggregate response used in the function call.
 #' + `SD` - the standard deviation used in the function call.
-#' + `Npt` - the number of participants for `(t,k)` used in the function call.
+#' + `Npt` - the number of participants for `(k,t)` used in the function call.
 #' + `XCovariate` - the aggregate design matrix for fixed effects used in the function call. Depending on `scale_x`, this may differ from the matrix provided at function call.
 #' + `WCovariate` - the aggregate design matrix for random effects.
 #' + `Treat` - the *renumbered* treatment indicators. Depending on `Treat_order`, it may differ from the vector provided at function call.
 #' + `Trial` - the *renumbered* trial indicators. Depending on `Trial_order`, it may differ from the vector provided at function call.
-#' + `group` - the *renumbered* grouping indicators in the function call. Depending on `group_order`, it may differ from the vector provided at function call. If `group` was missing at function call, `bayes.parobs` will assign `NULL` for `group`.
+#' + `group` - the *renumbered* grouping indicators in the function call. Depending on `group_order`, it may differ from the vector provided at function call. If `group` was missing at function call, `bayes_parobs` will assign `NULL` for `group`.
 #' + `TrtLabels` - the vector of treatment labels corresponding to the renumbered `Treat`. This is equivalent to `Treat_order` if it was given at function call.
 #' + `TrialLabels` - the vector of trial labels corresponding to the renumbered `Trial`. This is equivalent to `Trial_order` if it was given at function call.
-#' + `GroupLabels` - the vector of group labels corresponding to the renumbered `group`. This is equivalent to `group_order` if it was given at function call. If `group` was missing at function call, `bayes.parobs` will assign `NULL` for `GroupLabels`.
+#' + `GroupLabels` - the vector of group labels corresponding to the renumbered `group`. This is equivalent to `group_order` if it was given at function call. If `group` was missing at function call, `bayes_parobs` will assign `NULL` for `GroupLabels`.
 #' + `K` - the total number of trials.
 #' + `T` - the total number of treatments.
 #' + `fmodel` - the model number as described [here](#model-spec).
@@ -75,7 +75,7 @@
 #' 
 #' fmodel <- 1
 #' set.seed(2797542)
-#' fit <- bayes.parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial,
+#' fit <- bayes_parobs(Outcome, SD, XCovariate, WCovariate, Treat, Trial,
 #'    Npt, fmodel, mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'    scale_x = TRUE, group = cholesterol$onstat, verbose = FALSE)
 #' @importFrom stats model.matrix
@@ -83,7 +83,7 @@
 #' @seealso \code{\link{bmeta_analyze}} for using the \code{\link[Formula]{Formula}} interface
 #' @md
 #' @export
-bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, group = NULL, group_order = NULL, scale_x = FALSE, verbose = FALSE) {
+bayes_parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt, fmodel = 1, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, group = NULL, group_order = NULL, scale_x = FALSE, verbose = FALSE) {
   if (!is(Outcome, "matrix")) {
     tmp <- try(Outcome <- model.matrix(~ 0 + ., data = Outcome), silent = TRUE)
     if (is(tmp, "try-error")) {
@@ -237,7 +237,7 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
   }
   
   if (scale_x) {
-    XCovariate_ <- scale(XCovariate, center = FALSE, scale = TRUE)
+    XCovariate_ <- scale(XCovariate, center = TRUE, scale = TRUE)
   } else {
     XCovariate_ <- XCovariate
   }
@@ -562,6 +562,6 @@ bayes.parobs <- function(Outcome, SD, XCovariate, WCovariate, Treat, Trial, Npt,
     mcmc = mcvals,
     mcmc.draws = fout
   )
-  class(out) <- "bayes.parobs"
+  class(out) <- "bayesparobs"
   out
 }

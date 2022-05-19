@@ -10,8 +10,8 @@ A data frame with 73 rows and 15 variables
 	\item{trial}{trial identifier}
 	\item{treat}{treatment indicator for placebo (PBO), simvastatin (S), atorvastatin (A), lovastatin (L), rosuvastatin (R), pravastatin (P), ezetimibe (E), simvastatin+ezetimibe (SE), atorvastatin+ezetimibe (AE), lovastatin+ezetimibe (LE), or pravastatin+ezetimibe (PE)}
 	\item{n}{the number of participants in the study corresponding to the trial and treatment}
-	\item{ptg}{mean percentage difference in triglycerides (TG)}
-	\item{sdtg}{sample standard deviation of percentage difference in triglycerides (TG)}
+	\item{ptg}{percentage change from baseline in triglycerides (TG)}
+	\item{sdtg}{sample standard deviation of percentage change in triglycerides (TG)}
 	\item{bldlc}{baseline LDL-C}
 	\item{bhdlc}{baseline HDL-C}
 	\item{btg}{baseline triglycerides (TG)}

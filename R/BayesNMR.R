@@ -8,24 +8,24 @@
 #' @param ZCovariate the aggregate covariates associated with the variance of the random effects.
 #' @param Treat the treatment identifiers for trial arm. This is equivalent to the arm labels in each study. The elements within will be coerced to consecutive integers
 #' @param Trial the study/trial identifiers. The elements within will be coerced to consecutive integers.
-#' @param Npt the number of observations/participants for a unique `(t,k)`, or each arm of every trial.
+#' @param Npt the number of observations/participants for a unique `(k,t)`, or each arm of every trial.
 #' @param prior (Optional) a list of hyperparameters. The hyperparameters include `df`, `c01`, `c02`, `a4`, `b4`, `a5`, and `b5`. `df` indicates the degrees of freedom whose value is 20. The hyperparameters `a*` and `b*` will take effect only if `sample_df=TRUE`. See `control`.
-#' @param mcmc (Optional) a list of MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes.nmr` will save the posterior sample every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
+#' @param mcmc (Optional) a list of MCMC specification. `ndiscard` is the number of burn-in iterations. `nskip` configures the thinning of the MCMC. For instance, if `nskip=5`, `bayes_nmr` will save the posterior sample every 5 iterations. `nkeep` is the size of the posterior sample. The total number of iterations will be `ndiscard + nskip * nkeep`.
 #' @param control (Optional) a list of parameters for [the Metropolis-Hastings algorithm](https://en.wikipedia.org/wiki/Metropolis-Hastings_algorithm). `lambda`, `phi`, and `Rho` are sampled through the localized Metropolis algorithm. `*_stepsize` with the asterisk replaced with one of the names above specifies the stepsize for determining the sample evaluation points in the localized Metropolis algorithm. `sample_Rho` can be set to `FALSE` to suppress the sampling of `Rho`. When `sample_Rho` is `FALSE`, `Rho` will be fixed using the value given by the `init` argument, which defaults to an equicorrelation matrix of \eqn{0.5\boldsymbol{I}+0.5\boldsymbol{1}\boldsymbol{1}^\prime}{0.5*I + 0.5*11'} where \eqn{\boldsymbol{1}}{1} is the vector of ones. When `sample_df` is `TRUE`, `df` will be sampled.
 #' @param init (Optional) a list of initial values for the parameters to be sampled: `theta`, `phi`, `sig2`, and `Rho`.
 #' @param Treat_order (Optional) a vector of unique treatments to be used for renumbering the `Treat` vector. The first element will be assigned treatment zero, potentially indicating placebo. If not provided, the numbering will default to an alphabetical/numerical order.
 #' @param Trial_order (Optional) a vector unique trials. The first element will be assigned trial zero. If not provided, the numbering will default to an alphabetical/numerical order.
 #' @param scale_x (Optional) a logical variable indicating whether `XCovariate` should be scaled/standardized. The effect of setting this to `TRUE` is not limited to merely standardizing `XCovariate`. The following generic functions will scale the posterior sample of `theta` back to its original unit: `plot`, `fitted`, `summary`, and `print`. That is `theta[j] <- theta[j] / sd(XCovariate[,j])`. 
 #' @param verbose (Optional) a logical value indicating whether to print the progress bar during the MCMC sampling.
-#' @return `bayes.nmr` returns an object of class `"bayesnmr"`. The functions `summary` or `print` are used to obtain and print a summary of the results. The generic accessor function `fitted` extracts the posterior mean, posterior standard deviation, and the interval estimates of the value returned by `bayes.nmr`.
+#' @return `bayes_nmr` returns an object of class `"bayesnmr"`. The functions `summary` or `print` are used to obtain and print a summary of the results. The generic accessor function `fitted` extracts the posterior mean, posterior standard deviation, and the interval estimates of the value returned by `bayes_nmr`.
 #' 
-#' An object of class `bayes.nmr` is a list containing the following components:
+#' An object of class `bayesnmr` is a list containing the following components:
 #' 
 #' + `Outcome` - the aggregate response used in the function call.
 #' + `SD` - the standard deviation used in the function call.
-#' + `Npt` - the number of participants for `(t,k)` used in the function call.
+#' + `Npt` - the number of participants for `(k,t)` used in the function call.
 #' + `XCovariate` - the aggregate design matrix for fixed effects used in the function call. Depending on `scale_x`, this may differ from the matrix provided at function call.
-#' + `ZCovariate` - the aggregate design matrix for random effects. `bayes.nmr` will assign `rep(1, length(Outcome))` if it was not provided at function call.
+#' + `ZCovariate` - the aggregate design matrix for random effects. `bayes_nmr` will assign `rep(1, length(Outcome))` if it was not provided at function call.
 #' + `Trial` - the *renumbered* trial indicators. Depending on `Trial_order`, it may differ from the vector provided at function call.
 #' + `Treat` - the *renumbered* treatment indicators. Depending on `Treat_order`, it may differ from the vector provided at function call.
 #' + `TrtLabels` - the vector of treatment labels corresponding to the renumbered `Treat`. This is equivalent to `Treat_order` if it was given at function call.
@@ -68,7 +68,7 @@
 #'              -45.07127, -28.27232, -44.14054, -28.13203, -19.19989,
 #'              -47.21824, -51.31234, -48.46266, -47.71443)
 #' set.seed(2797542)
-#' fit <- bayes.nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$treat,
+#' fit <- bayes_nmr(TNM$ptg, TNM$sdtg, XCovariate, ZCovariate, TNM$treat,
 #'     TNM$trial, TNM$n, prior = list(c01 = 1.0e05, c02 = 4, df = 3),
 #'     mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'     init = list(theta = theta_init),
@@ -80,7 +80,7 @@
 #' @seealso \code{\link{bmeta_analyze}} for using the \code{\link[Formula]{Formula}} interface
 #' @md
 #' @export
-bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, scale_x = FALSE, verbose = FALSE) {
+bayes_nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, prior = list(), mcmc = list(), control = list(), init = list(), Treat_order = NULL, Trial_order = NULL, scale_x = FALSE, verbose = FALSE) {
   if (!is(Outcome, "vector")) {
     tmp <- try(Outcome <- as.vector(Outcome))
     if (is(tmp, "try-error")) {
@@ -173,7 +173,7 @@ bayes.nmr <- function(Outcome, SD, XCovariate, ZCovariate, Treat, Trial, Npt, pr
   xn <- if (!is.null(colnames(XCovariate))) colnames(XCovariate) else paste0("beta", 1:ncol(XCovariate))
 
   if (scale_x) {
-    XCovariate_ <- scale(XCovariate, center = FALSE, scale = TRUE)
+    XCovariate_ <- scale(XCovariate, center = TRUE, scale = TRUE)
   } else {
     XCovariate_ <- XCovariate
   }

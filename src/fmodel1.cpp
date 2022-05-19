@@ -10,6 +10,7 @@
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
 #include "nelmin.h"
+#include "random.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
@@ -172,7 +173,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 			for (int jj = 0; jj < J; ++jj) {
 				mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 				mat qq = Omega0inv + (gamstar * gamstar.t());
-				mat ominv = arma::wishrnd(arma::inv(qq), shape_omega);
+				mat ominv = RNG::rwish(arma::inv(qq), shape_omega);
 				mat om = arma::inv(ominv);
 				Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 				Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;
@@ -302,7 +303,7 @@ Rcpp::List fmodel1(const arma::mat& Outcome,
 				for (int jj = 0; jj < J; ++jj) {
 					mat gamstar = gamR.rows(nw*jj, nw*(jj+1)-1);
 					mat qq = Omega0inv + (gamstar * gamstar.t());
-					mat ominv = arma::wishrnd(arma::inv(qq), shape_omega);
+					mat ominv = RNG::rwish(arma::inv(qq), shape_omega);
 					mat om = arma::inv(ominv);
 					Omegainv(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = ominv;
 					Omega(arma::span(nw*jj, nw*(jj+1)-1), arma::span(nw*jj, nw*(jj+1)-1)) = om;

@@ -10,6 +10,7 @@
 #include "linearalgebra.h"
 #include "loglik_POCov.h"
 #include "nelmin.h"
+#include "random.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
@@ -212,8 +213,8 @@ Rcpp::List fmodel2p(const arma::mat& Outcome,
 				mat qq1 = Omega0inv + (gamstar * gamstar.t());
 				gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 				mat qq2 = Omega0inv + (gamstar * gamstar.t());
-				mat ominv1 = arma::wishrnd(arma::inv(qq1), shape_omega1);
-				mat ominv2 = arma::wishrnd(arma::inv(qq2), shape_omega2);
+				mat ominv1 = RNG::rwish(arma::inv(qq1), shape_omega1);
+				mat ominv2 = RNG::rwish(arma::inv(qq2), shape_omega2);
 				mat om1 = arma::inv_sympd(ominv1);
 				mat om2 = arma::inv_sympd(ominv2);
 				Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
@@ -246,7 +247,7 @@ Rcpp::List fmodel2p(const arma::mat& Outcome,
 				vec resid_i = arma::trans(resid.row(i)) - W * gam_k;
 				qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 			}
-			Siginv = arma::wishrnd(arma::inv_sympd(qq), df);
+			Siginv = RNG::rwish(arma::inv_sympd(qq), df);
 
 			for (int i = 0; i < N; ++i) {
 				rowvec y_i = Outcome.row(i);
@@ -440,8 +441,8 @@ Rcpp::List fmodel2p(const arma::mat& Outcome,
 					mat qq1 = Omega0inv + (gamstar * gamstar.t());
 					gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 					mat qq2 = Omega0inv + (gamstar * gamstar.t());
-					mat ominv1 = arma::wishrnd(arma::inv(qq1), shape_omega1);
-					mat ominv2 = arma::wishrnd(arma::inv(qq2), shape_omega2);
+					mat ominv1 = RNG::rwish(arma::inv(qq1), shape_omega1);
+					mat ominv2 = RNG::rwish(arma::inv(qq2), shape_omega2);
 					mat om1 = arma::inv_sympd(ominv1);
 					mat om2 = arma::inv_sympd(ominv2);
 					Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
@@ -475,7 +476,7 @@ Rcpp::List fmodel2p(const arma::mat& Outcome,
 					resid_ikeep.row(i) = resid_i.t();
 					qq += ntk * resid_i * resid_i.t() + (ntk - 1.0) * V * R * V;
 				}
-				Siginv = arma::wishrnd(arma::inv_sympd(qq), df);
+				Siginv = RNG::rwish(arma::inv_sympd(qq), df);
 				Sig = Siginv.i();
 
 				for (int i = 0; i < N; ++i) {

@@ -11,6 +11,7 @@
 #include "loglik_POCov.h"
 #include "nelmin.h"
 #include "ramcmc.h"
+#include "random.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
 // [[Rcpp::export]]
@@ -239,8 +240,8 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 				mat qq1 = Omega0inv + (gamstar * gamstar.t());
 				gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 				mat qq2 = Omega0inv + (gamstar * gamstar.t());
-				mat ominv1 = arma::wishrnd(arma::inv(qq1), shape_omega1);
-				mat ominv2 = arma::wishrnd(arma::inv(qq2), shape_omega2);
+				mat ominv1 = RNG::rwish(arma::inv(qq1), shape_omega1);
+				mat ominv2 = RNG::rwish(arma::inv(qq2), shape_omega2);
 				mat om1 = arma::inv_sympd(ominv1);
 				mat om2 = arma::inv_sympd(ominv2);
 				Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;
@@ -630,8 +631,8 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 					mat qq1 = Omega0inv + (gamstar * gamstar.t());
 					gamstar = gamR.rows(nw*jj+nn, nw*(jj+1)-1);
 					mat qq2 = Omega0inv + (gamstar * gamstar.t());
-					mat ominv1 = arma::wishrnd(arma::inv(qq1), shape_omega1);
-					mat ominv2 = arma::wishrnd(arma::inv(qq2), shape_omega2);
+					mat ominv1 = RNG::rwish(arma::inv(qq1), shape_omega1);
+					mat ominv2 = RNG::rwish(arma::inv(qq2), shape_omega2);
 					mat om1 = arma::inv_sympd(ominv1);
 					mat om2 = arma::inv_sympd(ominv2);
 					Omegainv(arma::span(nw*jj, nw*jj+nn-1), arma::span(nw*jj, nw*jj+nn-1)) = ominv1;

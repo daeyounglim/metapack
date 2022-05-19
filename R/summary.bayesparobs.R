@@ -1,13 +1,16 @@
-#' `summary` method for class "`bayes.parobs`"
+#' `summary` method for class "`bayesparobs`"
 #' @param object the output model from fitting a meta analysis/regression model
+#' @param level credible level for interval estimation; set to 0.95 by default
+#' @param HPD a logical argument indicating whether HPD intervals should be computed; if FALSE, equal-tail credible intervals are computed
 #' @param ... additional arguments for summary
 #' @return print summary for the model fit
 #' @md
+#' @method summary bayesparobs
 #' @export
-"summary.bayes.parobs" <- function(object, ...) {
+"summary.bayesparobs" <- function(object, level=0.95, HPD=TRUE , ...) {
 	digits <- max(3, getOption("digits") - 3)
-	if (!inherits(object, "bayes.parobs")) {
-		stop(paste(sQuote('summary.bayes.parobs'), "designed for", sQuote('bayes.parobs'), "objects"))
+	if (!inherits(object, "bayesparobs")) {
+		stop(paste(sQuote('summary.bayesparobs'), "designed for", sQuote('bayes.parobs'), "objects"))
 	}
 
 	if (inherits(object, "bsynthesis")) {
@@ -32,13 +35,22 @@
 	theta$mean <- rowMeans(theta.post)
 	theta$sd <- apply(theta.post, 1, sd)
 
-	sig.level <- 1 - 0.95
+	sig.level <- 1 - level
 
-	theta.hpd <- mhpd(theta.post, 0.95)
-	theta$lower <- theta.hpd[,1]
-	theta$upper <- theta.hpd[,2]
+	if (HPD) {
+		theta.hpd <- mhpd(theta.post, level)
+		theta$lower <- theta.hpd[,1]
+		theta$upper <- theta.hpd[,2]
+	} else {
+		theta$lower <- apply(theta.post, 1, function(xx) quantile(xx, prob = sig.level/2))
+		theta$upper <- apply(theta.post, 1, function(xx) quantile(xx, prob = 1-sig.level/2))
+	}
 	r <- cbind(theta$mean, theta$sd, theta$lower, theta$upper)
-	colnames(r) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
+	if (HPD) {
+		colnames(r) <- c("Post.Mean", "Std.Dev", "HPD(Lower)", "HPD(Upper)")
+	} else {
+		colnames(r) <- c("Post.Mean", "Std.Dev", "CI(Lower)", "CI(Upper)")
+	}
 	xcc <- if (!is.null(colnames(object$XCovariate))) colnames(object$XCovariate) else paste0("beta", 1:ncol(object$XCovariate))
 	wcc <- if (!is.null(colnames(object$WCovariate))) colnames(object$WCovariate) else paste0("gam", 1:ncol(object$WCovariate))
 
@@ -52,5 +64,11 @@
 	cat("Fixed-effects:\n")
 	r <- round(r, digits=digits)
 	print.default(r, print.gap = 2)
+	cat("---------------------------------------------------\n")
+	if (HPD) {
+		cat("*HPD level: ", level, "\n")
+	} else {
+		cat("*Credible level: ", level, "\n")
+	}
 	invisible(r)
 }

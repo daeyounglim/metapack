@@ -7,7 +7,7 @@
 #' @export
 #' 
 #' 
-'plot.bayes.parobs' <- function(x, ...) {
+'plot.bayesparobs' <- function(x, ...) {
 	nkeep <- x$mcmc$nkeep
 	param <- x$mcmc.draws$theta
 	p <- nrow(param)

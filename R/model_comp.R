@@ -1,6 +1,6 @@
 #' compute the model comparison measures: DIC, LPML, or Pearson's residuals
 #' 
-#' `model.comp` is a generic function that computes the model comparison measures (DIC and LPML) or the Pearson's residuals. Note that the Pearson's residuals are not available for `bayes.nmr` when `df` is either random or fixed but smaller than 2 since the variance of the random effects is not finite.
+#' `model_comp` is a generic function that computes the model comparison measures (DIC and LPML) or the Pearson's residuals. Note that the Pearson's residuals are not available for `bayes.nmr` when `df` is either random or fixed but smaller than 2 since the variance of the random effects is not finite.
 #' 
 #' @param object the output model from fitting a meta analysis/regression model
 #' @param type the type of model comparison measure to compute; DIC or LPML
@@ -11,6 +11,6 @@
 #' 
 #' @md
 #' @export
-"model.comp" <- function(object, type = "lpml", verbose=FALSE, ncores=NULL) {
-	UseMethod("model.comp", object)
+"model_comp" <- function(object, type = "lpml", verbose=FALSE, ncores=NULL) {
+	UseMethod("model_comp", object)
 } 

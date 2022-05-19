@@ -183,7 +183,7 @@ Rcpp::List calc_modelfit_dic(const arma::vec& y,
 	}
 
 
-	double Dev_bar = 0;
+	double Dev_bar = 0.0;
 	mat Qs(K, nkeep, fill::zeros);
 	mat maxll_keep(K, nkeep, fill::zeros);
 	{

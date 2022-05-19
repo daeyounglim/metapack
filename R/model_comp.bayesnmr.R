@@ -5,9 +5,10 @@
 #' @param ncores the number of CPU cores to use for parallel processing. It must not exceed the number of existing cores. If unspecified, it will default to 2 cores or the number of existing cores, whichever is smaller.
 #' @return dataframe containing the compute the model comparison measures
 #' @importFrom parallel detectCores
+#' @method model_comp bayesnmr
 #' @export
 
-"model.comp.bayesnmr" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
+"model_comp.bayesnmr" <- function(object, type="lpml", verbose=FALSE, ncores=NULL) {
 	y <- object$Outcome
 	npt <- object$Npt
 	x <- object$XCovariate

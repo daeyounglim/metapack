@@ -3,7 +3,7 @@
 \name{bmeta_analyze}
 \alias{bmeta_analyze}
 \alias{bmeta_analyse}
-\title{bmeta_analyze supersedes the previous two functions: bayes.parobs, bayes.nmr}
+\title{bmeta_analyze supersedes the previous two functions: bayes_parobs, bayes_nmr}
 \usage{
 bmeta_analyze(
   formula,
@@ -24,11 +24,11 @@ bmeta_analyse(
 )
 }
 \arguments{
-\item{formula}{an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of trial sample sizes must be provided using the function \code{ns()}. For example, \code{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)}---an incomplete formula only for illustration purposes. If no \code{ns()} is found, IPD model is assumed.}
+\item{formula}{an object of class \link[Formula]{Formula}: a symbolic description of the meta-analytic model to fit. For aggregate models, the vector of arm sample sizes must be provided using the function \code{ns()}. For example, \code{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n)}---an incomplete formula only for illustration purposes. If no \code{ns()} is found, individual participant data (IPD) model is assumed.}
 
-\item{data}{a data frame, list, or environment (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in \code{data}, the variables are taken from \code{environment(formula)}, typically the environment from which \code{bmeta_analyze} is called.}
+\item{data}{a data frame, list, or environment (or an object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model. If not found in \code{data}, the variables are taken from \code{environment(formula)}, typically the environment from which \code{bmeta_analyze} is called.}
 
-\item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, please refer to the corresponding worker function's help page, e.g., \code{help(bayes.parobs)} or \code{help(bayes.nmr)}. For meta-analysis, \code{model} is required in the \code{prior} argument, which is passed to \code{fmodel} as an integer. If the response is univariate, \code{NoRecovery} is the only valid option.
+\item{prior}{an optional object that contains the hyperparameter values for the model. To see the complete list of hyperparameters for a specific model, refer to the corresponding worker function's help page, e.g., \code{help(bayes_parobs)} or \code{help(bayes_nmr)}. For meta-analysis, \code{model} is required in the \code{prior} argument, which is passed to \code{fmodel} as an integer. If the response is univariate, \code{NoRecovery} is the only valid option.
 \itemize{
 \item \code{model="NoRecovery"} - \eqn{\Sigma_{tk} = diag(\sigma_{tk,11}^2,\ldots,\sigma_{tk,JJ}^2)} where \eqn{\sigma_{tk,jj}^2 \sim IG(a_0,b_0)} and \eqn{IG(a,b)} is \href{https://en.wikipedia.org/wiki/Inverse-gamma_distribution}{the inverse-gamma distribution}. This specification is useful if the user does not care about the correlation recovery. (\code{c0}, \code{dj0}, \code{a0}, \code{b0}, \code{Omega0})
 \item \code{model="EquiCovariance"} - \eqn{\Sigma_{tk}=\Sigma} for every combination of \eqn{(t,k)}{`(t,k)`} and \eqn{\Sigma^{-1}\sim Wish_{s_0}(\Sigma_0)}{Sig^{-1} ~ Wish(s0, Sigma0)}. This specification assumes that the user has prior knowledge that the correlation structure does not change across the arms included. (\code{c0}, \code{dj0}, \code{s0}, \code{Omega0}, \code{Sigma0})
@@ -47,7 +47,7 @@ For network meta-analysis,
 
 \item{mcmc}{an optional object containing MCMC specification. \code{ndiscard} is the number of burn-in iterations. \code{nskip} configures the thinning of the MCMC. For instance, if \code{nskip=5}, parameters will be saved every 5 iterations. \code{nkeep} is the size of the posterior sample. The total number of iterations will be \code{ndiscard + nskip * nkeep}.}
 
-\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes.parobs}} or \code{\link{bayes.nmr}}).
+\item{control}{an optional object that contains the control tuning parameters for the Metropolis-Hastings algorithm. Similar to \code{prior}, the complete list of control parameters for a specific model is given in the corresponding worker function's help page (see \code{\link{bayes_parobs}} or \code{\link{bayes_nmr}}).
 These are the lists of available tuning parameters in \code{control} for meta-analysis and network meta-analysis. Keep in mind that \code{model} will render some irrelevant tuning parameters ineffective.
 \itemize{
 \item Meta-analysis - \code{model} (string), \code{sample_Rho} (logical), \code{Rho_stepsize} (double), \code{R_stepsize} (double), \code{delta_stepsize} (double), \code{sample_Rho} (logical)
@@ -66,13 +66,21 @@ The dimensions of the initial values must be conformable for matrix operations. 
 \code{bmeta_analyze} returns a classed object of \code{bsynthesis} for \emph{Bayesian synthesis}
 }
 \description{
-This is the one function to rule them all. All other worker functions will be subsumed by this function, so that users can forget about the implementation details and focus on modeling.
+All other worker functions are superseded by this function, so that users can forget about the implementation details and focus on modeling. Meta-analytic data can be either aggregate or individual participant data (IPD). Aggregate data implies that the response consists of estimated effect sizes and their corresponding standard errors, whereas IPD is raw data. Data sets to be used for metapack should be formatted as follows:\tabular{ccccccc}{
+   Outcome \tab SD \tab DesignM1 \tab DesignM2 \tab Trial indicator (\code{k}) \tab Treatment indicator (\code{t}) \tab n \cr
+   \eqn{y_{13}} \tab \eqn{S_{13}} \tab \eqn{x_{13}} \tab \eqn{w_{13}} \tab 1 \tab 3 \tab 1000 \cr
+   \eqn{y_{10}} \tab \eqn{S_{10}} \tab \eqn{x_{10}} \tab \eqn{w_{10}} \tab 1 \tab 0 \tab 545 \cr
+   \eqn{y_{20}} \tab \eqn{S_{20}} \tab \eqn{x_{20}} \tab \eqn{w_{20}} \tab 2 \tab 0 \tab 1200 \cr
+}
+
+
+The first treatment indicator is intentionally selected to be 3, a number greater than 1, to indicate that this data format works for both meta-regression and network meta-regression. Meta-regression refers to when trials included have 2 treatments (i.e., \eqn{t = 0, 1} for all \eqn{k}), and the treatments are compared head to head. On the other hand, network meta-regression includes more than two treatments, where each trial can have a different set of treatments, allowing indirect comparison between treatments that are not compared head to head as long as \emph{consistency} holds (see \href{https://doi.org/10.1002/jrsm.1044}{Higgins et al. (2012)} for consistency).
 
 \code{bmeta_analyze()} and \code{bmeta_analyse()} are synonyms.
 }
 \details{
-\code{bmeta_analyze} currently subsumes two worker functions: \code{bayes.parobs} and \code{bayes.nmr}. \code{bmeta_analyze} offers a formula interface.
-All formulas are parsed using \link[Formula]{Formula}. Formulas for \code{bmeta_analyze} are constrained to take up a strict structure: one or two LHS, and two or three RHS. That is, \code{lhs_1 ~ rhs_1 | rhs2 | rhs3} or \code{lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3} (see Examples for more). The tilde (\code{~}) separates the LHS's and RHS's, each side further separated into parts by vertical bars (\code{|}).
+\code{bmeta_analyze} currently subsumes two worker functions: \code{bayes_parobs} and \code{bayes_nmr}. \code{bmeta_analyze} offers a formula interface.
+All formulas are parsed using \link[Formula]{Formula}. Formulas for \code{bmeta_analyze} are constrained to have a strict structure: one or two LHS, and two or three RHS. That is, \code{lhs_1 ~ rhs_1 | rhs2 | rhs3} or \code{lhs_1 | lhs_2 ~ rhs_1 | rhs2 | rhs3} (see Examples for more). The tilde (\code{~}) separates the LHS's and RHS's, each side further separated into parts by vertical bars (\code{|}).
 The meaning of each part is syntactically determined by its location inside the formula, like an English sentence. Therefore, all parts \strong{must} come in the exact order as prescribed for \code{bmeta_analyze} to correctly configure your model.
 \itemize{
 \item The first LHS, the responses, is required for all models.
@@ -82,11 +90,11 @@ The meaning of each part is syntactically determined by its location inside the 
 \item The third RHS corresponds to the treatment and trial indicators, and optionally the grouping variable if it exists. The order must be \code{treat + trial + group}, or \code{treat + trial} if no grouping exists. Variables here must be supplied in the exact order described; otherwise, model will not be correctly identified.
 }
 
-Internally, \code{bmeta_analyze} looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and \href{https://en.wikipedia.org/wiki/Meta-analysis#Approaches}{aggregate/IPD} (individual participant data).
+Internally, \code{bmeta_analyze} looks for three things: multivariate/univariate, meta-analyis/network meta-analysis, and \href{https://en.wikipedia.org/wiki/Meta-analysis#Approaches}{aggregate/IPD}.
 \itemize{
-\item multivariate/univariate: the dimension of the response is explicit in the formula, and is determinative.
-\item meta-analysis/network meta-analysis: the number of levels (\code{nlevels}) of treatments determines this. If \code{treat} is not already a factor variable, it is coerced to be one.
-\item aggregate/IPD: \code{bmeta_analyze} looks for \code{ns()} in the first RHS. Aggregate models \strong{must} provide the trial sample sizes using the function \code{ns()} (e.g., if \code{n} is the sample sizes, \verb{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))}). If there is no \code{ns()}, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
+\item multivariate/univariate: the dimension of the response is explicit in the formula, and determines univariate versus multivariate.
+\item meta-analysis/network meta-analysis: the number of levels (\code{nlevels}) of treatments determines this. If \code{treat} is not already a factor variable, it is coerced to one.
+\item aggregate/IPD: \code{bmeta_analyze} looks for \code{ns()} in the first RHS. Aggregate models \strong{must} provide the arm sample sizes using the function \code{ns()} (e.g., if \code{n} is the sample sizes, \verb{y1 + y2 | sd1 + sd2 ~ x1 + x2 + ns(n))}). If there is no \code{ns()}, IPD is assumed. Currently, IPD models are a work in progress and not supported yet.
 }
 
 Currently, only \code{univariate/multivariate} + \code{meta-analysis} and \code{univariate} + \verb{network meta-analysis} are allowed. More models will be added in the future.
@@ -120,7 +128,7 @@ Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakove
 Li, H., Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2021). Bayesian network meta-regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. \emph{Statistics in Medicine}.
 }
 \seealso{
-\code{\link{bayes.parobs}} for multivariate meta-analysis, and \code{\link{bayes.nmr}} for univariate network meta-analysis.
+\code{\link{bayes_parobs}} for multivariate meta-analysis, and \code{\link{bayes_nmr}} for univariate network meta-analysis.
 }
 \author{
 Daeyoung Lim, \email{daeyoung.lim@uconn.edu}

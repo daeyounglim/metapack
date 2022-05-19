@@ -7,7 +7,7 @@
 #' @return No return value; print a summary of the output
 #' @importFrom stats sd quantile
 #' @export
-"print.bayes.parobs" <- function(x, level=0.95, HPD=TRUE, ...) {
+"print.bayesparobs" <- function(x, level=0.95, HPD=TRUE, ...) {
 	if (inherits(x, "bsynthesis")) {
 		cat("\nCall:\n", paste(deparse(x$call), sep = "\n", 
 	        collapse = "\n"), sep = "")
@@ -16,8 +16,8 @@
 	}
 	cat("\n")
 	cat("Model:\n")
-	cat("  (Aggregate mean)\n    y_tk = X_tk * theta + W_tk * gamma_k + N(0, Sigma_kt / n_kt)\n")
-	cat("  (Sample Variance)\n    (n_kt - 1) S_tk ~ Wishart(n_kt - 1, Sigma_tk)\n")
+	cat("  (Aggregate mean)\n    y_kt = X_kt * theta + W_kt * gamma_k + N(0, Sigma_kt / n_kt)\n")
+	cat("  (Sample Variance)\n    (n_kt - 1) S_kt ~ Wishart(n_kt - 1, Sigma_kt)\n")
 	cat("  (Random effects)\n    ")
 	cat("[gamma_k | Omega] ~ N(0, Omega)\n")
 	digits <- max(3, getOption("digits") - 3)
@@ -25,12 +25,12 @@
 	cat("   theta ~ MVN(0, ",x$prior$c0," * I_p)\n")
 	cat("   Omega_j^{-1} ~ Wishart(",x$prior$dj0,", Omega0)\n")
 	if (x$fmodel == 1) {
-		cat("   Sigma_tk = diag(sig_{tk,11}^2, ..., sig_{tk,JJ}^2)\n")
+		cat("   Sigma_kt = diag(sig_{tk,11}^2, ..., sig_{tk,JJ}^2)\n")
 		cat("   where sig_{tk,jj}^2 ~ IG(",x$prior$s0,", ",x$prior$d0,")\n")
 	} else if (x$fmodel == 2) {
-		cat("   Sigma_tk = Sigma, where Sigma ~ Wishart(",x$prior$s0,", Sigma0)\n")
+		cat("   Sigma_kt = Sigma, where Sigma ~ Wishart(",x$prior$s0,", Sigma0)\n")
 	} else if (x$fmodel == 3) {
-		cat("   Sigma_tk = Sigma_t, where Sigma_t ~ Wishart(",x$prior$s0,", Sigma0)\n")
+		cat("   Sigma_kt = Sigma_t, where Sigma_t ~ Wishart(",x$prior$s0,", Sigma0)\n")
 	} else if (x$fmodel == 4) {
 		cat("   Sigma_{tk} = sig_{tk} * Rho * sig_{tk},\n")
 		cat("   	where p(Rho) = 1, and sig_{tk,jj} ~ IG(",x$prior$s0,", ",x$prior$d0,")\n")

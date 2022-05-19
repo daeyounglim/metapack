@@ -1,3 +1,6 @@
+# metapack 0.1.5
+* fix bug in looping over the right dimension of Rho
+
 # metapack 0.1.4
 * fix bug in `EquiCorrelation` model
 
