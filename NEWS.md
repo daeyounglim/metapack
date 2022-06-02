@@ -1,3 +1,7 @@
+# metapack 0.2.0
+* dots in function names are changed to underscores
+* changed the wishart sampler from armadillo's to R's due to seeding and reproducibility issues
+
 # metapack 0.1.5
 * fix bug in looping over the right dimension of Rho
 

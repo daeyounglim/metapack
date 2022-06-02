@@ -9,7 +9,7 @@
 #' |  \eqn{y_{10}} | \eqn{S_{10}} | \eqn{x_{10}} | \eqn{w_{10}} | 1   | 0 | 545 |
 #' |  \eqn{y_{20}} | \eqn{S_{20}} | \eqn{x_{20}} | \eqn{w_{20}} | 2   | 0 | 1200 |
 #' 
-#' The first treatment indicator is intentionally selected to be 3, a number greater than 1, to indicate that this data format works for both meta-regression and network meta-regression. Meta-regression refers to when trials included have 2 treatments (i.e., \eqn{t = 0, 1} for all \eqn{k}), and the treatments are compared head to head. On the other hand, network meta-regression includes more than two treatments, where each trial can have a different set of treatments, allowing indirect comparison between treatments that are not compared head to head as long as *consistency* holds (see [Higgins et al. (2012)](https://doi.org/10.1002/jrsm.1044) for consistency).
+#' The first treatment indicator is intentionally selected to be 3, a number greater than 1, to indicate that this data format works for both meta-regression and network meta-regression. Meta-regression refers to when trials included have 2 treatments (i.e., \eqn{t = 0, 1} for all \eqn{k}), and the treatments are compared head to head. On the other hand, network meta-regression includes more than two treatments, where each trial can have a different set of treatments, allowing indirect comparison between treatments that are not compared head to head as long as *consistency* holds (see [Higgins et al. (2012)](https://onlinelibrary.wiley.com/doi/10.1002/jrsm.1044) for consistency).
 #' 
 #' `bmeta_analyze()` and `bmeta_analyse()` are synonyms.
 #' @author Daeyoung Lim, \email{daeyoung.lim@uconn.edu}

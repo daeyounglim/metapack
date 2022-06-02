@@ -9,7 +9,7 @@
 # metapack
 **metapack** (version 0.1.x) provides function(s) to perform Bayesian inference for (network) meta-analytic models *including* the ones introduced in the following papers:
 + Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. *Journal of the American Statistical Association*, **110(510)**, 528-544.
-+ Li, H, Lim, D, Chen, M-H, et al. Bayesian network meta‐regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. *Statistics in Medicine*. 2021; 1-22. [https://doi.org/10.1002/sim.8983](https://doi.org/10.1002/sim.8983)
++ Li, H, Lim, D, Chen, M-H, et al. Bayesian network meta‐regression hierarchical models using heavy-tailed multivariate random effects with covariate-dependent variances. *Statistics in Medicine*. 2021; 1-22. <doi:10.1002/sim.8983>
 
 **metapack** takes advantage of formula-parsing to extract relevant information to configure a meta-analytic model. Aside from the data characteristic (aggregate v. IPD) and the response type (univariate v. multivariate), all other modeling choices fall into prior specification.
 
