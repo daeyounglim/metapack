@@ -14,6 +14,10 @@
 #include "random.h"
 // [[Rcpp::depends(RcppArmadillo,RcppProgress)]]
 
+/*
+* - DY February 7, 2023: replaced try-catch blocks for positive-definiteness checking with Armadillo .is_sympd()
+*/
+
 // [[Rcpp::export]]
 Rcpp::List fmodel3pp(const arma::mat& Outcome,
 				   const arma::mat& SD,
@@ -368,14 +372,16 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 				mat pRRho = vecrinv(z, J);
 				pRRho.diag().fill(1.0);
 				mat Rhop = pRho_to_Rho(pRRho);
-				mat Rhopinv;
-				bool rho_proceed = true;
-				try {
-					Rhopinv = arma::inv(Rhop);
-				} catch (std::runtime_error & e) {
-					rho_proceed = false;
-				}
-				if (rho_proceed) {
+				// mat Rhopinv;
+				// bool rho_proceed = true;
+				// try {
+				// 	Rhopinv = arma::inv(Rhop);
+				// } catch (std::runtime_error & e) {
+				// 	rho_proceed = false;
+				// }
+				// if (rho_proceed) {
+				if (Rhop.is_sympd()) {
+					mat Rhopinv = arma::inv(Rhop);
 					// log-likelihood difference
 					double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, JJm12, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, JJm12, sumNpt);
 
@@ -392,23 +398,32 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 						mat pRRhozzz = vecrinv(arma::tanh(zzz), J);
 						pRRhozzz.diag().fill(1.0);
 						mat Rhopzzz = pRho_to_Rho(pRRhozzz);
-						mat Rhopinvzzz;
-						try {
-							Rhopinvzzz = arma::inv(Rhopzzz);
-						} catch (std::runtime_error & e) {
+						// mat Rhopinvzzz;
+						// try {
+						// 	Rhopinvzzz = arma::inv(Rhopzzz);
+						// } catch (std::runtime_error & e) {
+						// 	goto finished_warmup;
+						// }
+						if (!Rhopzzz.is_sympd()) {
 							goto finished_warmup;
 						}
+						mat Rhopinvzzz = arma::inv(Rhopzzz);
 
 						vec ystar = zzz - (vRhop - vRho);
 						mat pRRhoystar = vecrinv(arma::tanh(ystar), J);
 						pRRhoystar.diag().fill(1.0);
 						mat Rhopystar = pRho_to_Rho(pRRhoystar);
-						mat Rhopinvystar;
-						try {
-							Rhopinvystar = arma::inv(Rhopystar);
-						} catch (std::runtime_error & e) {
+						// mat Rhopinvystar;
+						// try {
+						// 	Rhopinvystar = arma::inv(Rhopystar);
+						// } catch (std::runtime_error & e) {
+						// 	goto finished_warmup;
+						// }
+						if (!Rhopystar.is_sympd()) {
 							goto finished_warmup;
 						}
+						mat Rhopinvystar = arma::inv(Rhopystar);
+
 						double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
 						double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, JJm12, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, JJm12, sumNpt);
 						double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));
@@ -760,14 +775,16 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 					mat pRRho = vecrinv(z, J);
 					pRRho.diag().fill(1.0);
 					mat Rhop = pRho_to_Rho(pRRho);
-					mat Rhopinv;
-					bool rho_proceed = true;
-					try {
-						Rhopinv = arma::inv(Rhop);
-					} catch (std::runtime_error & e) {
-						rho_proceed = false;
-					}
-					if (rho_proceed) {
+					// mat Rhopinv;
+					// bool rho_proceed = true;
+					// try {
+					// 	Rhopinv = arma::inv(Rhop);
+					// } catch (std::runtime_error & e) {
+					// 	rho_proceed = false;
+					// }
+					// if (rho_proceed) {
+					if (Rhop.is_sympd()) {
+						mat Rhopinv = arma::inv(Rhop);
 						// log-likelihood difference
 						double ll_diff = loglik_vRho_m3(vRhop, Rhopinv, qq, JJm12, sumNpt) - loglik_vRho_m3(vRho, Rhoinv, qq, JJm12, sumNpt);
 
@@ -784,23 +801,32 @@ Rcpp::List fmodel3pp(const arma::mat& Outcome,
 							mat pRRhozzz = vecrinv(arma::tanh(zzz), J);
 							pRRhozzz.diag().fill(1.0);
 							mat Rhopzzz = pRho_to_Rho(pRRhozzz);
-							mat Rhopinvzzz;
-							try {
-								Rhopinvzzz = arma::inv(Rhopzzz);
-							} catch (std::runtime_error & e) {
+							// mat Rhopinvzzz;
+							// try {
+							// 	Rhopinvzzz = arma::inv(Rhopzzz);
+							// } catch (std::runtime_error & e) {
+							// 	goto finished_sampling;
+							// }
+							if (!Rhopzzz.is_sympd()) {
 								goto finished_sampling;
 							}
+							mat Rhopinvzzz = arma::inv(Rhopzzz);
 
 							vec ystar = zzz - (vRhop - vRho);
 							mat pRRhoystar = vecrinv(arma::tanh(ystar), J);
 							pRRhoystar.diag().fill(1.0);
 							mat Rhopystar = pRho_to_Rho(pRRhoystar);
-							mat Rhopinvystar;
-							try {
-								Rhopinvystar = arma::inv(Rhopystar);
-							} catch (std::runtime_error & e) {
+							// mat Rhopinvystar;
+							// try {
+							// 	Rhopinvystar = arma::inv(Rhopystar);
+							// } catch (std::runtime_error & e) {
+							// 	goto finished_sampling;
+							// }
+							if (!Rhopystar.is_sympd()) {
 								goto finished_sampling;
 							}
+							mat Rhopinvystar = arma::inv(Rhopystar);
+
 							double log1pxy = std::log1p(-std::min(1.0, std::exp(ll_diff)));
 							double ll_diff_zystar = loglik_vRho_m3(zzz, Rhopinvzzz, qq, JJm12, sumNpt) - loglik_vRho_m3(ystar, Rhopinvystar, qq, JJm12, sumNpt);
 							double log1pzystar = std::log1p(-std::min(1.0, std::exp(ll_diff_zystar)));

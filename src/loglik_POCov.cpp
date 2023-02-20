@@ -7,8 +7,8 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 /*
- * Initial version: DY 2020/08/18
- * - DY 2021/07/08: removed unused functions
+ * Initial version: DY August 18, 2020
+ * - DY July 08, 2021: removed unused functions
 */
 
 double loglik_rik(const double& rstar,

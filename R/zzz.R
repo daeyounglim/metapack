@@ -4,5 +4,5 @@
    packageStartupMessage("## Meta-Analysis (metapack)")
    packageStartupMessage("## Copyright (C) ", this.year,
       " Lim et al.", sep="")
-   packageStartupMessage("## Visit merlot.stat.uconn.edu/packages/metapack")
+   packageStartupMessage("## Visit events.stat.uconn.edu/metapack")
 }
