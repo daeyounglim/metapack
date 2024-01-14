@@ -1,10 +1,10 @@
 Package: metapack
 Type: Package
 Title: Bayesian Meta-Analysis and Network Meta-Analysis
-Version: 0.2.2
-Date: 2023-02-19
+Version: 0.3
+Date: 2024-01-14
 Authors@R: c(
-	person("Daeyoung", "Lim", email = "daeyoung.lim@uconn.edu",
+	person("Daeyoung", "Lim", email = "Daeyoung.Lim@fda.hhs.gov",
 	role = c("aut", "cre")),
 	person("Ming-Hui", "Chen", email = "ming-hui.chen@uconn.edu",
 	role = "ctb"),
@@ -28,5 +28,5 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-URL: http://merlot.stat.uconn.edu/packages/metapack/
+URL: http://events.stat.uconn.edu/metapack/
 BugReports: https://github.com/daeyounglim/metapack/issues

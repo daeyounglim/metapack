@@ -1,12 +1,16 @@
+# metapack 0.3.0
+* Removed the C++11 requirement in response to an update in BH
+* Updated the maintainer's e-mail address
+
 # metapack 0.2.0
-* dots in function names are changed to underscores
-* changed the wishart sampler from armadillo's to R's due to seeding and reproducibility issues
+* Dots in function names are changed to underscores
+* Changed the Wishart sampler from armadillo's to R's due to seeding and reproducibility issues
 
 # metapack 0.1.5
-* fix bug in looping over the right dimension of Rho
+* Fix bug in looping over the right dimension of Rho
 
 # metapack 0.1.4
-* fix bug in `EquiCorrelation` model
+* Fix bug in `EquiCorrelation` model
 
 # metapack 0.1.3
 * Remove `random.cpp` and use `arma::wishrnd()`
@@ -19,7 +23,7 @@
 # metapack 0.1.1
 * Valgrind error fixed for Solaris
 * Matrix initialized with memory allocation in `rwish` function
-* add Qunused-arguments to Makevars.win to suppress warnings for unused driver arguments
+* Add Qunused-arguments to Makevars.win to suppress warnings for unused driver arguments
 
 # metapack 0.1.0
 

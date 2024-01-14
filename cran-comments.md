@@ -1,12 +1,12 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
-* Wishart samplers have been coded independently because RcppArmadillo's seeding does not guarantee reproducibility
-* dots in non-S3 functions have been replaced with underscores, which is a minor change since these functions are not public-facing
-* changed the DOI link to the journal webpage link in a function documentation to avoid the DOI check
+* Removed the C++11 requirement to accommodate updates in the BH package
+* Updated the maintainer's e-mail address
+* Added a citation file
 
 ## Test environments
-* local macOS Big Sur 11.1 R 4.1.3
+* local macOS Sonoma 14.2.1 R 4.3.2
 * Microsoft Windows Server 2019 (10.0.17763) on R CMD check
 * Mac OS X (10.15.7) on R CMD check
 * ubuntu 20.04 (release on R CMD check)
@@ -14,7 +14,7 @@ This is a resubmission. In this version I have:
 
 ## R CMD check results
 * checking CRAN incoming feasibility ... NOTE
-Maintainer: 'Daeyoung Lim <daeyoung.lim@uconn.edu>'
+Maintainer: 'Daeyoung Lim <Daeyoung.Lim@fda.hhs.gov>'
 
 Found the following (possibly) invalid URLs:
   URL: https://onlinelibrary.wiley.com/doi/10.1002/jrsm.1044

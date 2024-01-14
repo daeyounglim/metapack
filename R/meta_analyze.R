@@ -86,6 +86,8 @@
 #'   mcmc = list(ndiscard = 1, nskip = 1, nkeep = 1),
 #'   control=list(scale_x = TRUE, verbose=FALSE))
 #' @references 
+#' Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2022). metapack: An R Package for Bayesian Meta-Analysis and Network Meta-Analysis with a Unified Formula Interface. The R journal, 14(3), 142.
+#' 
 #' Yao, H., Kim, S., Chen, M. H., Ibrahim, J. G., Shah, A. K., & Lin, J. (2015). Bayesian inference for multivariate meta-regression with a partially observed within-study sample covariance matrix. *Journal of the American Statistical Association*, **110(510)**, 528-544.
 #' 
 #' Li, H., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., Lin, J., & Tershakovec, A. M. (2019). Bayesian inference for network meta-regression using multivariate random effects with applications to cholesterol lowering drugs. *Biostatistics*, **20(3)**, 499-516.

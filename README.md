@@ -13,7 +13,9 @@
 
 **metapack** takes advantage of formula-parsing to extract relevant information to configure a meta-analytic model. Aside from the data characteristic (aggregate v. IPD) and the response type (univariate v. multivariate), all other modeling choices fall into prior specification.
 
-To see the model specification, please refer to the corresponding papers or the long-form vignette of this package.
+To see the model specification, please refer to the corresponding papers, the long-form vignette of this package, or the following paper:
+
++ Lim, D., Chen, M. H., Ibrahim, J. G., Kim, S., Shah, A. K., & Lin, J. (2022). metapack: An R Package for Bayesian Meta-Analysis and Network Meta-Analysis with a Unified Formula Interface. The R journal, 14(3), 142.
 
 ## Installation
 ```r
@@ -21,10 +23,10 @@ install.packages("metapack")
 ```
 
 ## Getting help
-If you encounter a clear bug, please file an issue with a minimal reproducible example on [GitHub](https://github.com/daeyounglim/metapack/issues). For questions and other discussion, please email the [maintainer](mailto:daeyoung.lim@uconn.edu).
+If you encounter a clear bug, please file an issue with a minimal reproducible example on [GitHub](https://github.com/daeyounglim/metapack/issues). For questions and other discussion, please email the [maintainer](mailto:Daeyoung.Lim@fda.hhs.gov).
 
 ## Authors
-+ Daeyoung Lim <daeyoung.lim@uconn.edu>
++ Daeyoung Lim <Daeyoung.Lim@fda.hhs.gov>
 + Ming-Hui Chen <ming-hui.chen@uconn.edu>
 + Sungduk Kim <kims2@mail.nih.gov>
 + Joseph G. Ibrahim <ibrahim@bios.unc.edu>

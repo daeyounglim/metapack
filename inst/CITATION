@@ -1,6 +1,6 @@
 citHeader("To cite metapack in publications use:")
 
-citEntry(
+bibEntry(
   entry    = "Article",
   title    = "metapack: An R Package for Bayesian Meta-Analysis and Network Meta-Analysis with a Unified Formula Interface",
   author   = c(
