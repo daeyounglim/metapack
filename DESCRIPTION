@@ -28,5 +28,5 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-URL: http://events.stat.uconn.edu/metapack/
+URL: https://events.stat.uconn.edu/metapack/
 BugReports: https://github.com/daeyounglim/metapack/issues
