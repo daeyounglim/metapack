@@ -11,7 +11,7 @@ This is a resubmission. In this version I have:
 * R-hub builder (https://builder.r-hub.io)
     * Windows Server 2022, R-devel, 64 bit
         > ❯ checking CRAN incoming feasibility ... NOTE
-            Maintainer: 'Daeyoung Lim <Daeyoung.Lim@fda.hhs.gov>'
+            Maintainer: 'Daeyoung Lim <Daeyoung.Lim@fda.hhs.gov>'****
   
             New maintainer:
               Daeyoung Lim <Daeyoung.Lim@fda.hhs.gov>
@@ -31,24 +31,6 @@ This is a resubmission. In this version I have:
     * Ubuntu Linux 20.04.1 LTS, R-release, GCC
     * Fedora Linux, R-devel, clang, gfortran
     * Debian Linux, R-devel, GCC ASAN/UBSAN
-
-## R CMD check results
-* checking CRAN incoming feasibility ... NOTE
-Maintainer: 'Daeyoung Lim <Daeyoung.Lim@fda.hhs.gov>'
-
-Found the following (possibly) invalid URLs:
-  URL: https://onlinelibrary.wiley.com/doi/10.1002/jrsm.1044
-    From: man/bmeta_analyze.Rd
-    Status: 503
-    Message: Service Unavailable
-Found the following (possibly) invalid DOIs:
-  DOI: 10.1002/sim.8983
-    From: DESCRIPTION
-    Status: Service Unavailable
-
-    Message: 503
-
-The URL and DOI are valid and I've checked that they work, but I couldn't figure out a way to make this note go away.
 
 ## Downstream dependencies
 There are no downstream dependencies for this package.
