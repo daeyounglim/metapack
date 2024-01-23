@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/daeyounglim/metapack.svg?branch=master)](https://travis-ci.org/daeyounglim/metapack)
 [![R build status](https://github.com/daeyounglim/metapack/workflows/R-CMD-check/badge.svg)](https://github.com/daeyounglim/metapack/actions)
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/metapack)](https://cran.r-project.org/package=metapack)
 [![](https://img.shields.io/github/last-commit/daeyounglim/metapack.svg)](https://github.com/daeyounglim/metapack/commits/master)
